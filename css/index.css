@@ -1,0 +1,166 @@
+/* 首页样式 */
+.index-container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* 个人资料部分 */
+.profile-section {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.avatar {
+  margin-bottom: 20px;
+}
+
+.avatar-img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent-color);
+  transition: transform 0.3s ease;
+}
+
+.avatar-img:hover {
+  transform: scale(1.05);
+}
+
+.site-title {
+  font-size: 2rem;
+  margin: 10px 0;
+  color: var(--primary-color);
+}
+
+.site-slogan {
+  font-size: 1.2rem;
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.social-link {
+  padding: 5px 15px;
+  background-color: var(--card-background);
+  border-radius: 20px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.social-link:hover {
+  background-color: var(--accent-color);
+  color: white;
+  transform: translateY(-3px);
+}
+
+/* 文章列表部分 */
+.posts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post-item {
+  display: flex;
+  padding: 15px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.post-date {
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
+.post-info {
+  flex: 1;
+}
+
+.post-title {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+}
+
+.post-meta {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--light-text-color);
+}
+
+.post-categories, .post-tags {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.category-link, .tag-link {
+  color: var(--accent-color);
+  transition: color 0.2s ease;
+}
+
+.category-link:hover, .tag-link:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.prev-page, .next-page {
+  padding: 8px 15px;
+  background-color: var(--card-background);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.prev-page:hover, .next-page:hover {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.page-number {
+  color: var(--secondary-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .post-item {
+    flex-direction: column;
+  }
+  
+  .post-date {
+    margin-bottom: 10px;
+    min-width: auto;
+  }
+  
+  .post-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}
