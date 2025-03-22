@@ -1,109 +1,281 @@
 
 
 <!DOCTYPE html>
-<html lang="ZH-CN">
+<html lang="ZH-CN" data-default-color-scheme=auto>
+
+
+
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="renderer" content="webkit">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="description" content="记录学习与生活的点滴">
-  <meta name="keywords" content="blog,hexo,solo,coding">
-  <title>report - yhchen&#39;s blog</title>
-  <link rel="shortcut icon" href="/favicon.ico">
-  <link rel="icon" href="/favicon.ico">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Kimi1.5 采取的训练流程:  1234567891011121314151617181920212223graph LR    A[预训练阶段] --&gt; B[普通SFT]    B --&gt; C[Long-CoT SFT]    C --&gt; D[强化学习]    D --&gt; E[Long2short 优化]        A:::pretrain    B:::sft">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kimi1.5 technical report">
+<meta property="og:url" content="http://example.com/2025/03/22/kimi1-5-technical-report/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="Kimi1.5 采取的训练流程:  1234567891011121314151617181920212223graph LR    A[预训练阶段] --&gt; B[普通SFT]    B --&gt; C[Long-CoT SFT]    C --&gt; D[强化学习]    D --&gt; E[Long2short 优化]        A:::pretrain    B:::sft">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-22T08:36:07.000Z">
+<meta property="article:modified_time" content="2025-03-22T08:41:23.213Z">
+<meta property="article:author" content="yhchen">
+<meta name="twitter:card" content="summary_large_image">
   
   
-    <!-- stylesheets list from theme config.yml -->
-    
-      <link rel="stylesheet" href="/css/solo.css">
-    
-      <link rel="stylesheet" href="/css/header.css">
-    
-      <link rel="stylesheet" href="/css/footer.css">
-    
-      <link rel="stylesheet" href="/css/dark-mode-toggle.css">
-    
+  
+  <title>kimi1.5 technical report - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
   
 <meta name="generator" content="Hexo 7.3.0"></head>
 
+
 <body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <link rel="stylesheet" href="/css/header.css">
-<div class="header">
-  <div class="logo">
-    <span class="site-name">
-      <a href="/">
-        yhchen&#39;s blog
-      </a>
-    </span>
-  </div>
-  <ul class="nav-list">
-    
-      <li>
-        <a href="/">
-          首页
-        </a>
-      </li>
-    
-      <li>
-        <a href="/notes">
-          笔记
-        </a>
-      </li>
-    
-      <li>
-        <a href="/categories">
-          分类
-        </a>
-      </li>
-    
-      <li>
-        <a href="/tags">
-          标签
-        </a>
-      </li>
-    
-      <li>
-        <a href="/archives">
-          归档
-        </a>
-      </li>
-    
-      <li>
-        <a href="/about">
-          关于
-        </a>
-      </li>
-    
-  </ul>
-  
-    <div class="theme-switch" title="切换主题模式">
-      <i class="theme-icon light">🌙</i>
-      <i class="theme-icon dark">☀️</i>
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
     </div>
+  </div>
+</nav>
+
   
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="kimi1.5 technical report"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-22 16:36" pubdate>
+          2025年3月22日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.8k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          32 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
 </div>
+
+</div>
+
+  </header>
+
+  <main>
     
-    <div id="content-outer">
-      <div class="content-inner">
-        <link rel="stylesheet" href="/css/post.css">
-<link rel="stylesheet" href="/css/toc.css">
-<div class="post-container">
-  <div class="post-header">
-    <h1 class="post-title">report</h1>
-    <div class="post-meta">
-      <span class="post-date"><i class="date-icon">📅</i> 2025-03-22</span>
       
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
       
-      
-      
+
     </div>
-  </div>
-  
-  <div class="post-wrapper">
-    <div class="post-content">
-      <h1 id="Kimi1-5-技术报告-解读"><a href="#Kimi1-5-技术报告-解读" class="headerlink" title="Kimi1.5 技术报告 解读"></a>Kimi1.5 技术报告 解读</h1><p><strong>Kimi1.5 采取的训练流程</strong>: </p>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">kimi1.5 technical report</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p><strong>Kimi1.5 采取的训练流程</strong>: </p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">graph LR</span><br><span class="line">    A[预训练阶段] --&gt; B[普通SFT]</span><br><span class="line">    B --&gt; C[Long-CoT SFT]</span><br><span class="line">    C --&gt; D[强化学习]</span><br><span class="line">    D --&gt; E[Long2short 优化]</span><br><span class="line">    </span><br><span class="line">    A:::pretrain</span><br><span class="line">    B:::sft</span><br><span class="line">    C:::longcot</span><br><span class="line">    D:::rl</span><br><span class="line">    E:::long2short</span><br><span class="line">    </span><br><span class="line">    classDef pretrain fill:#4CAF50,color:white</span><br><span class="line">    classDef sft fill:#2196F3,color:white</span><br><span class="line">    classDef longcot fill:#FF9800,color:white</span><br><span class="line">    classDef rl fill:#9C27B0,color:white</span><br><span class="line">    classDef long2short fill:#FF5722,color:white</span><br><span class="line">    </span><br><span class="line">    click A callback &quot;预训练阶段：多模态数据训练基础能力&quot;</span><br><span class="line">    click B callback &quot;普通SFT：基础指令对齐&quot;</span><br><span class="line">    click C callback &quot;Long-CoT SFT：长文本推理能力强化&quot;</span><br><span class="line">    click D callback &quot;强化学习：优化生成策略&quot;</span><br><span class="line">    click E callback &quot;Long2short：长文本到短文本的转换训练&quot;</span><br></pre></td></tr></table></figure>
 
 <hr>
@@ -120,7 +292,7 @@
 </li>
 </ol>
 <blockquote>
-<p>[!NOTE] 冷却阶段(退火阶段)</p>
+<p>[!NOTE]<br>冷却阶段(退火阶段)</p>
 <ol>
 <li><strong>能力巩固</strong></li>
 </ol>
@@ -166,7 +338,7 @@
 </li>
 </ul>
 <blockquote>
-<p>[!warning] 需要注意的是！<br>Cooldown 阶段可不是 SFT哦！(<strong>而是针对性预训练</strong>)</p>
+<p>[!warning]<br>需要注意的是！<br>Cooldown 阶段可不是 SFT哦！(<strong>而是针对性预训练</strong>)</p>
 <p>在论文的附录B中有介绍到，这里的阶段还是 pre-train，因为训练目标任务仍然是 NTP (next token prediction)</p>
 </blockquote>
 <table>
@@ -220,7 +392,7 @@
 </blockquote>
 <hr>
 <h2 id="3-Long-CoT-SFT-部分细节"><a href="#3-Long-CoT-SFT-部分细节" class="headerlink" title="3. Long-CoT SFT 部分细节"></a>3. Long-CoT SFT 部分细节</h2><blockquote>
-<p>[!tip] 前提<br>构建 高质量 强化学习prompt 对模型推理效果非常好, 可以避免奖励作弊（reward hacking）和过拟合</p>
+<p>[!tip]<br>前提<br>构建 高质量 强化学习prompt 对模型推理效果非常好, 可以避免奖励作弊（reward hacking）和过拟合</p>
 <ol>
 <li><strong>多样性覆盖</strong>:</li>
 </ol>
@@ -272,7 +444,7 @@
 <hr>
 <h3 id="4-2-问题设定"><a href="#4-2-问题设定" class="headerlink" title="4.2 问题设定:"></a>4.2 问题设定:</h3><p><strong>优化目标函数</strong>:<br>$$\max_\theta\mathbb{E}<em>{(x,y^*)\thicksim\mathcal{D},(y,z)\thicksim\pi</em>\theta}\left[r(x,y,y^*)\right]\mathrm{~.}$$</p>
 <blockquote>
-<p>[!tip] <strong>核心要点解释</strong>: </p>
+<p>[!tip]<br><strong>核心要点解释</strong>: </p>
 <ol>
 <li><strong>方法</strong>：用强化学习（RL）训练模型生成<strong>思维链（CoT）</strong>，通过奖励机制优化策略。</li>
 <li><strong>奖励设计</strong>：</li>
@@ -340,7 +512,7 @@
 <p>最终，通过<strong>梯度下降优化</strong>替代损失函数  $L(\theta)$ 。对于每个问题  $x$ ，从参考策略  $\pi_{\theta_i}$  中采样  $k$  个响应  $(y_j, z_j)$ ，梯度公式为：</p>
 <p>$$\frac{1}{k} \sum_{j&#x3D;1}^k \left( \nabla_\theta \log \pi_\theta(y_j, z_j | x) (r(x, y_j, y^*) - \bar{r}) - \frac{\tau}{2} \nabla_\theta \left( \log \frac{\pi_\theta(y_j, z_j | x)}{\pi_{\theta_i}(y_j, z_j | x)} \right)^2 \right)$$</p>
 <blockquote>
-<p>[!tip] <strong>梯度项的意义</strong></p>
+<p>[!tip]<br><strong>梯度项的意义</strong></p>
 <ul>
 <li>第一项  $\nabla_\theta \log \pi_\theta(y_j, z_j | x) (r(x, y_j, y^*) - \bar{r})$  是奖励驱动的更新，鼓励策略向高奖励的方向调整。</li>
 <li>第二项  $\frac{\tau}{2} \nabla_\theta \left( \log \frac{\pi_\theta(y_j, z_j | x)}{\pi_{\theta_i}(y_j, z_j | x)} \right)^2$  是正则化项，确保新策略不偏离参考策略太多。(&#x3D;&#x3D;用平方是因为可以更敏感， L2正则化?&#x3D;&#x3D;)</li>
@@ -366,101 +538,337 @@
 <p>$$\pi^<em>(y, z|x) &#x3D; \frac{\pi_{\theta_i}(y, z|x) \exp\left( \frac{r(x, y, y^</em>)}{\tau} \right)}{Z} \tag{11}$$</p>
 <p>证明完毕。</p>
 
-    </div>
-    
-    <div class="post-sidebar">
-      
-  <div class="toc-container">
-    <div class="toc-title">文章目录</div>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Kimi1-5-%E6%8A%80%E6%9C%AF%E6%8A%A5%E5%91%8A-%E8%A7%A3%E8%AF%BB"><span class="toc-text">Kimi1.5 技术报告 解读</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%A2%84%E8%AE%AD%E7%BB%83%E9%98%B6%E6%AE%B5%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82"><span class="toc-text">1. 预训练阶段的一些细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%99%AE%E9%80%9ASFT%E9%98%B6%E6%AE%B5%E7%9A%84%E7%BB%86%E8%8A%82"><span class="toc-text">2. 普通SFT阶段的细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Long-CoT-SFT-%E9%83%A8%E5%88%86%E7%BB%86%E8%8A%82"><span class="toc-text">3. Long-CoT SFT 部分细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%9A%84%E9%83%A8%E5%88%86%E7%BB%86%E8%8A%82"><span class="toc-text">4.强化学习的部分细节</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9E%84%E9%80%A0"><span class="toc-text">4.1 数据集构造</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%97%AE%E9%A2%98%E8%AE%BE%E5%AE%9A"><span class="toc-text">4.2 问题设定:</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A4-2%E4%B8%AD%E9%97%AD%E5%BC%8F%E8%A7%A3%E6%8E%A8%E5%AF%BC"><span class="toc-text">附录：4.2中闭式解推导</span></a></li></ol></li></ol>
-  </div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
   
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const tocLinks = document.querySelectorAll('.toc-link');
-      const headings = document.querySelectorAll('.post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6');
-      
-      if (tocLinks.length === 0 || headings.length === 0) return;
-      
-      // 监听滚动事件，高亮当前阅读位置
-      window.addEventListener('scroll', function() {
-        let currentHeadingIndex = 0;
-        const scrollPosition = window.scrollY;
-        
-        // 找到当前滚动位置对应的标题
-        for (let i = 0; i < headings.length; i++) {
-          const heading = headings[i];
-          const nextHeading = headings[i + 1];
-          
-          // 检查当前滚动位置是否在当前标题和下一个标题之间
-          if (
-            heading.offsetTop - 100 <= scrollPosition && 
-            (!nextHeading || nextHeading.offsetTop - 100 > scrollPosition)
-          ) {
-            currentHeadingIndex = i;
-            break;
-          }
-        }
-        
-        // 移除所有活动类
-        tocLinks.forEach(link => {
-          link.parentElement.classList.remove('active');
-        });
-        
-        // 为当前标题添加活动类
-        if (headings[currentHeadingIndex]) {
-          const id = headings[currentHeadingIndex].id;
-          const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
-          if (activeLink) {
-            activeLink.parentElement.classList.add('active');
-          }
-        }
-      });
-      
-      // 初始触发一次滚动事件，以高亮初始位置
-      window.dispatchEvent(new Event('scroll'));
-    });
-  </script>
+  
+</div>
 
-    </div>
-  </div>
+
+              
   
-  <div class="post-footer">
-    <div class="post-nav">
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>kimi1.5 technical report</div>
+      <div>http://example.com/2025/03/22/kimi1-5-technical-report/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>yhchen</div>
+        </div>
       
       
-        <div class="post-nav-next">
-          <a href="/2025/03/22/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/" class="next-post">
-            测试文章 <i class="nav-icon-next">→</i>
-          </a>
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>2025年3月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
         </div>
       
     </div>
+    <div class="license-icon iconfont"></div>
   </div>
-  
-  
-</div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/22/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/" title="测试文章">
+                        <span class="hidden-mobile">测试文章</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
       </div>
     </div>
-    
-    <link rel="stylesheet" href="/css/footer.css">
-<div class="footer">
-  <div class="footer-inner">
-    <div class="copyright">
-      &copy; 2025 yhchen
-    </div>
-    <div class="edit-time">
-      <span>最后编辑时间：2025/3/22 16:00:09</span>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
     </div>
   </div>
 </div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
   </div>
-  
-  
-    <!-- scripts list from theme config.yml -->
+</div>
+
     
-      <script src="/js/solo.js"></script>
+
     
+  </main>
+
+  <footer>
+    <div class="footer-inner">
   
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
 </body>
 </html>
