@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html>
+<html lang="ZH-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="记录学习与生活的点滴">
+  <meta name="keywords" content="blog,hexo,solo,coding">
+  <title>report - yhchen&#39;s blog</title>
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="icon" href="/favicon.ico">
+  
+  
+    <!-- stylesheets list from theme config.yml -->
+    
+      <link rel="stylesheet" href="/css/solo.css">
+    
+      <link rel="stylesheet" href="/css/header.css">
+    
+      <link rel="stylesheet" href="/css/footer.css">
+    
+      <link rel="stylesheet" href="/css/dark-mode-toggle.css">
+    
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div class="container">
+    <link rel="stylesheet" href="/css/header.css">
+<div class="header">
+  <div class="logo">
+    <span class="site-name">
+      <a href="/">
+        yhchen&#39;s blog
+      </a>
+    </span>
+  </div>
+  <ul class="nav-list">
+    
+      <li>
+        <a href="/">
+          首页
+        </a>
+      </li>
+    
+      <li>
+        <a href="/notes">
+          笔记
+        </a>
+      </li>
+    
+      <li>
+        <a href="/categories">
+          分类
+        </a>
+      </li>
+    
+      <li>
+        <a href="/tags">
+          标签
+        </a>
+      </li>
+    
+      <li>
+        <a href="/archives">
+          归档
+        </a>
+      </li>
+    
+      <li>
+        <a href="/about">
+          关于
+        </a>
+      </li>
+    
+  </ul>
+  
+    <div class="theme-switch" title="切换主题模式">
+      <i class="theme-icon light">🌙</i>
+      <i class="theme-icon dark">☀️</i>
+    </div>
+  
+</div>
+    
+    <div id="content-outer">
+      <div class="content-inner">
+        <link rel="stylesheet" href="/css/post.css">
+<link rel="stylesheet" href="/css/toc.css">
+<div class="post-container">
+  <div class="post-header">
+    <h1 class="post-title">report</h1>
+    <div class="post-meta">
+      <span class="post-date"><i class="date-icon">📅</i> 2025-03-22</span>
+      
+      
+      
+      
+    </div>
+  </div>
+  
+  <div class="post-wrapper">
+    <div class="post-content">
+      <h1 id="Kimi1-5-技术报告-解读"><a href="#Kimi1-5-技术报告-解读" class="headerlink" title="Kimi1.5 技术报告 解读"></a>Kimi1.5 技术报告 解读</h1><p><strong>Kimi1.5 采取的训练流程</strong>: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">graph LR</span><br><span class="line">    A[预训练阶段] --&gt; B[普通SFT]</span><br><span class="line">    B --&gt; C[Long-CoT SFT]</span><br><span class="line">    C --&gt; D[强化学习]</span><br><span class="line">    D --&gt; E[Long2short 优化]</span><br><span class="line">    </span><br><span class="line">    A:::pretrain</span><br><span class="line">    B:::sft</span><br><span class="line">    C:::longcot</span><br><span class="line">    D:::rl</span><br><span class="line">    E:::long2short</span><br><span class="line">    </span><br><span class="line">    classDef pretrain fill:#4CAF50,color:white</span><br><span class="line">    classDef sft fill:#2196F3,color:white</span><br><span class="line">    classDef longcot fill:#FF9800,color:white</span><br><span class="line">    classDef rl fill:#9C27B0,color:white</span><br><span class="line">    classDef long2short fill:#FF5722,color:white</span><br><span class="line">    </span><br><span class="line">    click A callback &quot;预训练阶段：多模态数据训练基础能力&quot;</span><br><span class="line">    click B callback &quot;普通SFT：基础指令对齐&quot;</span><br><span class="line">    click C callback &quot;Long-CoT SFT：长文本推理能力强化&quot;</span><br><span class="line">    click D callback &quot;强化学习：优化生成策略&quot;</span><br><span class="line">    click E callback &quot;Long2short：长文本到短文本的转换训练&quot;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<blockquote>
+<p>[!tip] 原论文<br><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2501.12599">Kimi k1.5: Scaling Reinforcement Learning with LLMs</a></p>
+</blockquote>
+<h2 id="1-预训练阶段的一些细节"><a href="#1-预训练阶段的一些细节" class="headerlink" title="1. 预训练阶段的一些细节"></a>1. 预训练阶段的一些细节</h2><p>Kimi的预训练阶段包含&#x3D;&#x3D;<strong>三个阶段</strong>&#x3D;&#x3D;，结合多模态数据（文本、视觉、OCR等）进行分阶段训练:</p>
+<ol>
+<li><p><strong>视觉-语言预训练阶段</strong><br>建立语言基础能力并逐步融合多模态数据，通过文本与视觉信息的联合训练提升跨模态理解能力</p>
+</li>
+<li><p><strong>冷启动阶段（冷却阶段）</strong><br>通过模型融合（Model Fusion）等技术优化模型性能，可能涉及对初始预训练模型的参数调整或架构改进</p>
+</li>
+<li><p><strong>长文本激活阶段</strong><br>在预训练后期引入长文本数据集（如扩展至128K上下文长度），增强模型对长文本的理解和生成能力。此阶段通过严格的数据质量控制，确保训练数据的相关性、多样性及平衡性</p>
+</li>
+</ol>
+<blockquote>
+<p>[!NOTE] 冷却阶段(退火阶段)</p>
+<ol>
+<li><strong>能力巩固</strong></li>
+</ol>
+<ul>
+<li>在初始的Vision-language预训练后，模型已具备基础的多模态理解能力。Cooldown阶段通过<strong>精选数据（curated data）​</strong>和<strong>合成数据（synthetic data）​</strong>，进一步强化模型在需要逻辑推理（如数学、代码）和知识处理（如事实性问答）任务上的表现。</li>
+<li>例如，可能针对数学问题生成更多变体，或通过知识图谱增强事实性问答的训练数据。</li>
+</ul>
+<hr>
+<ol start="2">
+<li><strong>数据优化</strong></li>
+</ol>
+<ul>
+<li><strong>精选数据</strong>：选择高质量、高难度的样本（如竞赛题目、专业领域问题），提升模型处理复杂问题的能力。</li>
+<li><strong>合成数据</strong> ：利用规则或生成模型（如自动生成代码测试用例、数学证明步骤）创建针对性数据，填补真实数据中的不足，增强泛化性。</li>
+</ul>
+<hr>
+<ol start="3">
+<li><strong>过渡到长上下文训练</strong>：</li>
+</ol>
+<ul>
+<li>在进入<strong>Long-context activation</strong>​（支持128k tokens的上下文）前，cooldown阶段确保模型在<strong>短上下文任务中足够鲁棒</strong>。例如:<ul>
+<li>解决数学题时，模型需精准定位关键步骤，避免长上下文中的干扰。</li>
+<li>处理知识问答时，快速检索相关信息，减少冗余推理</li>
+</ul>
+</li>
+</ul>
+<hr>
+<ol start="4">
+<li><strong>训练策略调整</strong></li>
+</ol>
+<ul>
+<li>可能降低学习率或调整优化器参数，避免预训练后的性能震荡</li>
+<li>采用课程学习（Curriculum Learning），从简单任务逐步过渡到复杂任务，平衡模型的学习曲线</li>
+</ul>
+</blockquote>
+<p><strong>对比其他阶段</strong>：</p>
+<ul>
+<li>​<strong>预训练（Vision-language）​</strong>：广泛学习语言和多模态关联（如图文匹配）。</li>
+<li>​<strong>Cooldown</strong>：针对性强化推理和知识任务，类似“专项特训”。</li>
+<li>​<strong>Long-context activation</strong>：扩展上下文容量，适配长文本&#x2F;多模态输入（如整本书分析、复杂流程图解析）。<blockquote>
+<p>并且 long-context activation 这一步是渐进拓展的，4k -&gt; 32k -&gt; 128k (原文提到)</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>[!warning] 需要注意的是！<br>Cooldown 阶段可不是 SFT哦！(<strong>而是针对性预训练</strong>)</p>
+<p>在论文的附录B中有介绍到，这里的阶段还是 pre-train，因为训练目标任务仍然是 NTP (next token prediction)</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th>​<strong>Cooldown阶段</strong></th>
+<th>​<strong>监督微调（SFT）​</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>主要目标</strong></td>
+<td>​<strong>巩固多模态能力</strong>​（推理、知识、跨模态对齐）</td>
+<td>​<strong>适应特定任务</strong>​（如对话、分类、生成）</td>
+</tr>
+<tr>
+<td>​<strong>数据性质</strong></td>
+<td>混合使用<strong>精选数据（高难度任务）​</strong>与<strong>合成数据</strong></td>
+<td>主要依赖<strong>人工标注的高质量任务数据</strong>​（如问答对）</td>
+</tr>
+<tr>
+<td>​<strong>训练范围</strong></td>
+<td>覆盖<strong>多任务、多领域</strong>​（如数学、代码、事实问答）</td>
+<td>聚焦<strong>单一任务或垂直领域</strong>​（如客服对话）</td>
+</tr>
+<tr>
+<td>​<strong>优化策略</strong></td>
+<td>可能调整学习率、优化器，但<strong>不显著改变模型架构</strong></td>
+<td>可能修改损失函数或添加任务头（如分类器）</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p><strong>Cooldown</strong>更接近<strong>通用能力的预训练延伸</strong>，而<strong>SFT</strong>是<strong>任务导向的最终适配</strong>。</p>
+</li>
+<li><p>如果cooldown阶段大量使用人工标注的监督数据，则可视为<strong>广义的SFT</strong>；但若以合成&#x2F;弱监督数据为主，则与SFT有本质区别。</p>
+</li>
+<li><p>&#x3D;&#x3D;实际论文中需结合具体实现判断&#x3D;&#x3D;，但核心差异在于<strong>是否以任务性能为直接优化目标</strong>。</p>
+</li>
+</ul>
+<hr>
+<h2 id="2-普通SFT阶段的细节"><a href="#2-普通SFT阶段的细节" class="headerlink" title="2. 普通SFT阶段的细节"></a>2. 普通SFT阶段的细节</h2><blockquote>
+<p>[!NOTE]<br>数据集大小：100w</p>
+</blockquote>
+<p><strong>训练细节：</strong></p>
+<ol>
+<li>epoch 1用的32k，后面的epoch全是128k （不用连续多几个epoch训练32吗？）</li>
+<li>epoch 1学习率从2 × 10⁻⁵下降到2 × 10⁻⁶, 后面是重新预热到1 × 10⁻⁵，最后下降到1 × 10⁻⁶</li>
+</ol>
+<blockquote>
+<p>这种策略被称为 <strong>增加上下文长度的训练（Increasing Context Length Training）</strong> 或者叫**课程学习（Curriculum Learning）</p>
+</blockquote>
+<hr>
+<h2 id="3-Long-CoT-SFT-部分细节"><a href="#3-Long-CoT-SFT-部分细节" class="headerlink" title="3. Long-CoT SFT 部分细节"></a>3. Long-CoT SFT 部分细节</h2><blockquote>
+<p>[!tip] 前提<br>构建 高质量 强化学习prompt 对模型推理效果非常好, 可以避免奖励作弊（reward hacking）和过拟合</p>
+<ol>
+<li><strong>多样性覆盖</strong>:</li>
+</ol>
+<ul>
+<li><strong>领域广泛性</strong> ：涵盖STEM、编程、通用推理等多学科，支持跨领域适应性</li>
+<li><strong>数据来源</strong> ：整合竞赛题目、文本和图文问答数据，通过自动过滤筛选需复杂推理且易验证的问题。</li>
+<li><strong>标签系统</strong> ：按学科和领域分类，确保均衡分布（如引用文献中的分类方法）</li>
+</ul>
+<ol>
+<li><strong>难度平衡</strong>(&#x3D;&#x3D;重要&#x3D;&#x3D;)</li>
+</ol>
+<ul>
+<li><strong>动态评估</strong> ：利用SFT模型对提示的难度进行自适应评估, 通过率低代表难度越高</li>
+<li><strong>分级分布</strong> ：混合简单、中等、困难问题，避免模型过度依赖特定难度。(类似课程学习)</li>
+</ul>
+<ol>
+<li><strong>可验证性</strong>（&#x3D;&#x3D;重要&#x3D;&#x3D;）</li>
+</ol>
+<ul>
+<li><strong>排除易攻击问题</strong> ：移除选择题、判断题、证明题等易通过猜测或错误推理蒙混过关的题型。</li>
+<li><strong>反奖励黑客策略</strong>：要求模型在无推理链（CoT）的情况下尝试回答，若在N次尝试内猜中答案（N&#x3D;8），则剔除该prompt （<em>说明这个问题很简单，不需要推理，不利于这种策略训练</em>）</li>
+</ul>
+</blockquote>
+<p><strong>Long-CoT SFT的核心目标:</strong></p>
+<p>通过构建高质量的“长链推理”（Long-CoT）数据集，提升模型生成逻辑连贯、细节丰富的推理过程的能力。</p>
+<p><strong>怎么做</strong>：  </p>
+<ol>
+<li><p><strong>数据集设计</strong>：  </p>
+<ul>
+<li>用筛选后的高质量问题，搭配<strong>人工验证的完整推理路径</strong>（类似“一步步解题的参考答案”）。  </li>
+<li>包含文本和图文混合的问题，覆盖多种推理类型（如数学、代码、常识）。</li>
+</ul>
+</li>
+<li><p><strong>训练方法</strong>：  </p>
+<ul>
+<li><strong>轻量微调</strong>：在小而精的数据集上训练模型，重点学习如何：  <ul>
+<li><strong>分步骤规划</strong>（先想好怎么解题再动手）；  </li>
+<li><strong>检查中间步骤</strong>（及时发现错误）；  </li>
+<li><strong>尝试不同解法</strong>（灵活调整思路）。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>效果</strong>：模型回答更像人类思考——<strong>逻辑连贯、细节丰富</strong>，尤其在复杂任务（如长文本生成、多步骤推理）中表现更好。  </p>
+<p><strong>一句话总结</strong>：用“一步步教模型怎么想”的数据集，让它学会像人一样详细、严谨地解决问题。</p>
+<hr>
+<h2 id="4-强化学习的部分细节"><a href="#4-强化学习的部分细节" class="headerlink" title="4.强化学习的部分细节"></a>4.强化学习的部分细节</h2><h3 id="4-1-数据集构造"><a href="#4-1-数据集构造" class="headerlink" title="4.1 数据集构造"></a>4.1 数据集构造</h3><p>(第3部分讲了一点，就是Long-CoT SFT的前提)</p>
+<hr>
+<h3 id="4-2-问题设定"><a href="#4-2-问题设定" class="headerlink" title="4.2 问题设定:"></a>4.2 问题设定:</h3><p><strong>优化目标函数</strong>:<br>$$\max_\theta\mathbb{E}<em>{(x,y^*)\thicksim\mathcal{D},(y,z)\thicksim\pi</em>\theta}\left[r(x,y,y^*)\right]\mathrm{~.}$$</p>
+<blockquote>
+<p>[!tip] <strong>核心要点解释</strong>: </p>
+<ol>
+<li><strong>方法</strong>：用强化学习（RL）训练模型生成<strong>思维链（CoT）</strong>，通过奖励机制优化策略。</li>
+<li><strong>奖励设计</strong>：</li>
+</ol>
+<ul>
+<li><strong>可验证问题</strong>（如编程）：奖励由预定义规则决定（如测试用例是否通过）</li>
+<li><strong>自由形式问题</strong>（如开放问答）：训练一个<strong>奖励模型</strong>  $r(x, y, y^<em>)$ ，预测答案 $y$ 是否与真实值 $y^</em>$ 匹配（输出0&#x2F;1, &#x3D;&#x3D;即奖励模型是一个二分类模型&#x3D;&#x3D;）</li>
+</ul>
+<ol>
+<li><strong>生成过程</strong>：</li>
+</ol>
+<ul>
+<li>给定问题 $x$ ，模型 $\pi_\theta$ 生成CoT（ $z$ ）和最终答案（ $y$ ），即：$$z \sim \pi_\theta(\cdot|x), y \sim \pi_\theta(\cdot|x, z)$$</li>
+</ul>
+<ol>
+<li><strong>评估标准</strong>：CoT的质量取决于其能否推导出正确答案（奖励值为1）</li>
+<li><strong>优化目标</strong>：最大化模型生成的CoT和答案的期望奖励，以提升策略 $\pi_\theta$ 。</li>
+</ol>
+<p>注意：<br><strong>策略 $\pi_\theta$</strong> : 控制生成过程的参数化模型</p>
+</blockquote>
+<p><strong>优化策略</strong>：</p>
+<p>一种基于 <strong>在线策略镜像下降（Online Policy Mirror Descent）</strong> 的训练算法，用于解决强化学习或序列决策问题。<br>$$\max_\theta\mathbb{E}<em>{(x,y^*)\thicksim\mathcal{D}}\left[\mathbb{E}</em>{(y,z)\thicksim\pi_\theta}\left[r(x,y,y^*)\right]-\tau\mathrm{KL}(\pi_\theta(x)||\pi_{\theta_i}(x))\right]$$</p>
+<blockquote>
+<p>[!tip]<br>其中:</p>
+<ul>
+<li>$\mathcal{D}$  是数据分布，表示输入 $x$  和目标  $y^*$  的联合分布。</li>
+<li>$r(x, y, y^<em>)$  是奖励函数，衡量策略  $\pi_\theta$  的输出  $(y, z)$  与目标  $y^</em>$  的匹配程度。</li>
+<li>$\text{KL}(\pi_\theta(x) | \pi_{\theta_i}(x))$  是策略  $\pi_\theta$  和参考策略  $\pi_{\theta_i}$  的 <strong>KL散度</strong>，用于控制新策略与旧策略之间的差异。</li>
+<li>$\tau &gt; 0$  是正则化参数，控制 KL 正则项的强度。</li>
+</ul>
+</blockquote>
+<p><strong>目标函数的意义</strong>：</p>
+<ul>
+<li>第一项  $\mathbb{E}<em>{(y, z) \sim \pi</em>\theta} \left[ r(x, y, y^*) \right]$  表示在当前策略下期望的奖励。</li>
+<li>第二项  $\tau \text{KL}(\pi_\theta(x) | \pi_{\theta_i}(x))$  是正则化项，确保新策略不会偏离参考策略太多，从而保持策略的稳定性。<blockquote>
+<p>跟DPO等强化学习类似, 都是奖励函数 + 一个KL散度（约束奖励函数）</p>
+</blockquote>
+</li>
+</ul>
+<p>这时候，根据优化策略的 <strong>闭式解(Closed-form Solution)</strong> 如下:<br>$$\pi^<em>(y, z | x) &#x3D; \pi_{\theta_i}(y, z | x) \exp(r(x, y, y^</em>) &#x2F; \tau) &#x2F; Z$$</p>
+<blockquote>
+<p>[!tip]<br>其中：</p>
+<ul>
+<li>$Z &#x3D; \sum_{y’, z’} \pi_{\theta_i}(y’, z’ | x) \exp(r(x, y’, y^<em>) &#x2F; \tau)$  是归一化因子，确保  $\pi^</em>(y, z | x)$  是一个有效的概率分布。</li>
+</ul>
+<p><strong>归一化因子的作用</strong>: 归一化因子 $Z$  确保策略的概率分布性质，即所有可能的  $(y, z)$  的概率之和为 1</p>
+<p>$^*$ <strong>闭式解</strong>就是可以通过数学推导直接得到的显式解</p>
+</blockquote>
+<p>通过对上式取对数（<em>非常容易推导，不要被吓到了</em>），可以得到以下约束：<br>$$r(x, y, y^<em>) - \tau \log Z &#x3D; \tau \log \frac{\pi^</em>(y, z | x)}{\pi_{\theta_i}(y, z | x)}.$$</p>
+<p>这一约束允许在优化过程中利用 <strong>离线数据（off-policy data）</strong>，因为  $\pi^<em>$  的形式可以直接从*<em>参考策略</em></em>  $\pi_{\theta_i}$  和<strong>奖励</strong>  $r(x, y, y^*)$  推导出来。</p>
+<blockquote>
+<p>off-policy data 是相对 on-policy data而言，</p>
+<ul>
+<li>on-policy data是智能体通过<strong>当前策略与环境实时交互生成数据</strong>，并立即用于更新策略（例如 SARSA）；</li>
+<li>off-policy data 是智能体使用<strong>预先收集的、由其他策略生成的历史数据</strong>进行训练（例如 Q-Learning、DQN）。</li>
+</ul>
+</blockquote>
+<p><strong>损失函数</strong>：<br>根据上述约束，定义替代损失函数（surrogate loss）：</p>
+<p>$$L(\theta) &#x3D; \mathbb{E}<em>{(x, y^*) \sim \mathcal{D}} \left[ \mathbb{E}</em>{(y, z) \sim \pi_{\theta_i}} \left[ \left( r(x, y, y^*) - \tau \log Z - \tau \log \frac{\pi_\theta(y, z | x)}{\pi_{\theta_i}(y, z | x)} \right)^2 \right] \right]$$</p>
+<p>这一损失函数的目标是使<strong>当前策略</strong>  $\pi_\theta$  尽可能接近<strong>最优策略</strong>  $\pi^*$ ，同时考虑奖励和正则化项。</p>
+<p>由于  $\tau \log Z$  难以直接计算，可以通过<strong>采样近似</strong>：</p>
+<p>$$\tau \log Z \approx \tau \log \frac{1}{k} \sum_{j&#x3D;1}^k \exp(r(x, y_j, y^*) &#x2F; \tau)$$</p>
+<p>其中  $(y_1, z_1), \ldots, (y_k, z_k) \sim \pi_{\theta_i}$ 是从参考策略  $\pi_{\theta_i}$  中采样的样本。</p>
+<p>此外，还可以用采样奖励的均值  $\bar{r} &#x3D; \text{mean}(r(x, y_1, y^<em>), \ldots, r(x, y_k, y^</em>))$  来进一步简化计算，这种方法在实践中效果良好。</p>
+<p>最终，通过<strong>梯度下降优化</strong>替代损失函数  $L(\theta)$ 。对于每个问题  $x$ ，从参考策略  $\pi_{\theta_i}$  中采样  $k$  个响应  $(y_j, z_j)$ ，梯度公式为：</p>
+<p>$$\frac{1}{k} \sum_{j&#x3D;1}^k \left( \nabla_\theta \log \pi_\theta(y_j, z_j | x) (r(x, y_j, y^*) - \bar{r}) - \frac{\tau}{2} \nabla_\theta \left( \log \frac{\pi_\theta(y_j, z_j | x)}{\pi_{\theta_i}(y_j, z_j | x)} \right)^2 \right)$$</p>
+<blockquote>
+<p>[!tip] <strong>梯度项的意义</strong></p>
+<ul>
+<li>第一项  $\nabla_\theta \log \pi_\theta(y_j, z_j | x) (r(x, y_j, y^*) - \bar{r})$  是奖励驱动的更新，鼓励策略向高奖励的方向调整。</li>
+<li>第二项  $\frac{\tau}{2} \nabla_\theta \left( \log \frac{\pi_\theta(y_j, z_j | x)}{\pi_{\theta_i}(y_j, z_j | x)} \right)^2$  是正则化项，确保新策略不偏离参考策略太多。(&#x3D;&#x3D;用平方是因为可以更敏感， L2正则化?&#x3D;&#x3D;)</li>
+</ul>
+</blockquote>
+<hr>
+<h2 id="附录：4-2中闭式解推导"><a href="#附录：4-2中闭式解推导" class="headerlink" title="附录：4.2中闭式解推导"></a>附录：4.2中闭式解推导</h2><p>目标是找到一个策略 $\pi^<em>$，在给定参考策略 $\pi_{\theta_i}$ 的情况下，最大化期望奖励的同时限制策略变化幅度。<br>$$\max_{\pi} \mathbb{E}_{(x, y^</em>) \sim \mathcal{D}} \left[ \mathbb{E}<em>{(y, z) \sim \pi(\cdot|x)} \left[ r(x, y, y^*) \right] - \tau \cdot \text{KL}(\pi(\cdot|x) | \pi</em>{\theta_i}(\cdot|x)) \right] \tag{1}$$</p>
+<p>根据 KL散度定义:<br>$$\text{KL}(\pi | \pi_{\theta_i}) &#x3D; \mathbb{E}<em>{(y, z) \sim \pi} \left[ \log \frac{\pi(y, z|x)}{\pi</em>{\theta_i}(y, z|x)} \right] \tag{2}$$</p>
+<p>把 （2）带入 （1）中，结果如下:<br>$$\max_{\pi} \mathbb{E}<em>{(x, y^*) \sim \mathcal{D}} \left[ \mathbb{E}</em>{(y, z) \sim \pi} \left[ r(x, y, y^*) - \tau \log \frac{\pi(y, z|x)}{\pi_{\theta_i}(y, z|x)} \right] \right] \tag{3}$$</p>
+<p>把（3）中的期望展开，再加上对数：<br>$$\max_{\pi} \mathbb{E}<em>{x, y^*} \left[ \sum</em>{y, z} \pi(y, z|x) \left( r(x, y, y^<em>) - \tau \log \pi(y, z|x) + \tau \log \pi_{\theta_i}(y, z|x) \right) \right] \tag{4}$$<br>提取公因式进一步整理：<br>$$\max_{\pi} \mathbb{E}_{x, y^</em>} \left[ \sum_{y, z} \pi(y, z|x) \cdot \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) \right) \right] \cdot \tau \tag{5}$$</p>
+<p>由于 $\pi(\cdot|x)$ 是概率分布，需满足归一化约束：</p>
+<p>$$\sum_{y, z} \pi(y, z|x) &#x3D; 1$$</p>
+<p>引入拉格朗日乘子 $\lambda$，构造拉格朗日函数：</p>
+<p>$$\mathcal{L}(\pi, \lambda) &#x3D; \mathbb{E}<em>{x, y^*} \left[ \sum</em>{y, z} \pi(y, z|x) \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) \right) \right] \cdot \tau - \lambda \left( \sum_{y, z} \pi(y, z|x) - 1 \right) \tag{6}$$</p>
+<p>接下来就是拉格朗日乘数法的标准解法，先求导，再领导数为0，就可以得到解（<em>DNA动了吗</em>）。<br>对 $\pi(y, z|x)$ 求导，令导数为零：</p>
+<p>$$\frac{\partial \mathcal{L}}{\partial \pi(y, z|x)} &#x3D; \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) - 1 \right) \cdot \tau - \lambda &#x3D; 0 \tag{7}$$</p>
+<p>整理后得到：<br>$$\log \pi(y, z|x) &#x3D; \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \frac{\lambda}{\tau} - 1 \tag{8}$$</p>
+<p>对两边取 $e$ 为底的指数：</p>
+<p>$$\pi(y, z|x) &#x3D; \pi_{\theta_i}(y, z|x) \cdot \exp\left( \frac{r(x, y, y^*)}{\tau} - \frac{\lambda}{\tau} - 1 \right) \tag{9}$$</p>
+<p>利用归一化约束 $\sum_{y, z} \pi(y, z|x) &#x3D; 1$，定义归一化因子 $Z$：</p>
+<p>$$Z &#x3D; \exp\left( \frac{\lambda}{\tau} + 1 \right) &#x3D; \sum_{y’, z’} \pi_{\theta_i}(y’, z’|x) \exp\left( \frac{r(x, y’, y^*)}{\tau} \right)\tag{10}$$</p>
+<p>最终得到闭式解：</p>
+<p>$$\pi^<em>(y, z|x) &#x3D; \frac{\pi_{\theta_i}(y, z|x) \exp\left( \frac{r(x, y, y^</em>)}{\tau} \right)}{Z} \tag{11}$$</p>
+<p>证明完毕。</p>
+
+    </div>
+    
+    <div class="post-sidebar">
+      
+  <div class="toc-container">
+    <div class="toc-title">文章目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Kimi1-5-%E6%8A%80%E6%9C%AF%E6%8A%A5%E5%91%8A-%E8%A7%A3%E8%AF%BB"><span class="toc-text">Kimi1.5 技术报告 解读</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%A2%84%E8%AE%AD%E7%BB%83%E9%98%B6%E6%AE%B5%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82"><span class="toc-text">1. 预训练阶段的一些细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%99%AE%E9%80%9ASFT%E9%98%B6%E6%AE%B5%E7%9A%84%E7%BB%86%E8%8A%82"><span class="toc-text">2. 普通SFT阶段的细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Long-CoT-SFT-%E9%83%A8%E5%88%86%E7%BB%86%E8%8A%82"><span class="toc-text">3. Long-CoT SFT 部分细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%9A%84%E9%83%A8%E5%88%86%E7%BB%86%E8%8A%82"><span class="toc-text">4.强化学习的部分细节</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9E%84%E9%80%A0"><span class="toc-text">4.1 数据集构造</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%97%AE%E9%A2%98%E8%AE%BE%E5%AE%9A"><span class="toc-text">4.2 问题设定:</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A4-2%E4%B8%AD%E9%97%AD%E5%BC%8F%E8%A7%A3%E6%8E%A8%E5%AF%BC"><span class="toc-text">附录：4.2中闭式解推导</span></a></li></ol></li></ol>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tocLinks = document.querySelectorAll('.toc-link');
+      const headings = document.querySelectorAll('.post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6');
+      
+      if (tocLinks.length === 0 || headings.length === 0) return;
+      
+      // 监听滚动事件，高亮当前阅读位置
+      window.addEventListener('scroll', function() {
+        let currentHeadingIndex = 0;
+        const scrollPosition = window.scrollY;
+        
+        // 找到当前滚动位置对应的标题
+        for (let i = 0; i < headings.length; i++) {
+          const heading = headings[i];
+          const nextHeading = headings[i + 1];
+          
+          // 检查当前滚动位置是否在当前标题和下一个标题之间
+          if (
+            heading.offsetTop - 100 <= scrollPosition && 
+            (!nextHeading || nextHeading.offsetTop - 100 > scrollPosition)
+          ) {
+            currentHeadingIndex = i;
+            break;
+          }
+        }
+        
+        // 移除所有活动类
+        tocLinks.forEach(link => {
+          link.parentElement.classList.remove('active');
+        });
+        
+        // 为当前标题添加活动类
+        if (headings[currentHeadingIndex]) {
+          const id = headings[currentHeadingIndex].id;
+          const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
+          if (activeLink) {
+            activeLink.parentElement.classList.add('active');
+          }
+        }
+      });
+      
+      // 初始触发一次滚动事件，以高亮初始位置
+      window.dispatchEvent(new Event('scroll'));
+    });
+  </script>
+
+    </div>
+  </div>
+  
+  <div class="post-footer">
+    <div class="post-nav">
+      
+      
+        <div class="post-nav-next">
+          <a href="/2025/03/22/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/" class="next-post">
+            测试文章 <i class="nav-icon-next">→</i>
+          </a>
+        </div>
+      
+    </div>
+  </div>
+  
+  
+</div>
+      </div>
+    </div>
+    
+    <link rel="stylesheet" href="/css/footer.css">
+<div class="footer">
+  <div class="footer-inner">
+    <div class="copyright">
+      &copy; 2025 yhchen
+    </div>
+    <div class="edit-time">
+      <span>最后编辑时间：2025/3/22 16:00:09</span>
+    </div>
+  </div>
+</div>
+  </div>
+  
+  
+    <!-- scripts list from theme config.yml -->
+    
+      <script src="/js/solo.js"></script>
+    
+  
+</body>
+</html>
