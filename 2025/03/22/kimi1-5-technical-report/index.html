@@ -27,7 +27,7 @@
 <meta property="og:description" content="Kimi1.5 采取的训练流程:  graph LR     A[预训练阶段] --&gt; B[普通SFT]     B --&gt; C[Long-CoT SFT]     C --&gt; D[强化学习]     D --&gt; E[Long2short 优化]          A:::pretrain     B:::sft     C:::longcot     D:::rl">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-22T08:36:07.000Z">
-<meta property="article:modified_time" content="2025-03-22T09:11:15.327Z">
+<meta property="article:modified_time" content="2025-03-22T09:22:40.566Z">
 <meta property="article:author" content="yhchen">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -465,7 +465,7 @@
 <hr>
 <h2 id="4-强化学习的部分细节"><a href="#4-强化学习的部分细节" class="headerlink" title="4.强化学习的部分细节"></a>4.强化学习的部分细节</h2><h3 id="4-1-数据集构造"><a href="#4-1-数据集构造" class="headerlink" title="4.1 数据集构造"></a>4.1 数据集构造</h3><p>(第3部分讲了一点，就是Long-CoT SFT的前提)</p>
 <hr>
-<h3 id="4-2-问题设定"><a href="#4-2-问题设定" class="headerlink" title="4.2 问题设定:"></a>4.2 问题设定:</h3><p><strong>优化目标函数</strong>:<br>$$\max_\theta\mathbb{E}<em>{(x,y^*)\thicksim\mathcal{D},(y,z)\thicksim\pi</em>\theta}\left[r(x,y,y^*)\right]\mathrm{~.}$$</p>
+<h3 id="4-2-问题设定"><a href="#4-2-问题设定" class="headerlink" title="4.2 问题设定:"></a>4.2 问题设定:</h3><p><strong>优化目标函数</strong>:<br>$$\max_\theta\mathbb{E}<em>{(x,y^*)\thicksim\mathcal{D},(y,z)\thicksim\pi</em>\theta}\left[r(x,y,y^*)\right]\mathrm{~}$$</p>
 <blockquote>
 <p>[!tip]<br><strong>核心要点解释</strong>: </p>
 <ol>
@@ -507,16 +507,16 @@
 </blockquote>
 </li>
 </ul>
-<p>这时候，根据优化策略的 <strong>闭式解(Closed-form Solution)</strong> 如下:<br>$$\pi^<em>(y, z | x) &#x3D; \pi_{\theta_i}(y, z | x) \exp(r(x, y, y^</em>) &#x2F; \tau) &#x2F; Z$$</p>
+<p>这时候，根据优化策略的 <strong>闭式解(Closed-form Solution)</strong> 如下:<br>$$\pi^<em>(y, z | x) &#x3D; \pi_{\theta_i}(y, z | x) \exp(r(x, y, y^</em>)&#x2F;\tau) &#x2F; Z$$</p>
 <blockquote>
 <p>[!tip]<br>其中：</p>
 <ul>
-<li>$Z &#x3D; \sum_{y’, z’} \pi_{\theta_i}(y’, z’ | x) \exp(r(x, y’, y^<em>) &#x2F; \tau)$  是归一化因子，确保  $\pi^</em>(y, z | x)$  是一个有效的概率分布。</li>
+<li>$Z &#x3D;\sum_{y’, z’}\pi_{\theta_i}(y’, z’ | x)\exp(r(x, y’, y^<em>)&#x2F;\tau)$  是归一化因子，确保  $\pi^</em>(y, z | x)$  是一个有效的概率分布。</li>
 </ul>
 <p><strong>归一化因子的作用</strong>: 归一化因子 $Z$  确保策略的概率分布性质，即所有可能的  $(y, z)$  的概率之和为 1</p>
 <p>$^*$ <strong>闭式解</strong>就是可以通过数学推导直接得到的显式解</p>
 </blockquote>
-<p>通过对上式取对数（<em>非常容易推导，不要被吓到了</em>），可以得到以下约束：<br>$$r(x, y, y^<em>) - \tau \log Z &#x3D; \tau \log \frac{\pi^</em>(y, z | x)}{\pi_{\theta_i}(y, z | x)}.$$</p>
+<p>通过对上式取对数（<em>非常容易推导，不要被吓到了</em>），可以得到以下约束：<br>$$r(x, y, y^<em>) - \tau \log Z &#x3D; \tau \log \frac{\pi^</em>(y, z | x)}{\pi_{\theta_i}(y, z | x)}$$</p>
 <p>这一约束允许在优化过程中利用 <strong>离线数据（off-policy data）</strong>，因为  $\pi^<em>$  的形式可以直接从*<em>参考策略</em></em>  $\pi_{\theta_i}$  和<strong>奖励</strong>  $r(x, y, y^*)$  推导出来。</p>
 <blockquote>
 <p>off-policy data 是相对 on-policy data而言，</p>
@@ -526,7 +526,7 @@
 </ul>
 </blockquote>
 <p><strong>损失函数</strong>：<br>根据上述约束，定义替代损失函数（surrogate loss）：</p>
-<p>$$L(\theta) &#x3D; \mathbb{E}<em>{(x, y^*) \sim \mathcal{D}} \left[ \mathbb{E}</em>{(y, z) \sim \pi_{\theta_i}} \left[ \left( r(x, y, y^*) - \tau \log Z - \tau \log \frac{\pi_\theta(y, z | x)}{\pi_{\theta_i}(y, z | x)} \right)^2 \right] \right]$$</p>
+<p>$$L(\theta) &#x3D; \mathbb{E}<em>{(x, y^*) \sim \mathcal{D}} \left[ \mathbb{E}</em>{(y, z) \sim \pi_{\theta_i}} \left[ \left( r(x, y, y^*) - \tau \log Z - \tau \log \frac{\pi_\theta(y, z | x)}{\pi_{\theta_i}(y, z | x)} \right)^2\right]\right]$$</p>
 <p>这一损失函数的目标是使<strong>当前策略</strong>  $\pi_\theta$  尽可能接近<strong>最优策略</strong>  $\pi^*$ ，同时考虑奖励和正则化项。</p>
 <p>由于  $\tau \log Z$  难以直接计算，可以通过<strong>采样近似</strong>：</p>
 <p>$$\tau \log Z \approx \tau \log \frac{1}{k} \sum_{j&#x3D;1}^k \exp(r(x, y_j, y^*) &#x2F; \tau)$$</p>
@@ -542,14 +542,14 @@
 </ul>
 </blockquote>
 <hr>
-<h2 id="附录：4-2中闭式解推导"><a href="#附录：4-2中闭式解推导" class="headerlink" title="附录：4.2中闭式解推导"></a>附录：4.2中闭式解推导</h2><p>目标是找到一个策略 $\pi^<em>$，在给定参考策略 $\pi_{\theta_i}$ 的情况下，最大化期望奖励的同时限制策略变化幅度。<br>$$\max_{\pi} \mathbb{E}_{(x, y^</em>) \sim \mathcal{D}} \left[ \mathbb{E}<em>{(y, z) \sim \pi(\cdot|x)} \left[ r(x, y, y^*) \right] - \tau \cdot \text{KL}(\pi(\cdot|x) | \pi</em>{\theta_i}(\cdot|x)) \right] \tag{1}$$</p>
+<h2 id="附录：4-2中闭式解推导"><a href="#附录：4-2中闭式解推导" class="headerlink" title="附录：4.2中闭式解推导"></a>附录：4.2中闭式解推导</h2><p>目标是找到一个策略 $\pi^<em>$，在给定参考策略 $\pi_{\theta_i}$ 的情况下，最大化期望奖励的同时限制策略变化幅度。<br>$$\max_{\pi} \mathbb{E}_{(x, y^</em>) \sim \mathcal{D}} \left[ \mathbb{E}<em>{(y, z) \sim \pi(\cdot|x)} \left[ r(x, y, y^*) \right] - \tau \cdot \text{KL}(\pi(\cdot|x) | \pi</em>{\theta_i}(\cdot|x)) \right]\tag{1}$$</p>
 <p>根据 KL散度定义:<br>$$\text{KL}(\pi | \pi_{\theta_i}) &#x3D; \mathbb{E}<em>{(y, z) \sim \pi} \left[ \log \frac{\pi(y, z|x)}{\pi</em>{\theta_i}(y, z|x)} \right] \tag{2}$$</p>
-<p>把 （2）带入 （1）中，结果如下:<br>$$\max_{\pi} \mathbb{E}<em>{(x, y^*) \sim \mathcal{D}} \left[ \mathbb{E}</em>{(y, z) \sim \pi} \left[ r(x, y, y^*) - \tau \log \frac{\pi(y, z|x)}{\pi_{\theta_i}(y, z|x)} \right] \right] \tag{3}$$</p>
-<p>把（3）中的期望展开，再加上对数：<br>$$\max_{\pi} \mathbb{E}<em>{x, y^*} \left[ \sum</em>{y, z} \pi(y, z|x) \left( r(x, y, y^<em>) - \tau \log \pi(y, z|x) + \tau \log \pi_{\theta_i}(y, z|x) \right) \right] \tag{4}$$<br>提取公因式进一步整理：<br>$$\max_{\pi} \mathbb{E}_{x, y^</em>} \left[ \sum_{y, z} \pi(y, z|x) \cdot \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) \right) \right] \cdot \tau \tag{5}$$</p>
+<p>把 （2）带入 （1）中，结果如下:<br>$$\max_{\pi} \mathbb{E}<em>{(x, y^*) \sim \mathcal{D}} \left[ \mathbb{E}</em>{(y, z) \sim \pi} \left[ r(x, y, y^*) - \tau \log \frac{\pi(y, z|x)}{\pi_{\theta_i}(y, z|x)} \right] \right]\tag{3}$$</p>
+<p>把（3）中的期望展开，再加上对数：<br>$$\max_{\pi} \mathbb{E}<em>{x, y^*} \left[ \sum</em>{y, z} \pi(y, z|x) \left( r(x, y, y^<em>) - \tau \log \pi(y, z|x) + \tau \log \pi_{\theta_i}(y, z|x) \right) \right]\tag{4}$$<br>提取公因式进一步整理：<br>$$\max_{\pi} \mathbb{E}_{x, y^</em>} \left[ \sum_{y, z} \pi(y, z|x) \cdot \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) \right) \right] \cdot \tau\tag{5}$$</p>
 <p>由于 $\pi(\cdot|x)$ 是概率分布，需满足归一化约束：</p>
 <p>$$\sum_{y, z} \pi(y, z|x) &#x3D; 1$$</p>
 <p>引入拉格朗日乘子 $\lambda$，构造拉格朗日函数：</p>
-<p>$$\mathcal{L}(\pi, \lambda) &#x3D; \mathbb{E}<em>{x, y^*} \left[ \sum</em>{y, z} \pi(y, z|x) \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) \right) \right] \cdot \tau - \lambda \left( \sum_{y, z} \pi(y, z|x) - 1 \right) \tag{6}$$</p>
+<p>$$\mathcal{L}(\pi, \lambda) &#x3D; \mathbb{E}<em>{x, y^*} \left[ \sum</em>{y, z} \pi(y, z|x) \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) \right) \right] \cdot \tau - \lambda \left( \sum_{y, z} \pi(y, z|x) - 1 \right)\tag{6}$$</p>
 <p>接下来就是拉格朗日乘数法的标准解法，先求导，再领导数为0，就可以得到解（<em>DNA动了吗</em>）。<br>对 $\pi(y, z|x)$ 求导，令导数为零：</p>
 <p>$$\frac{\partial \mathcal{L}}{\partial \pi(y, z|x)} &#x3D; \left( \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \log \pi(y, z|x) - 1 \right) \cdot \tau - \lambda &#x3D; 0 \tag{7}$$</p>
 <p>整理后得到：<br>$$\log \pi(y, z|x) &#x3D; \frac{r(x, y, y^*)}{\tau} + \log \pi_{\theta_i}(y, z|x) - \frac{\lambda}{\tau} - 1 \tag{8}$$</p>
@@ -558,7 +558,7 @@
 <p>利用归一化约束 $\sum_{y, z} \pi(y, z|x) &#x3D; 1$，定义归一化因子 $Z$：</p>
 <p>$$Z &#x3D; \exp\left( \frac{\lambda}{\tau} + 1 \right) &#x3D; \sum_{y’, z’} \pi_{\theta_i}(y’, z’|x) \exp\left( \frac{r(x, y’, y^*)}{\tau} \right)\tag{10}$$</p>
 <p>最终得到闭式解：</p>
-<p>$$\pi^<em>(y, z|x) &#x3D; \frac{\pi_{\theta_i}(y, z|x) \exp\left( \frac{r(x, y, y^</em>)}{\tau} \right)}{Z} \tag{11}$$</p>
+<p>$$\pi^<em>(y, z|x) &#x3D; \frac{\pi_{\theta_i}(y, z|x) \exp\left( \frac{r(x, y, y^</em>)}{\tau} \right)}{Z}\tag{11}$$</p>
 <p>证明完毕。</p>
 
                 
