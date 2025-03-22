@@ -1,0 +1,64 @@
+/* 页面样式 */
+.page-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.page-title {
+  font-size: 2rem;
+  color: var(--primary-color);
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.page-content {
+  line-height: 1.8;
+  color: var(--text-color);
+}
+
+.page-content h1,
+.page-content h2,
+.page-content h3,
+.page-content h4,
+.page-content h5,
+.page-content h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  color: var(--primary-color);
+}
+
+.page-content p {
+  margin-bottom: 1.2em;
+}
+
+.page-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+  border-radius: 4px;
+}
+
+.page-content a {
+  color: var(--accent-color);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent-color);
+  transition: border-bottom 0.2s ease, color 0.2s ease;
+}
+
+.page-content a:hover {
+  color: var(--link-hover-color);
+  border-bottom: 1px solid var(--link-hover-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.8rem;
+  }
+}
