@@ -19,15 +19,15 @@
   <meta name="author" content="yhchen">
   <meta name="keywords" content="">
   
-    <meta name="description" content="pretrain 笔记总结  来自知乎作者 ybq LLM训练-pretrain   这篇文章是关于如何从零开始进行大型语言模型（LLM）的预训练（pretrain）工作的详细介绍。文章分为多个部分，涵盖了预训练的背景、数据篇、训练篇、评估篇以及总结和致谢等环节。下面是对文章内容的详尽笔记：  背景篇  当前，大型模型(dense)如qwen、MOE模型deepseek、小型模型minicpm等">
+    <meta name="description" content="pretrain 笔记总结  来自知乎作者 ybq LLM训练-pretrain   这篇文章是关于如何从零开始进行大型语言模型（LLM）的预训练（pretrain）工作的详细介绍。文章分为多个部分，涵盖了预训练的背景、数据篇、训练篇、评估篇。下面是对文章内容的详尽笔记：  背景篇  当前，大型模型(dense)如qwen、MOE模型deepseek、小型模型minicpm等已经开源，但训练框架">
 <meta property="og:type" content="article">
 <meta property="og:title" content="pre-trained 笔记总结">
 <meta property="og:url" content="https://yyhchen.github.io/2024/09/25/pre-trained-%E7%AC%94%E8%AE%B0%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="yhchen&#39;s blog">
-<meta property="og:description" content="pretrain 笔记总结  来自知乎作者 ybq LLM训练-pretrain   这篇文章是关于如何从零开始进行大型语言模型（LLM）的预训练（pretrain）工作的详细介绍。文章分为多个部分，涵盖了预训练的背景、数据篇、训练篇、评估篇以及总结和致谢等环节。下面是对文章内容的详尽笔记：  背景篇  当前，大型模型(dense)如qwen、MOE模型deepseek、小型模型minicpm等">
+<meta property="og:description" content="pretrain 笔记总结  来自知乎作者 ybq LLM训练-pretrain   这篇文章是关于如何从零开始进行大型语言模型（LLM）的预训练（pretrain）工作的详细介绍。文章分为多个部分，涵盖了预训练的背景、数据篇、训练篇、评估篇。下面是对文章内容的详尽笔记：  背景篇  当前，大型模型(dense)如qwen、MOE模型deepseek、小型模型minicpm等已经开源，但训练框架">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-09-25T04:25:46.000Z">
-<meta property="article:modified_time" content="2025-03-23T05:21:07.672Z">
+<meta property="article:modified_time" content="2025-03-23T05:31:51.634Z">
 <meta property="article:author" content="yhchen">
 <meta property="article:tag" content="LLM">
 <meta property="article:tag" content="pre-trained">
@@ -221,7 +221,7 @@
   
 
 <div id="banner" class="banner" parallax=true
-     style="background: url('/_posts/pre-trained-%E7%AC%94%E8%AE%B0%E6%80%BB%E7%BB%93/pretrain.png') no-repeat center center; background-size: cover;">
+     style="background: url('/img/pretrain_task.png') no-repeat center center; background-size: cover;">
   <div class="full-bg-img">
     <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
       <div class="banner-text text-center fade-in-up">
@@ -250,7 +250,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          984 字
+          974 字
         
       </span>
     
@@ -308,7 +308,7 @@
 <p>来自知乎作者 ybq <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/718354385">LLM训练-pretrain</a></p>
 </blockquote>
 <hr />
-<p>这篇文章是关于如何从零开始进行大型语言模型（LLM）的预训练（pretrain）工作的详细介绍。文章分为多个部分，涵盖了预训练的背景、数据篇、训练篇、评估篇以及总结和致谢等环节。下面是对文章内容的详尽笔记：</p>
+<p>这篇文章是关于如何从零开始进行大型语言模型（LLM）的预训练（pretrain）工作的详细介绍。文章分为多个部分，涵盖了预训练的背景、数据篇、训练篇、评估篇。下面是对文章内容的详尽笔记：</p>
 <h3 id="背景篇"><a class="markdownIt-Anchor" href="#背景篇"></a> 背景篇</h3>
 <ul>
 <li>当前，大型模型(dense)如<code>qwen</code>、MOE模型<code>deepseek</code>、小型模型<code>minicpm</code>等已经开源，但训练框架和数据等核心内容仍然闭源。</li>
