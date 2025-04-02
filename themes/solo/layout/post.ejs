@@ -1,0 +1,63 @@
+<link rel="stylesheet" href="/css/post.css">
+<link rel="stylesheet" href="/css/toc.css">
+<div class="post-container">
+  <div class="post-header">
+    <h1 class="post-title"><%= page.title %></h1>
+    <div class="post-meta">
+      <span class="post-date"><i class="date-icon">📅</i> <%= date(page.date, 'YYYY-MM-DD') %></span>
+      
+      <% if (page.categories && page.categories.length) { %>
+        <span class="post-categories">
+          <i class="category-icon">📂</i>
+          <% page.categories.forEach(function(category, i) { %>
+            <a href="<%- url_for(category.path) %>" class="category-link"><%= category.name %></a>
+            <% if (i < page.categories.length - 1) { %>, <% } %>
+          <% }); %>
+        </span>
+      <% } %>
+      
+      <% if (page.tags && page.tags.length) { %>
+        <span class="post-tags">
+          <i class="tag-icon">🏷️</i>
+          <% page.tags.forEach(function(tag, i) { %>
+            <a href="<%- url_for(tag.path) %>" class="tag-link"><%= tag.name %></a>
+            <% if (i < page.tags.length - 1) { %>, <% } %>
+          <% }); %>
+        </span>
+      <% } %>
+    </div>
+  </div>
+  
+  <div class="post-wrapper">
+    <div class="post-content">
+      <%- page.content %>
+    </div>
+    
+    <div class="post-sidebar">
+      <%- partial('./common/toc') %>
+    </div>
+  </div>
+  
+  <div class="post-footer">
+    <div class="post-nav">
+      <% if (page.prev) { %>
+        <div class="post-nav-prev">
+          <a href="<%- url_for(page.prev.path) %>" class="prev-post">
+            <i class="nav-icon-prev">←</i> <%= page.prev.title %>
+          </a>
+        </div>
+      <% } %>
+      <% if (page.next) { %>
+        <div class="post-nav-next">
+          <a href="<%- url_for(page.next.path) %>" class="next-post">
+            <%= page.next.title %> <i class="nav-icon-next">→</i>
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+  
+  <% if (theme.valine && theme.valine.enable) { %>
+    <%- partial('./common/valine') %>
+  <% } %>
+</div>

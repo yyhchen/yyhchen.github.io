@@ -1,0 +1,53 @@
+<% if (page.toc !== false && toc(page.content).length > 0) { %>
+  <div class="toc-container">
+    <div class="toc-title">文章目录</div>
+    <%- toc(page.content, {list_number: false}) %>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tocLinks = document.querySelectorAll('.toc-link');
+      const headings = document.querySelectorAll('.post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6');
+      
+      if (tocLinks.length === 0 || headings.length === 0) return;
+      
+      // 监听滚动事件，高亮当前阅读位置
+      window.addEventListener('scroll', function() {
+        let currentHeadingIndex = 0;
+        const scrollPosition = window.scrollY;
+        
+        // 找到当前滚动位置对应的标题
+        for (let i = 0; i < headings.length; i++) {
+          const heading = headings[i];
+          const nextHeading = headings[i + 1];
+          
+          // 检查当前滚动位置是否在当前标题和下一个标题之间
+          if (
+            heading.offsetTop - 100 <= scrollPosition && 
+            (!nextHeading || nextHeading.offsetTop - 100 > scrollPosition)
+          ) {
+            currentHeadingIndex = i;
+            break;
+          }
+        }
+        
+        // 移除所有活动类
+        tocLinks.forEach(link => {
+          link.parentElement.classList.remove('active');
+        });
+        
+        // 为当前标题添加活动类
+        if (headings[currentHeadingIndex]) {
+          const id = headings[currentHeadingIndex].id;
+          const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
+          if (activeLink) {
+            activeLink.parentElement.classList.add('active');
+          }
+        }
+      });
+      
+      // 初始触发一次滚动事件，以高亮初始位置
+      window.dispatchEvent(new Event('scroll'));
+    });
+  </script>
+<% } %>

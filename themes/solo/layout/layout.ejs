@@ -1,0 +1,50 @@
+<% var pageTitle = page.title || config.subtitle || ''; 
+if (is_archive()) pageTitle = '归档'; 
+if (is_tag()) pageTitle = '标签: ' + page.tag; 
+if (is_category()) pageTitle = '分类: ' + page.category; 
+if (is_month()) pageTitle += ': ' + page.month + '/' + page.year; 
+if (is_year()) pageTitle += ': ' + page.year; 
+pageTitle += ' - ' + config.title; %>
+
+<!DOCTYPE html>
+<html lang="<%= config.language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="<%- theme.description %>">
+  <meta name="keywords" content="<%- theme.keywords %>">
+  <title><%= pageTitle %></title>
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="icon" href="/favicon.ico">
+  
+  <% if (theme.stylesheets !== undefined && theme.stylesheets.length > 0) { %>
+    <!-- stylesheets list from theme config.yml -->
+    <% theme.stylesheets.forEach(url => { %>
+      <link rel="stylesheet" href="<%= url %>">
+    <% }); %>
+  <% } %>
+</head>
+
+<body>
+  <div class="container">
+    <%- partial('./common/header') %>
+    
+    <div id="content-outer">
+      <div class="content-inner">
+        <%- body %>
+      </div>
+    </div>
+    
+    <%- partial('./common/footer') %>
+  </div>
+  
+  <% if (theme.scripts !== undefined && theme.scripts.length > 0) { %>
+    <!-- scripts list from theme config.yml -->
+    <% theme.scripts.forEach(url => { %>
+      <script src="<%= url %>"></script>
+    <% }); %>
+  <% } %>
+</body>
+</html>

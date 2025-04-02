@@ -1,0 +1,36 @@
+/* 页脚样式 */
+.footer {
+  margin-top: 50px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border-color);
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.copyright {
+  margin-bottom: 10px;
+}
+
+.edit-time {
+  font-size: 0.8rem;
+  color: var(--light-text-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .copyright {
+    margin-bottom: 15px;
+  }
+}

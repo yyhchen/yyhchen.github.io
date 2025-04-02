@@ -1,0 +1,17 @@
+{
+  "name": "hexo-theme-solo",
+  "version": "1.0.0",
+  "description": "A clean and elegant Hexo theme",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hexo",
+    "theme",
+    "solo",
+    "blog"
+  ],
+  "author": "Solo Chan",
+  "license": "MIT"
+}

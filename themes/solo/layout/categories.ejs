@@ -1,0 +1,45 @@
+<link rel="stylesheet" href="/css/categories.css">
+<div class="categories-container">
+  <h1 class="categories-title">所有分类</h1>
+  
+  <div class="categories-list">
+    <% if (site.categories.length) { %>
+      <% 
+        // 创建一个Map来存储唯一的分类
+        var uniqueCategories = new Map();
+        site.categories.each(function(category) {
+          if (!uniqueCategories.has(category.name)) {
+            uniqueCategories.set(category.name, category);
+          }
+        });
+      %>
+      <% uniqueCategories.forEach(function(category) { %>
+        <div class="category-item">
+          <h2 class="category-name">
+            <a href="<%- url_for(category.path) %>">
+              <%= category.name %>
+              <span class="post-count">(<%= site.categories.findOne({name: category.name}).posts.length %>)</span>
+            </a>
+          </h2>
+          <div class="category-posts">
+            <% 
+              var posts = [];
+              site.categories.findOne({name: category.name}).posts.sort('date', -1).each(function(post) {
+                posts.push(post);
+              });
+              // 显示所有文章
+              posts.forEach(function(post) { 
+            %>
+              <div class="category-post">
+                <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+                <a href="<%- url_for(post.path) %>" class="post-title"><%= post.title %></a>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% }); %>
+    <% } else { %>
+      <p class="no-categories">暂无分类</p>
+    <% } %>
+  </div>
+</div>

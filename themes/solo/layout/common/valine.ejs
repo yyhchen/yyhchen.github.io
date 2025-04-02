@@ -1,0 +1,20 @@
+<% if (theme.valine && theme.valine.enable) { %>
+  <div id="vcomments" class="valine-container"></div>
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <script>
+    new Valine({
+      el: '#vcomments',
+      appId: '<%= theme.valine.appId %>',
+      appKey: '<%= theme.valine.appKey %>',
+      placeholder: '说点什么吧...',
+      avatar: 'mm',
+      meta: ['nick', 'mail', 'link'],
+      pageSize: 10,
+      lang: 'zh-CN',
+      visitor: false,
+      highlight: true,
+      recordIP: false,
+      serverURLs: ''
+    })
+  </script>
+<% } %>

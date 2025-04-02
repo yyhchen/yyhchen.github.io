@@ -1,0 +1,62 @@
+<link rel="stylesheet" href="/css/index.css">
+<div class="index-container">
+  <div class="profile-section">
+    <div class="avatar">
+      <img src="<%= theme.img_src %>" alt="<%= theme.author %>" class="avatar-img">
+    </div>
+    <h1 class="site-title"><%= theme.logo_title %></h1>
+    <p class="site-slogan"><%= theme.words %></p>
+    <div class="social-links">
+      <% Object.keys(theme.menu).forEach(key => { %>
+        <a href="<%= theme.menu[key] %>" target="_blank" class="social-link"><%= key %></a>
+      <% }); %>
+    </div>
+  </div>
+  
+  <div class="posts-section">
+    <% page.posts.each(function(post) { %>
+      <div class="post-item">
+        <div class="post-date">
+          <span class="date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+        </div>
+        <div class="post-info">
+          <h2 class="post-title">
+            <a href="<%- url_for(post.path) %>"><%= post.title %></a>
+          </h2>
+          <div class="post-meta">
+            <% if (post.categories && post.categories.length) { %>
+              <span class="post-categories">
+                <i class="category-icon">📂</i>
+                <% post.categories.forEach(function(category, i) { %>
+                  <a href="<%- url_for(category.path) %>" class="category-link"><%= category.name %></a>
+                  <% if (i < post.categories.length - 1) { %>, <% } %>
+                <% }); %>
+              </span>
+            <% } %>
+            <% if (post.tags && post.tags.length) { %>
+              <span class="post-tags">
+                <i class="tag-icon">🏷️</i>
+                <% post.tags.forEach(function(tag, i) { %>
+                  <a href="<%- url_for(tag.path) %>" class="tag-link"><%= tag.name %></a>
+                  <% if (i < post.tags.length - 1) { %>, <% } %>
+                <% }); %>
+              </span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+  
+  <% if (page.total > 1) { %>
+    <div class="pagination">
+      <% if (page.prev) { %>
+        <a href="<%- url_for(page.prev_link) %>" class="prev-page">上一页</a>
+      <% } %>
+      <span class="page-number">第 <%= page.current %> 页 / 共 <%= page.total %> 页</span>
+      <% if (page.next) { %>
+        <a href="<%- url_for(page.next_link) %>" class="next-page">下一页</a>
+      <% } %>
+    </div>
+  <% } %>
+</div>

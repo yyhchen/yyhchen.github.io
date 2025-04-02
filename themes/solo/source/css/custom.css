@@ -1,0 +1,19 @@
+/* 修复公式重叠问题 */
+.katex {
+    font-size: 1.1em !important;
+    padding: 0 0.2em !important;
+    display: inline-block;
+    overflow-x: auto;
+    overflow-y: hidden;
+    vertical-align: middle;
+    margin: 0.15em 0;
+}
+
+.katex-display {
+    margin: 1em 0 !important;
+    padding: 0.8em 1.2em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: #f8f9fa;
+    border-radius: 4px;
+}

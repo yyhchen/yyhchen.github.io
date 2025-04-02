@@ -1,0 +1,25 @@
+<link rel="stylesheet" href="/css/header.css">
+<div class="header">
+  <div class="logo">
+    <span class="site-name">
+      <a href="/">
+        <%= theme.menuname %>
+      </a>
+    </span>
+  </div>
+  <ul class="nav-list">
+    <% Object.keys(theme.topmenu).forEach(key => { %>
+      <li>
+        <a href="<%= theme.topmenu[key] %>">
+          <%= key %>
+        </a>
+      </li>
+    <% }); %>
+  </ul>
+  <% if (theme.dark_mode) { %>
+    <div class="theme-switch" title="切换主题模式">
+      <i class="theme-icon light">🌙</i>
+      <i class="theme-icon dark">☀️</i>
+    </div>
+  <% } %>
+</div>

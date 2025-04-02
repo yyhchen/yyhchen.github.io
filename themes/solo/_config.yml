@@ -1,0 +1,57 @@
+# html lang
+language: zh-CN
+
+# 菜单名称
+menuname: yhchen's Blog
+
+# 作者昵称
+author: yhchen
+
+# 主菜单导航
+menu:
+  GitHub: https://github.com/yyhchen
+  笔记源: https://github.com/yyhchen/Notes
+
+# 顶部菜单
+topmenu:
+  首页: /
+  笔记: /notes
+  分类: /categories
+  标签: /tags
+  归档: /archives
+  关于: /about
+
+# 网站描述
+description: 记录学习与生活的点滴
+
+# 网站关键词
+keywords: blog,hexo,solo,coding
+
+# 博客头像
+img_src: https://avatars.githubusercontent.com/u/147292110?v=4
+
+# 网站标题
+logo_title: yhchen's blog
+
+# 标语
+words: 整理土地，而非焦虑时光
+
+# 样式表
+stylesheets:
+  - /css/solo.css
+  - /css/header.css
+  - /css/footer.css
+  - /css/dark-mode-toggle.css
+
+# 脚本
+scripts:
+  - /js/solo.js
+
+# 评论系统
+valine:
+  enable: false
+  appId:
+  appKey:
+
+# 暗色模式
+dark_mode: true
