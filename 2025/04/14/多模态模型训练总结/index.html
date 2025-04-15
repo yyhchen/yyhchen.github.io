@@ -27,7 +27,7 @@
 <meta property="og:description" content="基于纯语言模型训练的多模态模型              based model: Qwen2.5-1.5B（实在是没资源, 4卡 V100 32G）参考文献:ViT 原论文:An image is worth 16x16 words: Transformers for image recognition at scale （穷人玩不了的玩意）LLaVA             1.核心目标与挑">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-04-14T08:54:18.000Z">
-<meta property="article:modified_time" content="2025-04-15T10:16:07.508Z">
+<meta property="article:modified_time" content="2025-04-15T10:19:25.227Z">
 <meta property="article:author" content="yhchen">
 <meta property="article:tag" content="LLM">
 <meta name="twitter:card" content="summary_large_image">
@@ -382,14 +382,14 @@
 <h1 id="3输入表示与序列构建-关键细节"><a class="markdownIt-Anchor" href="#3输入表示与序列构建-关键细节"></a> 3.输入表示与序列构建 （关键细节）</h1>
 <p><strong>如何将图像和文本组合成一个 LLM 能处理的序列？</strong> LLaVA 的方法很有代表性：</p>
 <ul>
-<li>1.<strong>特殊图像标记</strong>: 在 LLM 的词汇表中添加一个或多个特殊的 token，例如 ‘<image>’。这个 token 本身没有意义，只是一个占位符。</li>
+<li>1.<strong>特殊图像标记</strong>: 在 LLM 的词汇表中添加一个或多个特殊的 token，例如 【image】。这个 token 本身没有意义，只是一个占位符。</li>
 <li>2.<strong>图像嵌入序列</strong>: 图像经过 VE 和 Projector 处理后，得到一个向量序列 【img_emb_1, img_emb_2, …, img_emb_N】，其中 N 是 num_image_tokens。</li>
-<li>3.<strong>文本处理</strong>: 将输入的文本（例如，用户的提问 “<image>\n 这张图片里有什么？”）使用 Qwen 的 Tokenizer 进行分词，得到 token ID 序列。</li>
+<li>3.<strong>文本处理</strong>: 将输入的文本（例如，用户的提问 “【image】\n 这张图片里有什么？”）使用 Qwen 的 Tokenizer 进行分词，得到 token ID 序列。</li>
 <li>4.<strong>序列拼接</strong>:
 <ul>
-<li>找到文本 token ID 序列中代表 ‘<image>’ 的那个 ID。</li>
-<li>获取文本序列中 ‘<image>’ 之前和之后部分的词嵌入。</li>
-<li>将 ‘<image>’ token 对应的（单个）嵌入替换为步骤 2 中得到的整个图像嵌入序列 【img_emb_1, …, img_emb_N】。</li>
+<li>找到文本 token ID 序列中代表 【image】 的那个 ID。</li>
+<li>获取文本序列中 【image】 之前和之后部分的词嵌入。</li>
+<li>将 【image】 token 对应的（单个）嵌入替换为步骤 2 中得到的整个图像嵌入序列 【img_emb_1, …, img_emb_N】。</li>
 <li>最终形成的输入嵌入序列看起来像：【Emb（CLS）, Emb（这）, Emb（张）, …, Emb（图）, Emb（片）, img_emb_1, …, img_emb_N, Emb（换行符）, Emb（里）, Emb（有）, Emb（什）, Emb（么）, Emb（？）】。</li>
 </ul>
 </li>
@@ -416,9 +416,9 @@
 <li><strong>目标</strong>: 让模型学会遵循复杂的、混合了图像和文本的指令，进行 VQA（视觉问答）、复杂推理、对话等。</li>
 <li><strong>数据</strong>: 格式多样、高质量的多模态指令数据集。例如：
 <ul>
-<li><strong>VQA 数据</strong>: <image>\nQuestion: What color is the sky?\nAnswer: Blue.</li>
-<li><strong>描述任务</strong>: <image>\nDescribe the scene in detail.\nAnswer: A dog is playing fetch in a park…</li>
-<li><strong>复杂推理</strong>: <image>\nBased on the image, is the person likely happy or sad? Explain why.\nAnswer: Happy, because they are smiling.</li>
+<li><strong>VQA 数据</strong>: 【image】\nQuestion: What color is the sky?\nAnswer: Blue.</li>
+<li><strong>描述任务</strong>: 【image】\nDescribe the scene in detail.\nAnswer: A dog is playing fetch in a park…</li>
+<li><strong>复杂推理</strong>: 【image】\nBased on the image, is the person likely happy or sad? Explain why.\nAnswer: Happy, because they are smiling.</li>
 </ul>
 </li>
 <li>这些数据集通常需要人工构建或者通过强大的模型（如 GPT-4V）生成。LLaVA 项目发布了这类数据集。</li>
