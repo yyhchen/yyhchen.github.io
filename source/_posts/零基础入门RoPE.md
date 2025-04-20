@@ -159,7 +159,7 @@ $$\begin{aligned}
 &= \frac{1}{|z|^2} 
 \end{aligned}$$
 
-$$那么矩阵的逆为 \Rightarrow z^{-1} = \frac{z^*}{|z|^2}$$
+$$那么复数z的逆为 \Rightarrow z^{-1} = \frac{z^*}{|z|^2} \tag{8}$$
 
 <br>
 <br>
@@ -172,10 +172,11 @@ $$那么矩阵的逆为 \Rightarrow z^{-1} = \frac{z^*}{|z|^2}$$
 前面讲了一大堆后，终于到了理解 RoPE 最关键的部分了。首先，对于一个实数而言，它的相反数在几何上代表的是什么呢？很简单，我们可以把它想象成一条直线，它的**相反数** 就是这条直线的**旋转了$180^{\circ}$**。
 
 例如说，$2$ 逆时针旋转 $180^{\circ}$ 后变成 $-2$，如下图所示:
-![旋转示意图](../img/RoPE/image1.png)
+
+<img src="/img/RoPE/image1.png" alt="旋转示意图">
 
 根据复数的定义中，$i^2 = -1$，那么我们可以把 $n$ 的相反数 $-n$ 写成:
-$$ -n = i^2n$$
+$$ -n = i^2n \tag{9}$$
 
 也就是说，$n$ 通过乘以 $i^2$ 绕原点旋转了 $180^{\circ}$，我们把 $i^2$ 当作乘了 2 次 $i$，故乘以 $i$ 相当于绕原点旋转了 $90^{\circ}$。
 
@@ -195,13 +196,14 @@ $$ -n = i^2n$$
 
 下面通过复平面来观察 $90^{\circ}$ 旋转的效果，在这个复平面中，画出了4个复数：
 $$\begin{align*}
-z_1 &= 1 + 2i  &  \\
-z_2 &= -2 + i  &  \\
-z_3 &= -1 - 2i &  \\
-z_4 &= 2 - i   &
+z_1 = 1 + 2i\\
+z_2 = -2 + i\\
+z_3 = -1 - 2i\\
+z_4 = 2 - i\\
 \end{align*}$$
 
-![复平面旋转](../img/RoPE/image2.png)
+<!-- ![复平面旋转](../img/RoPE/image2.png) -->
+<img src="/img/RoPE/image2.png" alt="复平面旋转">
 
 在上图中，$z_1$ 乘以 $i$ 得到 $z_2$，等价于 $z_1$ 逆时针旋转 $90^{\circ}$ 变成 $z_2$，同理 $z_1$ 乘以 $-i$ 则得到 $z_4$，等价于 $z_1$ 顺时针旋转 $90^{\circ}$ 变成 $z_4$，其他复数旋转同理。
 
@@ -223,13 +225,15 @@ z_4 &= 2 - i   &
 - 直角坐标转极坐标: $r = \sqrt{x^2 + y^2}$, $~\theta = arctan(\frac{y}{x})$
 - 极坐标转直角坐标: $x = rcos\theta$, $~y = rsin\theta$
 
+由此可知，在极坐标中，模就是 $r$
 {% endnote %}
 
 既然在复平面中，通过乘以 $i$ 就可以旋转 $90^{\circ}$，很自然地我们就会去想，如果我想要**旋转任意角度**，那又该怎么表示呢？
 还有，为什么乘以 $i$ 就可以旋转 $90^{\circ}$，单单从图上看非常容易理解，但背后的原因是什么？
 
 为了解决这两个疑问，这里引入复平面上的 **极坐标表示**，其中横坐标表示的是复数的实部，纵坐标表示的是复数的虚部。
-![复数极坐标表示](../img/RoPE/image3.png)
+<!-- ![复数极坐标表示](/img/RoPE/image3.png) -->
+<img src="/img/RoPE/image3.png" alt="复数极坐标表示">
 
 在上图中，复数 $z = a+bi$ 可以通过 $(r, \theta)$ 来确定极坐标，其中 $r = |z|$ 即复数的模，而 $\theta$ 表示的是实数轴和复数所表示的向量夹角。
 
@@ -244,11 +248,120 @@ $$
 \begin{aligned}
 z & = a + bi \\
  & = rcos\theta + irsin\theta \\
- & = r(cos\theta+isin\theta)
+ & = r(cos\theta+isin\theta) \tag{11}
 \end{aligned}
 $$
 
-根据欧拉公式 $e^{i\theta} = cos\theta + isin\theta$
+根据欧拉公式 $e^{i\theta} = cos\theta + isin\theta$，上面的公式（11）可以写成:
+$$z = re^{i\theta} \tag{12}$$
+>欧拉公式推导见 [附录 证明1](#证明1-欧拉公式推导)
+
+此时，给定任意两个用**极坐标**表示的复数：$z_1 = r_1e^{i\theta_1}$ 和 $z_2 = r_2e^{i\theta_2}$。
+
+将 $z_1$ 与 $z_2$ 相乘，我们可以得到如下式子:
+$$
+\begin{aligned}
+z_1 z_2 &= r_1 r_2 e^{i\theta_1}e^{i\theta_2} \\
+ &= r_1 r_2 e^{i(\theta_1+\theta_2)} \\
+\tag{13}
+\end{aligned}$$
+
+其中，式子（13）的模 $|z_1 z_2| = r_1r_2$，而式子（13）与实数轴的向量夹角为 $\theta_1+\theta_2$。   
+
+由此我们知道一件事，两个复数相乘后，在复平面上会带来2种几何变化：
+1. 长度的缩放（通过改变模长）
+2. 旋转（通过改变夹角）
+
+<br>
+
+### 旋转子
+
+在上小节中，我们知道了两个复数相乘后，会使得复数向量发生**长度缩放**和**旋转**。回到之前提到的问题，如果我只想旋转任意角度，而不改变程度，那该怎么办呢？
+
+根据之前式子（13）可以知道，假如 $z_2$ 中的 $r_2$ 为1，也就是 $z_2=e^{i\theta_2}$，那么此时 $z_1$ 与 $z_2$ 相乘后，会使得 $z_1$ 旋转 $\theta_2$ 角度，而不会改变长度。
+
+这样的复数就称为**旋转子**（$e^{i\theta}$），旋转子就实现了只旋转，而不改变长度的效果，并且可以将**复数**旋转任意角度。一般地，将复数旋转角度 $\theta$ 的旋转子定义为:
+$$R_{\theta} = cos\theta+ isin\theta = e^{i\theta} \tag{14}$$
+
+例如，对于复数 $z = 2+2i$，假如对其逆时针旋转 $45^\circ$，也就是旋转子为:
+
+$$
+\begin{aligned}
+ R_{45^\circ} = 1·e^{i·45^\circ} &= cos45^\circ + isin45^\circ\\
+ &=\frac{\sqrt{2}}{2} + \frac{\sqrt{2}}{2}i \\
+ &\approx 0.71 + 0.71i
+\end{aligned}
+$$
+
+那么 $z$ 逆时针旋转 $45^\circ$后:
+$$
+\begin{aligned}
+ z·R_{45^\circ} &= (2+2i)(\frac{\sqrt{2}}{2} + \frac{\sqrt{2}}{2}i)\\
+ &=\sqrt{2} + \sqrt{2}i + \sqrt{2}i + \sqrt{2}i^2 \\
+ &=2\sqrt{2}i \\
+ &\approx 2.83i
+\end{aligned}
+$$
+
+在下图中，我们可以直观地看到逆时针旋转 $45^\circ$ 的效果：
+
+<img src="/img/RoPE/image4.png" alt="旋转子旋转">
+
+接下来我们再考虑下 **顺时针** 旋转的情形，很自然的，根据式子（14），顺时针旋转的旋转子可以表示为：
+
+$$
+\begin{aligned}
+ R_{-\theta} &= cos(-\theta)+ isin(-\theta) \\
+ &= cos\theta - isin\theta \\
+ &= e^{-i\theta} \tag{15}\\
+\end{aligned}
+$$
+
+此时，我们不难发现在式子（15）的中间过程 $cos\theta - isin\theta$ 不就是 $cos\theta+ isin\theta = e^{i\theta}$ 的共轭复数吗？那么显然 $(R_{\theta})^* = e^{-i\theta}$
+
+于是，我们可以把 $R_\theta$ 的共轭复数 $(R_\theta)^*$ 表示为:
+$$
+\begin{aligned}
+ (R_{\theta})^* &= e^{-i\theta} \\
+ &= R_{-\theta} \tag{16}\\
+\end{aligned}$$
+
+$$\Rightarrow (R_{\theta})^* = R_{-\theta}$$
+
+<br>
+
+既然说到旋转子与其共轭复数的关系，那么肯定也要考虑下，旋转子与其**逆**的关系呢？
+
+在前面的小节中，提到了复数的逆可以表示为:
+$$z^{-1} = \frac{z^*}{|z|^2}$$
+
+又因为，在极坐标中，$|z|^2 = r$ ，且旋转子的模为 $1$，那么旋转子的逆 $(R_\theta)^{-1}$ 可以表示为:
+$$
+\begin{aligned}
+ (R_\theta)^{-1} &=\frac{(R_\theta)^*}{r} \\
+ &= (R_\theta)^* \\
+ \tag{17}\\
+\end{aligned}$$
+
+$$\Rightarrow (R_\theta)^{-1} = e^{-i\theta}$$
+
+{% note success %}
+
+**结论**:
+- 旋转子 $R_\theta$ 表示为: $R_\theta = e^{i\theta}$，表示逆时针旋转
+- 旋转子的共轭复数 $(R_\theta)^*$ 表示为: $(R_\theta)^* = e^{-i\theta}$，表示顺时针旋转
+- 旋转子的逆 $(R_\theta)^{-1}$ 等价于旋转子的共轭复数 $(R_\theta)^*$
+
+到这里也体现了 **逆** 的作用就是 "撤销" 或者说 "还原" 某种操作。比如在复数旋转的例子中，旋转的逆就可以 "抵消" 旋转。
+{% endnote %}
+
+到此已经铺垫完了 **复数与二维平面旋转** 的前置知识了。
+
+<br>
+<br>
+<br>
+
+# RoPE
 
 
 # 参考文献
@@ -257,4 +370,26 @@ $$
 
 
 # 附录
-## 证明1
+## 证明1 欧拉公式推导
+{% note info %}
+欧拉公式是一个非常重要的数学公式，它是由瑞士数学家莱昂哈德·欧拉（Leonhard Euler）于1737年提出的。欧拉公式描述了 **复数的指数形式** 和 **三角函数** 之间的关系。
+{% endnote %}
+
+欧拉公式的形式为:
+$$e^{i\theta} = cos\theta + isin\theta$$
+
+根据 $e^x$, $sinx$ 和 $cosx$ 的泰勒级数展开，我们可以将 $e^{i\theta}$, $cos\theta$ 和 $sin\theta$ 分别表示为:
+
+$$e^{i\theta}=1+(i\theta)+\frac{(i\theta)^2}{2!}+\frac{(i\theta)^3}{3!}+\ldots\tag{1}$$
+
+$$cos\theta=1-\frac{\theta^{2}}{2!}+\frac{\theta^{4}}{4!}-\frac{\theta^{6}}{6!}+\ldots \tag{2}$$
+
+$$sin\theta=1-\frac{\theta^3}{3!}+\frac{\theta^5}{5!}-\frac{\theta^7}{7!}+\ldots \tag{3}$$
+
+又因为复数的定义 $i^2 = -1$，式（1）可写成:
+$$\begin{aligned}
+e^{i\theta} & =1+i\theta-\frac{\theta^2}{2!}-i\frac{\theta^3}{3!}+\frac{\theta^4}{4!}+i\frac{\theta^5}{5!}-\frac{\theta^6}{6!}-i\frac{\theta^7}{7!}+\ldots \\
+ & =(1-\frac{\theta^2}{2!}+\frac{\theta^4}{4!}-\frac{\theta^6}{6!}+\ldots)+i(\theta-\frac{\theta^3}{3!}+\frac{\theta^5}{5!}-\frac{\theta^7}{7!}+\ldots) \\
+ & =cos\theta+isin\theta \tag{4}
+\end{aligned}$$
+证明完毕。
