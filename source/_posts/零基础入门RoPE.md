@@ -332,7 +332,7 @@ $$\Rightarrow (R_{\theta})^* = R_{-\theta}$$
 
 既然说到旋转子与其共轭复数的关系，那么肯定也要考虑下，旋转子与其**逆**的关系呢？
 
-在前面的小节中，提到了复数的逆可以表示为:
+在前面的小节中，提到了复数的逆（公式8）可以表示为:
 $$z^{-1} = \frac{z^*}{|z|^2}$$
 
 又因为，在极坐标中，$|z|^2 = r$ ，且旋转子的模为 $1$，那么旋转子的逆 $(R_\theta)^{-1}$ 可以表示为:
@@ -356,6 +356,46 @@ $$\Rightarrow (R_\theta)^{-1} = e^{-i\theta}$$
 {% endnote %}
 
 到此已经铺垫完了 **复数与二维平面旋转** 的前置知识了。
+
+
+<br>
+<br>
+
+## 旋转矩阵
+
+接下来我们再补充一个概念——**旋转矩阵**。
+
+{% note info %}
+在线性代数中， **旋转矩阵** 就是一种在欧式空间中执行旋转的变换矩阵。（**本质上是基的坐标变换**）
+
+详细可看 [wiki上的旋转矩阵概念](https://en.wikipedia.org/wiki/Rotation_matrix#Properties)
+{% endnote %}
+
+例如，对于一个二维向量 $v = (x, y)$，我们可以将其绕笛卡尔坐标系（即直角坐标系）的原点逆时针旋转 $\theta$ 角度，具体可以用以下矩阵乘法来表示:
+$$
+R · v = \begin{bmatrix}
+cos\theta & -sin\theta \\
+sin\theta & cos\theta
+\end{bmatrix}
+\begin{bmatrix}
+x \\
+y
+\end{bmatrix}
+= \begin{bmatrix}
+xcos\theta - ysin\theta \\
+xsin\theta + ycos\theta
+\end{bmatrix}
+\tag{18}
+$$
+
+在公式（18）中，$R$ 即为旋转矩阵，而 $v$ 即为待旋转的向量（基）。需要注意的是这里的 $v$ 需要写成列向量的形式，并且左乘 $R$ 表示的才是坐标变换（在这里即旋转），右乘是基变换。关于 $R$ 是怎么推导证明为旋转矩阵的可以看 [附录中的证明2](#证明2-旋转矩阵推导证明)
+
+>注意：在旋转矩阵中有几个很好的性质，$R^T$ = $R^{-1}$ 且行列式 $det(R)=1$
+>
+> 证明起来也非常简单，因为 $R^TR=I$，所以 $R$ 为正交矩阵，故 $R^T$ = $R^{-1}$
+
+到此，也介绍完了 **旋转矩阵** 的概念。
+
 
 <br>
 <br>
@@ -392,4 +432,56 @@ e^{i\theta} & =1+i\theta-\frac{\theta^2}{2!}-i\frac{\theta^3}{3!}+\frac{\theta^4
  & =(1-\frac{\theta^2}{2!}+\frac{\theta^4}{4!}-\frac{\theta^6}{6!}+\ldots)+i(\theta-\frac{\theta^3}{3!}+\frac{\theta^5}{5!}-\frac{\theta^7}{7!}+\ldots) \\
  & =cos\theta+isin\theta \tag{4}
 \end{aligned}$$
+证明完毕。
+
+<br>
+<br>
+
+
+## 证明2 旋转矩阵推导证明
+假设点 $P(x, y)$ 到原点的距离为 $r$，点 $P$ 与 $x$ 轴的夹角为 $\phi$，其极坐标为:
+$$x = rcos\phi, ~y = rsin\phi \tag{1}$$
+
+旋转 $\theta$ 角度后，新点 $P'(x', y')$ 的极坐标为$(r, \phi + \theta)$，然后转为直角坐标:
+$$ x' = rcos(\phi + \theta), ~y'=rsin(\phi+\theta) \tag{2}$$
+
+通过三角函数的相关性质，我们可以将公式（2）展开为:
+$$
+\begin{aligned}
+x' &= rcos\phi·cos\theta - rsin\phi·sin\theta \\
+y' &= rsin\phi·cos\theta + rcos\phi·sin\theta \\
+\tag{3}
+\end{aligned}
+$$
+
+根据公式（1），我们可以将公式（3）进一步化简为：
+$$
+\begin{aligned}
+x' &= xcos\theta - ysin\theta \\
+y' &= xsin\theta + ycos\theta \\
+\tag{4}
+\end{aligned}
+$$
+因式分解公式（4）：
+$$
+\begin{aligned}
+\begin{bmatrix}
+x' \\
+y'
+\end{bmatrix}
+ &= \begin{bmatrix}
+cos\theta & -sin\theta \\
+sin\theta & cos\theta
+\end{bmatrix}
+\begin{bmatrix}
+x \\
+y
+\end{bmatrix} \\
+ &= R·v \\
+\tag{5}
+\end{aligned}
+$$
+
+其中，$R$ 即为旋转矩阵，$v$ 即为待旋转的向量。
+
 证明完毕。
