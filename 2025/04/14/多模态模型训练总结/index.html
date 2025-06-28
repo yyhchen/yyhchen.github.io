@@ -1,0 +1,866 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="基于纯语言模型训练的多模态模型              based model: Qwen2.5-1.5B-Instruct（实在是没资源, 4卡 V100 32G）参考文献:ViT 原论文:An image is worth 16x16 words: Transformers for image recognition at scale （穷人玩不了的玩意）LLaVA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多模态模型训练总结">
+<meta property="og:url" content="https://yyhchen.github.io/2025/04/14/%E5%A4%9A%E6%A8%A1%E6%80%81%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="基于纯语言模型训练的多模态模型              based model: Qwen2.5-1.5B-Instruct（实在是没资源, 4卡 V100 32G）参考文献:ViT 原论文:An image is worth 16x16 words: Transformers for image recognition at scale （穷人玩不了的玩意）LLaVA">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-04-14T08:54:18.000Z">
+<meta property="article:modified_time" content="2025-05-03T09:13:37.919Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="LLM">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>多模态模型训练总结 - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/ViT.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">多模态模型训练总结</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-14 16:54" pubdate>
+          2025年4月14日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          25 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">多模态模型训练总结</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="基于纯语言模型训练的多模态模型"><a class="markdownIt-Anchor" href="#基于纯语言模型训练的多模态模型"></a> 基于纯语言模型训练的多模态模型</h1>
+<div class="note note-primary">
+            <ul><li><strong>based model</strong>: Qwen2.5-1.5B-Instruct（实在是没资源, 4卡 V100 32G）</li><li><strong>参考文献</strong>:<ul><li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2010.11929">ViT 原论文:An image is worth 16x16 words: Transformers for image recognition at scale</a> （穷人玩不了的玩意）</li><li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.03744">LLaVA</a></li></ul></li></ul>
+          </div>
+<h1 id="1核心目标与挑战"><a class="markdownIt-Anchor" href="#1核心目标与挑战"></a> 1.核心目标与挑战</h1>
+<ul>
+<li><strong>目标</strong>: 让原本只能理解文本的 Qwen2.5-1.5B 模型，能够同时理解图像和文本输入，并根据这些联合信息生成连贯、相关的文本输出（例如，回答关于图像的问题、描述图像内容、根据图文指令执行任务等）。</li>
+<li><strong>核心挑战</strong>: 如何将像素形式的视觉信息有效地“翻译”成 Qwen LLM 能够理解的“语言”——也就是向量嵌入（Embeddings）。LLM 的世界是由离散的词元（Tokens）及其对应的嵌入向量构成的，图像信息必须被转换成类似的格式才能被处理。</li>
+</ul>
+<br>
+<br>
+<h1 id="2关键组件的设计思路与细节"><a class="markdownIt-Anchor" href="#2关键组件的设计思路与细节"></a> 2.关键组件的设计思路与细节</h1>
+<h2 id="a视觉编码器vision-encoder-ve"><a class="markdownIt-Anchor" href="#a视觉编码器vision-encoder-ve"></a> a.视觉编码器（Vision Encoder - VE）</h2>
+<div class="note note-info">
+            <p><strong>目的:</strong> 从输入的图像中提取高层次、有意义的视觉特征。它扮演着模型的“眼睛”。</p>
+          </div>
+<div class="note note-warning">
+            <p><strong>为什么不从头训练?</strong></p><p>训练一个强大的视觉编码器需要海量的图像数据 （如 ImageNet, LAION 等）和巨大的计算资源。利用社区已经预训练好的模型（如 ViT, ResNet, ConvNeXt, CLIP Vision Encoder）是最实际、最高效的方法。这些模型已经学会了识别图像中的物体、场景、纹理等基础视觉概念。</p>
+          </div>
+<p><strong>选择考量:</strong></p>
+<ul>
+<li><strong>ViT（Vision Transformer）</strong>: 目前在很多视觉和多模态任务上表现优异，能捕捉图像的全局依赖关系。不同大小的 ViT（Base, Large, Huge）提供了性能和效率的权衡。</li>
+<li><strong>CLIP Vision Encoder</strong>: 由于 CLIP 本身就是通过对比学习图像和文本训练的，它的视觉特征可能已经与语言概念有一定程度的对齐，这可能对后续的视觉-语言融合有帮助。</li>
+<li><strong>卷积网络（如 ResNet, ConvNeXt）</strong>: 仍然是强大的选择，尤其是在某些特定任务或资源受限场景下。</li>
+</ul>
+<br>
+<p><strong>输出</strong>:<br />
+通常，我们会使用 VE 输出的两种特征之一：</p>
+<ul>
+<li><strong>【cls】 Token Embedding</strong>: 类似于 BERT，很多 VE（尤其是 ViT）在输入序列前添加一个特殊的 【cls】 标记，其最终输出的 embedding 被认为聚合了整个图像的全局信息。这是一个固定维度的向量。</li>
+<li><strong>Patch Embeddings</strong>: ViT 将图像分割成小块（Patches），每个 Patch 都会生成一个 embedding。这些 Patch embeddings 包含了更丰富的空间局部信息。我们可以使用所有 Patch embeddings，或者对它们进行池化（如平均池化）。</li>
+</ul>
+<div class="note note-danger">
+            <p><strong>是否冻结</strong>: 在多模态训练的初始阶段（对齐阶段），<mark>通常冻结视觉编码器的权重</mark>。目的是保留其强大的、预训练好的视觉特征提取能力，避免在有限的多模态数据上被破坏。在后续的端到端微调阶段，有时也会考虑解冻部分层进行微调，但这需要谨慎，并可能需要更多数据。</p>
+          </div>
+<h2 id="b连接模块投影层-connectorprojector"><a class="markdownIt-Anchor" href="#b连接模块投影层-connectorprojector"></a> b.连接模块/投影层 （Connector/Projector）</h2>
+<div class="note note-info">
+            <p><strong>目的</strong>: 这是最关键的“桥梁”组件。它的作用是将视觉编码器输出的特征（其维度和语义空间与 LLM 不同）映射（投影）到 Qwen LLM 的词嵌入空间。它需要学习如何将“视觉概念”翻译成 LLM 能理解的“词元等价物”的嵌入表示。</p>
+          </div>
+<p><strong>设计选择</strong>:</p>
+<ul>
+<li><strong>简单线性层</strong>: 最简单直接的方式。将 VE 输出的特征向量（例如 【CLS】 embedding）通过一个 nn.Linear 层，直接映射到 LLM 的隐藏层维度 （llm_hidden_size）。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">projector = nn.Linear(vision_hidden_size, llm_hidden_size)<br></code></pre></td></tr></table></figure>
+<ul>
+<li><strong>MLP（多层感知机）</strong>: 在线性层基础上增加非线性（如 GELU, ReLU 激活函数）和可能存在的层归一化（LayerNorm）。这提供了更强的表示能力，允许更复杂的特征转换。（<mark>ViT 就用的MLP</mark>）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><br>projector = nn.Sequential(<br>    nn.Linear(vision_hidden_size, llm_hidden_size),<br>    nn.GELU(),<br>    nn.Linear(llm_hidden_size, llm_hidden_size)<br>)<br></code></pre></td></tr></table></figure>
+<ul>
+<li><strong>更复杂的结构 （如带有 Cross-Attention）</strong>: 像 Flamingo 模型那样，引入交叉注意力机制，让文本 token 可以“查询”视觉特征。这通常涉及到更深层次的模型架构修改，对于仅适配现有 LLM 的情况（如 LLaVA 方式）不太常用，线性层或 MLP 是主流。</li>
+</ul>
+<blockquote>
+<p><strong>输出维度</strong>: 目标维度必须与 Qwen LLM 的词嵌入维度（llm.config.hidden_size）完全一致。</p>
+</blockquote>
+<p><strong>输出数量 （代表图像的 Token 数）</strong>:</p>
+<ul>
+<li><strong>单个向量</strong>: 如果只使用 【CLS】 token 并投影一次，那么整个图像就被表示为一个向量。这很简洁，但可能丢失细节。</li>
+<li><strong>多个向量</strong>:
+<ul>
+<li>可以将 【CLS】 token 投影到一个更高维的空间，然后 reshape 成 （num_image_tokens, llm_hidden_size）。</li>
+<li><mark>更常见的是</mark> 利用 VE 输出的 Patch Embeddings。例如，LLaVA 使用 ViT 输出的所有 Patch Embeddings，通过一个 MLP 投影层将每个 Patch Embedding 映射到 LLM 的 hidden_size，从而得到一组（例如 LLaVA 中是 256 个）代表图像的向量序列。这能保留更多空间信息。</li>
+</ul>
+</li>
+</ul>
+<div class="note note-success">
+            <p><strong>训练重点</strong>: 在训练的第一阶段（对齐阶段），连接模块是主要（甚至唯一）被训练的部分。它需要学会如何进行有效的“翻译”。</p>
+          </div>
+<h2 id="c语言模型-llm-qwen25-15b"><a class="markdownIt-Anchor" href="#c语言模型-llm-qwen25-15b"></a> c.语言模型 （LLM - Qwen2.5-1.5B）</h2>
+<div class="note note-info">
+            <p><strong>角色</strong>: 作为模型的“大脑”，负责理解融合了视觉信息的输入序列，并进行推理、生成文本。</p>
+          </div>
+<p><strong>输入</strong>: 它不再仅仅接收文本 token 的嵌入，而是接收一个混合序列，其中包含了代表图像的特殊嵌入。</p>
+<p><strong>训练策略</strong>:</p>
+<ul>
+<li><strong>初始阶段 （对齐阶段）</strong>: 通常完全冻结 LLM 的权重。目的是利用 Qwen 强大的语言先验知识，让连接模块学习如何生成 Qwen 能“读懂”的视觉嵌入。如果此时训练 LLM，可能会导致灾难性遗忘，破坏其语言能力。</li>
+<li><strong>后续阶段 （指令微调阶段）</strong>: 为了让模型能够执行具体的、复杂的图文任务（而不只是简单描述），需要解冻 LLM 的部分或全部权重进行微调。这时，模型需要学习如何在视觉背景下进行推理和遵循指令。为了效率和防止遗忘，通常采用参数高效微调 （Parameter-Efficient Fine-Tuning, PEFT） 技术，如 LoRA （Low-Rank Adaptation）。LoRA 只训练少量额外的低秩矩阵，而不是整个 LLM 的权重，大大降低了计算和存储成本。</li>
+</ul>
+<div class="note note-success">
+            <p>这一步跟 <strong>“冷启动”</strong> 有点像，最少用一个epoch先把模型对齐（其实就是获得能力），然后再进行SFT</p><p>可以参考同站博客<a href="https://yyhchen.github.io/2025/03/22/kimi1-5-technical-report/">kimi1.5 technical report</a>， 里面简要介绍了 “冷启动”</p>
+          </div>
+<br>
+<br>
+<h1 id="3输入表示与序列构建-关键细节"><a class="markdownIt-Anchor" href="#3输入表示与序列构建-关键细节"></a> 3.输入表示与序列构建 （关键细节）</h1>
+<div class="note note-info">
+            <p><strong>如何将图像和文本组合成一个 LLM 能处理的序列？</strong></p>
+          </div>
+<p><strong>LLaVA 的方法很有代表性</strong>：</p>
+<ul>
+<li>1.<strong>特殊图像标记</strong>: 在 LLM 的词汇表中添加一个或多个特殊的 token，例如 【image】。这个 token 本身没有意义，只是一个占位符。</li>
+<li>2.<strong>图像嵌入序列</strong>: 图像经过 VE 和 Projector 处理后，得到一个向量序列 【img_emb_1, img_emb_2, …, img_emb_N】，其中 N 是 num_image_tokens。</li>
+<li>3.<strong>文本处理</strong>: 将输入的文本（例如，用户的提问 “【image】\n 这张图片里有什么？”）使用 Qwen 的 Tokenizer 进行分词，得到 token ID 序列。</li>
+<li>4.<strong>序列拼接</strong>:
+<ul>
+<li>找到文本 token ID 序列中代表 【image】 的那个 ID。</li>
+<li>获取文本序列中 【image】 之前和之后部分的词嵌入。</li>
+<li>将 【image】 token 对应的（单个）嵌入替换为步骤 2 中得到的整个图像嵌入序列 【img_emb_1, …, img_emb_N】。</li>
+<li>最终形成的输入嵌入序列看起来像：【Emb（CLS）, Emb（这）, Emb（张）, …, Emb（图）, Emb（片）, img_emb_1, …, img_emb_N, Emb（换行符）, Emb（里）, Emb（有）, Emb（什）, Emb（么）, Emb（？）】。</li>
+</ul>
+</li>
+<li>5.<strong>注意力掩码 （Attention Mask）</strong>: 需要构建一个对应的 Attention Mask，确保 LLM 在处理这个混合序列时，每个位置都能注意到所有其他相关的真实 token/embedding（包括图像嵌入和文本嵌入）。掩码的长度等于混合序列的总长度。</li>
+<li>6.<strong>位置编码 （Positional Encoding）</strong>: LLM 依赖位置编码来理解 token 的顺序。在插入了图像嵌入序列后，需要确保位置编码能够正确地应用于这个加长的序列。不同的 LLM 实现可能有不同的处理方式。</li>
+<li>7.<strong>标签 （Labels for Training）</strong>: 在训练 Causal LM 时，目标是预测下一个 token。对于这个混合序列：
+<ul>
+<li>文本部分的 token，其 label 是下一个 token 的 ID。</li>
+<li>图像嵌入部分 【img_emb_1, …, img_emb_N】对应的 label 通常设置为 -100。这是一个特殊的 Pytorch 值，表示在计算损失时忽略这些位置。因为模型不需要（也不能）预测出“图像嵌入”本身，而是要利用这些图像信息来预测后面的文本 token。</li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<h1 id="4训练策略分阶段详解"><a class="markdownIt-Anchor" href="#4训练策略分阶段详解"></a> 4.训练策略分阶段详解</h1>
+<h2 id="a阶段一视觉-语言预训练对齐vision-language-pre-trainingalignment"><a class="markdownIt-Anchor" href="#a阶段一视觉-语言预训练对齐vision-language-pre-trainingalignment"></a> a.阶段一：视觉-语言预训练/对齐（Vision-Language Pre-training/Alignment）</h2>
+<div class="note note-info">
+            <p><strong>目标</strong>: 让 LLM 初步理解图像内容。主要是训练 Projector。</p>
+          </div>
+<ul>
+<li><strong>数据</strong>: 大规模的图像-文本对数据集（例如，COCO Captions, Conceptual Captions （CC）, LAION 的子集）。数据形式简单：一张图片 + 一段描述文字。</li>
+<li><strong>模型状态</strong>: 冻结 VE，冻结 LLM，只训练 Projector。</li>
+<li><strong>输入输出</strong>: 输入是图像 + 对应的标题/描述。模型的目标是根据图像嵌入（由 Projector 生成）来预测出这段标题/描述文字。</li>
+<li><strong>损失函数</strong>: 标准的交叉熵损失，但只计算在文本部分的 token 上。</li>
+</ul>
+<h2 id="b阶段二多模态指令微调-multimodal-instruction-tuning-fine-tuning"><a class="markdownIt-Anchor" href="#b阶段二多模态指令微调-multimodal-instruction-tuning-fine-tuning"></a> b.阶段二：多模态指令微调 （Multimodal Instruction Tuning / Fine-tuning）</h2>
+<div class="note note-info">
+            <p><strong>目标</strong>: 让模型学会遵循复杂的、混合了图像和文本的指令，进行 VQA（视觉问答）、复杂推理、对话等。</p>
+          </div>
+<ul>
+<li><strong>数据</strong>: 格式多样、高质量的多模态指令数据集。例如：
+<ul>
+<li><strong>VQA 数据</strong>: 【image】\nQuestion: What color is the sky?\nAnswer: Blue.</li>
+<li><strong>描述任务</strong>: 【image】\nDescribe the scene in detail.\nAnswer: A dog is playing fetch in a park…</li>
+<li><strong>复杂推理</strong>: 【image】\nBased on the image, is the person likely happy or sad? Explain why.\nAnswer: Happy, because they are smiling.</li>
+</ul>
+</li>
+<li>这些数据集通常需要人工构建或者通过强大的模型（如 GPT-4V）生成。LLaVA 项目发布了这类数据集。</li>
+<li><strong>模型状态</strong>: 冻结 VE，训练 Projector，训练 LLM （通常使用 LoRA）。</li>
+<li><strong>输入输出</strong>: 输入是指令格式的图文混合内容。模型的目标是生成指令中要求的回答部分。</li>
+<li><strong>损失函数</strong>: 交叉熵损失，但只计算在答案部分的 token 上（问题、指令、图像部分的 token label 设为 -100）。</li>
+</ul>
+<br>
+<br>
+<h1 id="5总结关键设计考量与权衡"><a class="markdownIt-Anchor" href="#5总结关键设计考量与权衡"></a> 5.总结关键设计考量与权衡</h1>
+<ul>
+<li><strong>VE 的选择</strong>: 平衡性能、速度和对特定任务的适应性。</li>
+<li><strong>Projector 的复杂度</strong>: 简单（线性层） vs 复杂（MLP），参数量和表达能力的权衡。</li>
+<li><strong>图像表示的粒度 （num_image_tokens）</strong>: 单向量（紧凑但可能信息不足） vs 多向量（更丰富但序列更长，计算量更大）。</li>
+<li><strong>训练数据</strong>: 极其重要。数据的质量、数量和多样性直接决定了模型的最终能力。对齐阶段需要大量图文对，微调阶段需要高质量指令数据。</li>
+<li><strong>训练策略</strong>: 先对齐再微调是常见且有效的方法。冻结哪些部分、何时解冻、是否使用 PEFT 技术都需要根据资源和目标进行选择。</li>
+</ul>
+<br>
+<br>
+<h1 id="6实现中的问题"><a class="markdownIt-Anchor" href="#6实现中的问题"></a> 6.实现中的问题</h1>
+<ul>
+<li><strong>数据处理</strong>: 需要编写复杂的 Data Collator 来处理批次中尺寸不一的图像和长度不同的文本，并将它们正确地整合成模型所需的混合输入格式。</li>
+<li><strong>内存管理</strong>: 多模态模型，尤其是包含大型 LLM 和 VE 的模型，对 GPU VRAM 的需求非常高。需要使用梯度累积、混合精度训练 (fp16/bf16)、模型并行/数据并行 （DeepSpeed, FSDP）、梯度检查点等技术。</li>
+<li><strong>调试</strong>: 定位模型不工作的原因可能很困难，问题可能出在 VE、Projector、LLM、数据处理、输入构建或训练逻辑的任何一个环节。</li>
+</ul>
+<blockquote>
+<p>PS: 本文只是好奇纯语言模型训练多模态问题，可能有些并不是很严谨，欢迎指正。</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/LLM/" class="category-chain-item">LLM</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/LLM/%E5%A4%9A%E6%A8%A1%E6%80%81/" class="category-chain-item">多模态</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LLM/" class="print-no-link">#LLM</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>多模态模型训练总结</div>
+      <div>https://yyhchen.github.io/2025/04/14/多模态模型训练总结/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/04/18/%E9%9B%B6%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8RoPE/" title="零基础入门RoPE">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">零基础入门RoPE</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/02/DPO-vs-PPO/" title="DPO vs PPO">
+                        <span class="hidden-mobile">DPO vs PPO</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
