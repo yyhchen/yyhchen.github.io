@@ -25,7 +25,7 @@
     "hexo-renderer-stylus": "^3.0.1",
     "hexo-server": "^3.0.0",
     "hexo-theme-landscape": "^1.0.0",
-    "markdown-it-obsidian-callouts": "^0.3.2",
+    "markdown-it-obsidian-callouts": "^0.3.3",
     "mdit-plugin-callouts": "^1.2.0"
   }
 }
