@@ -1,6 +1,7 @@
 ---
 title: 零基础入门RoPE
 date: 2025-04-18 15:51:29
+updated: "2025-06-28T07:59:41.215Z"
 tags: [LLM]
 categories: [LLM, 算法]
 banner_img: /img/RoPE/Rotation.png

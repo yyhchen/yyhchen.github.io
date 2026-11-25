@@ -1,0 +1,148 @@
+/* ============================================================
+   Editorial Semantic Marks · 克制的资讯杂志式语义排版（博客版）
+   与 Obsidian vault 的 paper-reading-beautify.css Editorial 语义层同源；
+   适配 Fluid 主题：浅色默认 + html[data-user-color-scheme="dark"] 暗色。
+   Callout 有两种渲染结构，都要覆盖：
+   - markdown-it-obsidian-callouts → div.callout[data-callout="..."]
+   - mdit-plugin-callouts          → details.custom-callout.<type>
+   ============================================================ */
+
+/* ---------- 三类行内标注 ---------- */
+.mark-strong {
+  margin: 0 1px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #e3f2e6;   /* 玉绿底 */
+  color: #23603a;         /* 墨绿字 */
+  font-weight: 700;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.mark-number {
+  margin: 0 1px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #ffe7ef;   /* 粉底 */
+  color: #bd3567;         /* 玫红字 */
+  font-weight: 700;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.mark-entity {
+  color: #315f9f;        /* 静谧蓝，无底色 */
+  font-weight: 600;
+}
+
+/* ---------- 语气块（div.callout[data-callout]）---------- */
+.callout[data-callout="ed-quote"] {
+  border-left: 3px solid #6d83b5;
+  background: #f5f7fb;
+  color: #414b63;
+  border-radius: 10px;
+  padding: 13px 16px;
+  margin: 1.3em 0;
+}
+
+.callout[data-callout="ed-warning"] {
+  border-left: 3px solid #e36a7e;
+  background: #fff4f5;
+  color: #70434b;
+  border-radius: 10px;
+  padding: 13px 16px;
+  margin: 1.3em 0;
+}
+
+.callout[data-callout="ed-quote"] .callout-title,
+.callout[data-callout="ed-warning"] .callout-title {
+  font-weight: 650;
+  opacity: 0.9;
+  margin: 0 0 4px;
+}
+
+/* ---------- 骨架 callout（details.custom-callout.<type>）---------- */
+details.custom-callout {
+  border: none;
+  border-left: 4px solid #4c6ef5;
+  background: #f5f7fb;
+  border-radius: 10px;
+  padding: 0.9em 1.15em;
+  margin: 1.3em 0;
+}
+
+details.custom-callout > summary.callout-title {
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+details.custom-callout.abstract {
+  border-left-color: #2a9d8f;
+  background: #eef7f5;
+}
+
+details.custom-callout.important {
+  border-left-color: #d97706;
+  background: #fdf6ec;
+}
+
+details.custom-callout.cite {
+  border-left-color: #9aa5b1;
+  background: #f4f5f7;
+  font-size: 0.95em;
+}
+
+details.custom-callout.summary {
+  border-left-color: #6d83b5;
+  background: #f5f7fb;
+}
+
+details.custom-callout .callout-fold {
+  display: none;
+}
+
+/* ---------- 暗色模式（Fluid: html[data-user-color-scheme]）---------- */
+html[data-user-color-scheme="dark"] .mark-strong {
+  background: rgba(96, 176, 120, 0.16);
+  color: #bfe8c9;
+}
+
+html[data-user-color-scheme="dark"] .mark-number {
+  background: rgba(251, 114, 153, 0.18);
+  color: #ffb0cc;
+}
+
+html[data-user-color-scheme="dark"] .mark-entity {
+  color: #9fc6ff;
+}
+
+html[data-user-color-scheme="dark"] .callout[data-callout="ed-quote"] {
+  background: rgba(109, 131, 181, 0.14);
+  color: #d8dee9;
+}
+
+html[data-user-color-scheme="dark"] .callout[data-callout="ed-warning"] {
+  background: rgba(227, 106, 126, 0.13);
+  color: #f0d0d6;
+}
+
+html[data-user-color-scheme="dark"] details.custom-callout {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-user-color-scheme="dark"] details.custom-callout.abstract {
+  background: rgba(42, 157, 143, 0.12);
+}
+
+html[data-user-color-scheme="dark"] details.custom-callout.important {
+  background: rgba(217, 119, 6, 0.12);
+}
+
+html[data-user-color-scheme="dark"] details.custom-callout.cite {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-user-color-scheme="dark"] details.custom-callout.summary {
+  background: rgba(109, 131, 181, 0.12);
+}

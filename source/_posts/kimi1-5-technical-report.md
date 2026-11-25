@@ -1,6 +1,7 @@
 ---
 title: kimi1.5 technical report
 date: 2025-03-22 01:36:07
+updated: "2025-05-03T09:13:37.919Z"
 tags:
   - RL
   - LLM

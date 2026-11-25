@@ -1,6 +1,7 @@
 ---
 title: 
-date: {{ date }}
+date: "2025-05-03T09:13:37.921Z"
+updated: "2025-05-03T09:13:37.921Z"
 layout: about
 ---
 

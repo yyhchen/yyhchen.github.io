@@ -91,6 +91,7 @@ pagination_dir: page
 ## include:/exclude: options only apply to the 'source/' folder
 include:
 exclude:
+  - css/editorial-marks.css
 ignore:
 
 # Extensions
@@ -105,7 +106,7 @@ theme: fluid
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: git@github_yyhchen.com:yyhchen/yyhchen.github.io.git
+  repo: git@github.com:yyhchen/yyhchen.github.io.git
   branch: main
 
 

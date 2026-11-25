@@ -1,6 +1,7 @@
 ---
 title: pre-trained 笔记总结
 date: 2024-09-25 12:25:46
+updated: "2025-05-03T09:13:37.919Z"
 tags: [LLM, pre-trained]
 categories: [LLM]
 banner_img: /img/pretrain_task.png
