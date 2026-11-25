@@ -9,7 +9,7 @@ description: ''
 keywords:
 author: yhchen
 language: zh-CN
-timezone: ''
+timezone: Asia/Shanghai
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
@@ -121,6 +121,5 @@ markdown_it_plus:
                 # this is plugin option
         - plugin:
             name: mdit-plugin-callouts
-            enable: true
-            options:
+            enable: false
 

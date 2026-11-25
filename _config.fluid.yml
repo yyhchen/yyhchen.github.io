@@ -238,6 +238,7 @@ custom_js:
 # 指定自定义 .css 文件路径，用法和 custom_js 相同
 # The usage is the same as custom_js
 custom_css:
+  - /css/paper-reading.css
 
 # 网页访问统计
 # Analysis of website visitors
@@ -369,6 +370,7 @@ navbar:
   menu:
     - { key: "主页", link: "/", icon: "iconfont icon-home-fill" }
     - { key: "归档", link: "/archives/", icon: "iconfont icon-archive-fill" }
+    - { key: "论文精读", link: "/tags/Paper精读/" }
     - { key: "分类", link: "/categories/", icon: "iconfont icon-category-fill" }
     - { key: "标签", link: "/tags/", icon: "iconfont icon-tags-fill" }
     - { key: "关于", link: "/about/", icon: "iconfont icon-user-fill" }
@@ -577,7 +579,7 @@ post:
       # 格式参照 ISO-8601 日期格式化
       # ISO-8601 date format
       # See: http://momentjs.cn/docs/#/parsing/string-format/
-      format: "LL a"
+      format: "YYYY-MM-DD HH:mm:ss"
 
     # 字数统计
     # Word count
