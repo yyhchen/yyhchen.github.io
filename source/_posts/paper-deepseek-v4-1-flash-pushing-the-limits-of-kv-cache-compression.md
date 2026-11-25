@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression'
 date: '2026-09-11T13:57:46+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -119,9 +119,14 @@ CSA2 同时沿三个维度压缩：
 
 论文配置中，encoder 的 18 个 CSA2 层按 6 层一组，每组 1 个 Full + 5 个 Reuse；decoder 的 20 层按 4 层一组，第一组是 1 个 Full + 3 个 Reuse，后四组是 1 个 Reindex + 3 个 Reuse。每次 sparse attention 选 Top-512，SWA 窗口为 128。
 
-![Figure 4：CSA2 的 Full、Reindex、Reuse 三种工作模式](/img/paper-reading/img_77c00a3548dbe5f940bd3fd932708dfc862831ff4f078ee52611b699a4b3029a.jpg)
+![图 3｜DeepSeek-V4.1-Flash 整体架构](/img/paper-reading/img_77c00a3548dbe5f940bd3fd932708dfc862831ff4f078ee52611b699a4b3029a.jpg)
 
 *图注：论文的整体架构图展示了 20 层 encoder + 20 层 decoder、CSA2 模式分组、SWA、Engram、DSpark 和层级稀疏索引器的组合。图中对应的是整体架构，而不是单独的 CSA2 流程图；CSA2 的三种模式见论文 Figure 4。*
+
+![图 4｜CSA2 的 Full、Reindex 与 Reuse 模式](/img/paper-reading/img_f950b968ab5c53e516c558b156b40ead3e1e8d1c1578c4d822d7e7e8a2e1df72.png)
+
+*图 4｜CSA2 的 Full、Reindex 与 Reuse 模式。 [来源](https://arxiv.org/pdf/2609.19969v1#page=10)*
+
 
 ### 组件3：Hierarchical Sparse Indexer
 
@@ -139,7 +144,9 @@ CSA2 同时沿三个维度压缩：
 
 第一层仍然是随上下文增长的全范围扫描，但后续层的候选搜索空间在固定配置下与上下文长度近似无关。论文明确把该候选限制在训练和推理中都打开，避免出现“训练时看全上下文、推理时突然只能看候选池”的分布错配。
 
-*（原图未能本地化：Figure 5：Hierarchical Sparse Indexer；IMA 媒体接口没有可用媒体编号）*
+![图 5｜Hierarchical Sparse Indexer 分块与重用流程](/img/paper-reading/img_c848ead05f64d4c23231ecb5f7baee81541b6f69816fb465ede2713f8fc34774.png)
+
+*图 5｜Hierarchical Sparse Indexer 分块与重用流程。 [来源](https://arxiv.org/pdf/2609.19969v1#page=11)*
 
 *图注：第一个 Full 层从全上下文建立 block 级候选池，后续 Reindex 层只在候选位置内重新选择 Top-K；这把大部分索引成本从随上下文线性增长改造成候选池受限的搜索。*
 
@@ -238,7 +245,9 @@ V4.1-Flash 不再把 SWA KV 长期放进 persistent KV cache，而是：
 
 解读：V4.1-Flash Base 在代码和数学若干指标上已经超过 V4-Pro Base，但 LongBench-V2 仍明显落后 V4-Pro。这说明“更强的缓存效率”并不自动等价于“所有长上下文理解能力更强”；系统能处理更长输入，和模型是否能在长输入中稳定检索/推理，是两个不同问题。
 
-*（原图未能本地化：Figure 1：KV Cache 压缩与 Agent benchmark 表现；IMA 媒体接口没有可用媒体编号）*
+![图 1｜Agent 基准表现与各代 DeepSeek 的单 token 全局 KV 缓存](/img/paper-reading/img_20afa304f07435462eb78fc39cd878b250343f0b4e4dde7c3b7917738016767d.png)
+
+*图 1｜Agent 基准表现与各代 DeepSeek 的单 token 全局 KV 缓存。 [来源](https://arxiv.org/pdf/2609.19969v1#page=1)*
 
 *图注：论文 Figure 1 同时展示 Agent benchmark 表现和不同 DeepSeek 代际的 global KV/token。V4.1-Flash 的核心卖点是：缓存占用大幅下降并没有伴随整体能力退化。*
 

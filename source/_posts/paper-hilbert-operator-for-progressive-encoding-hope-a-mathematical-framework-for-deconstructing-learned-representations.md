@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks'
 date: '2026-07-26T12:08:10+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -49,7 +49,7 @@ math: true
 > 2. **神经元 = rank-1 Hilbert-Schmidt 算子**：把每个神经元提升到连续 Hilbert 空间 $\mathcal{H} = L_2(\mathcal{X}, P_{\mathcal{X}}; \mathbb{R}^c)$ 里，剪枝 = 投影到零算子，合并 = 两个 rank-1 子空间的最优 rank-1 近似。两件事从此共用一套语言。
 > 3. **BN 统计 → 最大熵原理 → 解析代理分布**：含 BN 的架构里，滑动均值和方差就是免费的分布信息，配上最大熵原理构造高斯代理，Hilbert 空间内积全部解析可得，<span class="mark-strong">一次前向传播都不用跑</span>。
 
-![Figure 1: Accuracy vs Density](/img/paper-reading/img_6b021839d11082c661bbeb75e3bed298f95895a44b35a03d55aea0d8e559372a.png)
+![实验图｜Accuracy vs Density](/img/paper-reading/img_6b021839d11082c661bbeb75e3bed298f95895a44b35a03d55aea0d8e559372a.png)
 
 *图注：ImageNet <span class="mark-entity">ResNet-50</span>，Accuracy vs Density。HOPE（蓝）在相同密度下压着 $L_1$ 输入剪枝（红）、$L_1$ 联合剪枝（绿）、BN Scale 剪枝（橙）打——函数空间称重确实比看幅值靠谱。*
 
@@ -84,6 +84,11 @@ $$
 这是全文我觉得最冒险的一步——把「预激活近似高斯」直接当构造分布的地基。好在 Diaconis-Freedman 给了点理论背书，而且选最大熵本身就是一种坦白：我只用我知道的信息，不多编一分。
 
 ### 组件3：Hilbert 空间中的 rank-1 算子
+
+![图 1｜神经元作为秩一算子的输入、输出与张量表示](/img/paper-reading/img_b099aef42117c2068057ca97d8ca24ec6f03048090578eb8bdfdc7777d582336.png)
+
+*图 1｜神经元作为秩一算子的输入、输出与张量表示。 [来源](https://arxiv.org/pdf/2607.21366v1#page=8)*
+
 
 有了分布，就能把输入端函数 $g_i$ 和输出向量 $\mathbf{w}_{\text{out},i}$ 做张量积，得到全文的中心对象：
 
@@ -139,6 +144,11 @@ $$
 每次迭代 $\mathcal{O}(L \cdot N^2)$，$L$ 为层数，$N$ 为每层神经元数。注意两两交叉容量要 $O(N^2)$ 量级的预计算——这笔开销，后面局限里会回来咬它。
 
 ### 组件6：DEFT——迁移学习应用
+
+![图 4｜DEFT 的冗余重分配与结构掩码](/img/paper-reading/img_70abf88ae85fd9d2eef9392b24c5ee059d80b274c99b48d82e59f857fb256f46.png)
+
+*图 4｜DEFT 的冗余重分配与结构掩码。 [来源](https://arxiv.org/pdf/2607.21366v1#page=22)*
+
 
 最后是这套容量观的反哺：既然容量能分出核心和外围，迁移学习可以直接借用。基于 $\mathcal{J}_{\text{prune}}$ 的分布，把神经元分成 <span class="mark-entity">Universal Core</span>（高容量，冻结）和 <span class="mark-entity">Peripheral Slack</span>（低容量，可塑），这就是 <span class="mark-entity">Dispersed Elastic Fine-Tuning (DEFT)</span>：
 

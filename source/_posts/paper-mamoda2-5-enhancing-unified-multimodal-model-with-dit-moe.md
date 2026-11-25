@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Mamoda2.5: Enhancing Unified Multimodal Model with DiT-MoE'
 date: '2026-05-06T18:26:30+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -52,6 +52,11 @@ math: true
 
 ## 3️⃣ 方法解读
 
+![图 3｜Mamoda2.5 的自回归与扩散统一架构](/img/paper-reading/img_9ca5223f09e60232d7b0b2247f6bd39982234d26c93e26723ccb60411089b3cd.png)
+
+*图 3｜Mamoda2.5 的自回归与扩散统一架构。 [来源](https://arxiv.org/html/2605.02641v1/#S2.F3)*
+
+
 1. **统一 AR-Diffusion 架构：** 把自回归建模（语言和视觉理解用）和扩散过程（图像/视频生成用）融进单一 Transformer。「统一多模态模型」这个方向光喊口号不行，这篇给了一份能跑起来的实现。
 
 2. **DiT-MoE 设计：** 在 Diffusion Transformer 骨干里引入 MoE，128 个专家各自 specialize 在不同的视觉模式上，Top-8 路由让每个 token 只激活 8 个最相关的专家。
@@ -73,6 +78,11 @@ math: true
 ---
 
 ## 4️⃣ 实验部分怎么读
+
+![图 1｜Mamoda2.5 与对照模型的基准表现](/img/paper-reading/img_41265337bef8afff6c83217cc2fdda8ec1f3a2e8abda5ffa716a4085b2c5565e.png)
+
+*图 1｜Mamoda2.5 与对照模型的基准表现。 [来源](https://arxiv.org/html/2605.02641v1/#S0.F1)*
+
 
 - **VBench 2.0 性能：** 先看标准视频生成基准上的排名——生成质量的硬指标就在这儿
 

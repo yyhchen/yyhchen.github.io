@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search'
 date: '2026-05-26T18:50:56+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -50,6 +50,11 @@ GRPO 这类 LLM post-training 优化的是一个**预定标量奖励**，训到�
 VPO 拆开看就两个关键组件：
 
 ### 组件1：多答案联合生成（Multi-answer generation）
+
+![图 2｜VPO 的多答案训练与随机标量化流程](/img/paper-reading/img_492c98fdd0c0c3cf3fb213c2f4cbb799fb925ef7884e307853440b662bced56a.png)
+
+*图 2｜VPO 的多答案训练与随机标量化流程。 [来源](https://arxiv.org/html/2605.22817v1/#S3.F2)*
+
 
 - 借鉴 Puri et al. 2026：模型在**单次自回归 rollout** 里连着生成 m=3 个候选解，用分隔符隔开。
 
@@ -103,6 +108,11 @@ VPO 拆开看就两个关键组件：
 | ToolRL（函数调用） | Qwen3-1.7B | r in R^4（结构+F1x3） | Agent 工具调用 |
 
 ### 核心结果
+
+![图 3｜MuSiQue 与 EUREQA 的测试时扩展](/img/paper-reading/img_383cbd118268d53302b9afc478a8876d7b2055b0b6f722c3edb68472596c007a.png)
+
+*图 3｜MuSiQue 与 EUREQA 的测试时扩展。 [来源](https://arxiv.org/html/2605.22817v1/#S5.F3)*
+
 
 - **best@k**：<span class="mark-strong">VPO 在四个域上全赢 GRPO</span>，而且 k 越大差距越大——GRPO 很快饱和，VPO 还在持续改善。
 

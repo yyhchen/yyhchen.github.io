@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜On-Policy Distillation (Uni-OPD)
 date: '2026-05-07T12:58:26+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -54,6 +54,11 @@ SFT → RL 两步走是当前 post-training 的主流，但这套范式里藏着
 
 ### 学生侧：联合离线和在线数据平衡
 
+![图 2｜Uni-OPD 的学生侧数据平衡与教师侧边际校准](/img/paper-reading/img_99cff4f3c86509f7871fe46e4eba610abcffc60e12195095706c063159935db4.png)
+
+*图 2｜Uni-OPD 的学生侧数据平衡与教师侧边际校准。 [来源](https://arxiv.org/html/2605.03677v1/#S3.F2)*
+
+
 | **策略** | **类型** | **做法** |
 | --- | --- | --- |
 | **Offline 难度感知平衡** | 数据构建 | 训练前对样本按难度聚类，确保每个 batch 包含从易到难的混合比例，避免模型只学简单模式 |
@@ -84,6 +89,11 @@ SFT → RL 两步走是当前 post-training 的主流，但这套范式里藏着
 ## 4️⃣ 实验部分怎么读
 
 ### 关键数字
+
+![图 1｜Uni-OPD 的整体性能与收敛轨迹](/img/paper-reading/img_bbaad2c5baf41976daaf027909e56b4b44b095fcb5ec435620261b682b8836bf.png)
+
+*图 1｜Uni-OPD 的整体性能与收敛轨迹。 [来源](https://arxiv.org/html/2605.03677v1/#S0.F1)*
+
 
 | **场景** | **核心结果** |
 | --- | --- |

@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models'
 date: '2026-09-16T14:19:42+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -67,7 +67,9 @@ math: true
 >
 > 5. **异步训练的“新鲜”应按 update 使用历史判断，而不是只看时间。** 论文把 fresh 定义为“此前没有用于这次 update 的轨迹”，即使它由较旧 snapshot 生成也可以使用；真正控制其风险的是存储 behavior probability 和 sequence trust gate，而不是把旧数据直接当作 on-policy 数据。
 
-*（原图未能本地化：Figure 1：FlashREINFORCE 的长链路推理训练曲线；IMA 媒体接口没有可用媒体编号）*
+![图 1｜FlashREINFORCE 的单批次更新、序列信任区间与样本均值损失](/img/paper-reading/img_a82db8d012778bd599bc8d2259310a33187b9e26605154ed48d42569dd237d91.png)
+
+*图 1｜FlashREINFORCE 的单批次更新、序列信任区间与样本均值损失。 [来源](https://arxiv.org/pdf/2611.18627v1#page=2)*
 
 *图中横轴是累计 optimizer updates，纵轴是 AIME24/25 平均准确率；散点为 evaluation，深色曲线为三 checkpoint moving mean。准确率从约 21.7 上升到约 33.7，贯穿约 6,000 次更新保持上升趋势。*
 
@@ -149,7 +151,9 @@ math: true
 
 `m_i` 在 update 中 stop-gradient。若轨迹被拒绝，整条轨迹在本次更新中的 stored-history contribution 全部移除；不是只保留其中恰好没超阈值的 token。这个粒度是论文与 token-local masking 的关键区别。
 
-*（原图未能本地化：Figure 2：长时程训练中的响应长度变化；IMA 媒体接口没有可用媒体编号）*
+![图 2｜近似四步策略滞后下的长程训练与响应长度变化](/img/paper-reading/img_3d2bf5a7825dfc91ad76ef43b4e379411ba98ce15d788eb11501a65a403f4953.png)
+
+*图 2｜近似四步策略滞后下的长程训练与响应长度变化。 [来源](https://arxiv.org/html/2611.18627v1/#S4.F2)*
 
 *响应长度随训练从约 6,200 tokens 快速下降到约 4,100–4,300 tokens 后趋于稳定。它与准确率上升同时出现，说明该实验中训练并没有通过无止境增加 CoT 长度来获得表面收益。*
 
@@ -237,7 +241,9 @@ DeepSeek-R1-Distill-Qwen-1.5B 在 policy lag 约 4 时，从初始 AIME24/25 平
 
 30B MoE 上，FlashREINFORCE 在 lag≈8 的情况下仍领先 lag≈1 的 GRPO 6.8 个百分点，说明它的目标不是把异步 lag 消灭，而是让较大的 lag 在可接受的漂移范围内可用。长跑 R3 配置在 1,000–1,450 updates 维持 63.7–66.8 的三任务均值，末尾 66.4；GRPO 曾两次大幅下降，step 800 回到 60.3。
 
-*（原图未能本地化：Figure 3：Qwen3-30B-A3B 工具调用训练的异步稳定性；IMA 媒体接口没有可用媒体编号）*
+![图 3｜Qwen3-30B-A3B 的 Python 工具调用准确率](/img/paper-reading/img_4522e550e76e985dcc6447f3775e6f37db2568ffacac04e29defb60bfa0ddd07.png)
+
+*图 3｜Qwen3-30B-A3B 的 Python 工具调用准确率。 [来源](https://arxiv.org/html/2611.18627v1/#S4.F3)*
 
 *四个子图分别展示三任务均值、AIME2025、AMC2023 和 Minerva 的 avg@4 准确率随 policy updates 的变化。FlashREINFORCE 的三种 lag=8 配置保持在约 60–67 区间；GRPO（lag=1）的曲线出现两次明显崩落后才恢复。*
 

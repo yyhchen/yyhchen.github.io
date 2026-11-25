@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Leanstral
 date: '2026-08-07T13:33:31+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -56,7 +56,9 @@ Lean 专用基础设施（可靠的奖励、高效反馈）仍然必要，但它
 >
 > 5. **全自动 bug 发现流水线的范式意义**：Aeneas（Rust→Lean 翻译）+ Leanstral（自动形式化性质 + 尝试证明 + 失败则证伪）——**无人在环**的演绎验证找 bug。57 个仓库、47 个可证伪性质、11 个真 bug、5 个从未上报。这回答了"LLM 能否规模化做严谨代码验证"。
 
-*（原图未能本地化：Figure 1: Leanstral 1.5 开源 SoTA 性能，成本比 Seed-Prover 1.5 High 低 10 倍以上（后者每题 10 H20 天）；IMA 媒体接口没有可用媒体编号）*
+![官方图｜Leanstral 1.5 在多个形式化证明评测上的表现](/img/paper-reading/img_01e397ea0e3d896d4478df41da80ed3d9e5106e8e78a2772a4230021ddb955a3.webp)
+
+*官方图｜Leanstral 1.5 在多个形式化证明评测上的表现。 [来源](https://mistral.ai/news/leanstral-1-5/)*
 
 *Figure 1（第 1 页）：Leanstral 1.5 以开源模型身份拿下 SoTA 性能，而每问题成本比 Seed-Prover 1.5 High 低 10 倍以上——后者单问题消耗 10 H20 天算力。*
 
@@ -133,7 +135,9 @@ L_CISPO(θ) = −1/Σ|oi| · Σ_G Σ_t ρ̄_{i,t} Â_i log π_θ(a_{i,t}|s_{i,t}
 
 - **关键解读**：Leanstral 是榜单中**唯一完全开源**且**唯一用通用编码智能体脚手架**的系统——它比 Seed-Prover 多解 6 题却便宜 143 倍；比 Goedel-Architect 少 10 题但成本几乎相同且无需自然语言引导。**<span class="mark-strong">"专用脚手架"的优势被"通用智能体 + 长跑"追平了</span>**。
 
-*（原图未能本地化：Figure 2: PutnamBench 测试时扩展——token 预算从 50k 单调增长到 4M，解题数从 44 涨到 587；IMA 媒体接口没有可用媒体编号）*
+![官方图｜PutnamBench 上的测试时计算扩展](/img/paper-reading/img_20d6cce7e674b52c075fc5a4da5bcd3724b7fd471aec292b903a9761ab3a4b9a.webp)
+
+*官方图｜PutnamBench 上的测试时计算扩展。 [来源](https://mistral.ai/news/leanstral-1-5/)*
 
 *Figure 2（第 6 页）：PutnamBench 上 pass@8 的测试时扩展曲线。总轨迹 token 预算（自动压缩窗口）从 50k 增到 4M，解题数从 44 单调增长到 587——****单调扩展****证明上下文压缩没有丢失关键信息，追加算力直接转化为解题数。*
 
@@ -151,7 +155,9 @@ L_CISPO(θ) = −1/Σ|oi| · Σ_G Σ_t ρ̄_{i,t} Â_i log π_θ(a_{i,t}|s_{i,t}
 
 - 对开源巨头：Qwen3.5（最强开源对手）pass@4 才 25.4%，Leanstral 1.5 **pass@1 就 28.9%**，pass@4 高 13.5 点
 
-*（原图未能本地化：Figure 3: FLTEval 分数 vs 采样次数——Leanstral 对 3-10 倍大的开源模型（GLM5-744B、Kimi-K2.5-1T、Qwen3.5-397B）；IMA 媒体接口没有可用媒体编号）*
+![官方图｜FLTEval 解题率随采样数量的变化](/img/paper-reading/img_378922f477b8e20445a1d70a58dd08276868bd576c2a36f12866e4f081cf2954.webp)
+
+*官方图｜FLTEval 解题率随采样数量的变化。 [来源](https://mistral.ai/news/leanstral-1-5/)*
 
 *Figure 3（第 7 页）：FLTEval 上 Leanstral 1.0/1.5 对比 3-10 倍大的开源模型。最强对手 Qwen3.5 pass@4 才 25.4%；Leanstral 1.5 单次采样 28.9%，pass@4 时领先 13.5 个点。*
 

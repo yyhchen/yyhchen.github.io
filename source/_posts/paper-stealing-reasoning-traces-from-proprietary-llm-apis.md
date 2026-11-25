@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Stealing Reasoning Traces from Proprietary LLM APIs
 date: '2026-08-12T20:33:57+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -178,6 +178,11 @@ math: true
 
 ### 关键证据
 
+![图 26｜不同来源推理文本在七个评分模型下的困惑度](/img/paper-reading/img_7df7ff85c91b8aca0617c1e313ce064fe6e521b1141d4313f80b2e30d4382f58.png)
+
+*图 26｜不同来源推理文本在七个评分模型下的困惑度。 [来源](https://arxiv.org/html/2608.09867v1/ppl_heatmap.png)*
+
+
 1. <span class="mark-strong">保真度（Figure 1）</span>：120 道 Codeforces 题上解码 token 数与 API 报告 thinking token 数紧密吻合——提取是忠实的
 
 2. <span class="mark-strong">跨厂商有效（Figure 1）</span>：Anthropic（Opus 4.8 → Haiku 4.5）、OpenAI（GPT-5.6 Sol → Luna）、Google（Gemini 3.1 Pro → Robotics 1.6）全部演示成功
@@ -187,6 +192,11 @@ math: true
 4. <span class="mark-strong">隐私示例（Figure 5）</span>：GPT-5.2 Codex 解码出要清除的 API keys（hf_…、AWS secret）；Claude Sonnet 4.6 解码出完整合成人设（姓名/邮箱/护照/DOB/信用卡号+CVV）
 
 *（原图未能本地化：图：隐私工件示例——左：GPT-5.2 Codex 解码推理复述需清除的 API keys；右：Claude Sonnet 4.6 解码推理含完整人设（姓名/邮箱/护照/DOB/信用卡+CVV）；IMA 媒体接口没有可用媒体编号）*
+
+![图 6｜公开样本中恢复出的隐私工件类别汇总](/img/paper-reading/img_4521d649274ad2a1f45724c5aff893a821b9abd5266ab5a31a1dc4dd9e25698e.png)
+
+*图 6｜公开样本中恢复出的隐私工件类别汇总。 [来源](https://arxiv.org/html/2608.09867v1/pii_types.svg)*
+
 
 *Figure 5（隐私泄漏实证）：左：GPT-5.2 Codex 解码推理复述发布仓库前需清除的 API keys（hf_…、AWS secret）；右：Claude Sonnet 4.6 解码推理含完整合成人设 Alex Green（姓名/邮箱/护照/DOB/信用卡号+CVV）——用户清洗可见文本无法触及加密推理中的敏感数据。*
 

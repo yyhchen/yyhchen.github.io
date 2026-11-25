@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning'
 date: '2026-05-11T16:34:58+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -59,6 +59,11 @@ Skill1 的关键洞察是：单个任务结果信号 `r(τ)` 本身就包含不�
 ## 3️⃣ 方法解读
 
 ### 整体流程
+
+![图 2｜Skill1 的技能选择、使用与蒸馏框架](/img/paper-reading/img_2543b0699044c7244e1aa6000f408090f250fa5de30b40f9b8897b264bbfe1f2.png)
+
+*图 2｜Skill1 的技能选择、使用与蒸馏框架。 [来源](https://arxiv.org/html/2605.06130v1/#S3.F2)*
+
 
 对于一个任务 `x`，策略 `π_θ` 按顺序执行三个阶段，完成一条完整轨迹 `τ = (q, z, a₁, o₁, ..., a_T, o_T, s_new)`：
 
@@ -136,6 +141,11 @@ Skill1 没有另起炉灶，优化直接架在 GRPO 上改：
 | 训练收敛 | ~100-150 steps（ALFWorld 约 30 小时） |
 
 ### 主要结果
+
+![图 3｜技能相关能力指标在训练中的演化](/img/paper-reading/img_21732f9f666ab487aac278f8b429623d7f277edb1a1f00d4f86185acc26b815a.png)
+
+*图 3｜技能相关能力指标在训练中的演化。 [来源](https://arxiv.org/html/2605.06130v1/#S4.F3)*
+
 
 | **方法** | **ALFWorld (avg)** | **WebShop (avg)** |
 | --- | --- | --- |

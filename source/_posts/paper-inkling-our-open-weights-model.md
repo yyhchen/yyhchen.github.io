@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Inkling: Our Open-Weights Model'
 date: '2026-07-16T19:53:43+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -89,6 +89,11 @@ Inkling 的设计目标是：**在开源的前提下，提供一个"够广、够
 
 ### 组件4：可控思考努力
 
+![官方图｜思考预算和主要任务表现的关系](/img/paper-reading/img_95be58146f6bd2b7a968f3b9b133c52fab53b82593782a82d08077a6605fff33.png)
+
+*官方图｜思考预算和主要任务表现的关系。 [来源](https://thinkingmachines.ai/news/introducing-inkling/)*
+
+
 - 通过 system message 设定 effort 参数（0.2 ~ 0.99）
 
 - 训练时通过 **per-token cost** 让模型学习"不同 effort 对应不同 token 消耗"
@@ -100,6 +105,11 @@ Inkling 的设计目标是：**在开源的前提下，提供一个"够广、够
 > **Figure 3 — 可控思考努力曲线**：折线图，X 轴为 effort（0.2 ~ 0.99），Y 轴为性能分数（0-100）。每条折线代表一个 benchmark（Terminal Bench 2.1, HLE, IFBench）。所有曲线均呈单调递增趋势，但 effort > 0.8 后边际收益递减。标注显示 Inkling 在 effort=0.99 时达到 Nemotron 3 Ultra（虚线）的同等性能，但仅消耗 1/3 的 token（约 8000 vs 24000）。另一条曲线显示 mean generated tokens 从 effort=0.2 时的 ~5K 增长到 effort=0.99 时的 ~25K。
 
 ### 组件5：大规模 RL 训练
+
+![官方图｜从 SFT 到发布检查点的强化学习曲线](/img/paper-reading/img_3f13acc3556520cb96711b4b59ccd45a2503379814af312ff67f9f23e0d60fb1.png)
+
+*官方图｜从 SFT 到发布检查点的强化学习曲线。 [来源](https://thinkingmachines.ai/news/introducing-inkling/)*
+
 
 - **异步 RL，30M+ rollouts**，连续两个长训练阶段
 

@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science
 date: '2026-08-04T16:20:28+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -78,11 +78,15 @@ math: true
 
 - **方法核心**：构造**两点线性规划证书**（two-point LP certificates）；表示图（representation graph）方法；在 s→1 极限下恢复结果 1 的球堆积指数（两章形成自洽闭环）
 
-*（原图未能本地化：第二章 Figure 1：whole-cube 表示路径（固定 Boolean 调和）；IMA 媒体接口没有可用媒体编号）*
+![图 2｜固定 Boolean 调和次数下的 whole-cube 表示路径](/img/paper-reading/img_c9b2e23a0379902a6e1024cf8fb0ca6bf3c12ee7e1c2febe8da165ca7d676757.png)
+
+*图 2｜固定 Boolean 调和次数下的 whole-cube 表示路径。 [来源](https://cdn.openai.com/pdf/ten-proofs-oai.pdf#page=40)*
 
 *第二章 Figure 1（第 38 页）：whole-cube 表示路径图——二元码界证明中使用的表示图结构，展示固定 Boolean 调和下的表示路径。*
 
-*（原图未能本地化：第二章 Figure 2：球面两行表示图（固定稳定子）；IMA 媒体接口没有可用媒体编号）*
+![图 3｜固定稳定子权重的球面两行表示图](/img/paper-reading/img_059bf4e4520002e288a9814d2dc7c9bc63eec7121067405f056ed16495e04c8f.png)
+
+*图 3｜固定稳定子权重的球面两行表示图。 [来源](https://cdn.openai.com/pdf/ten-proofs-oai.pdf#page=62)*
 
 *第二章 Figure 2（第 59 页）：球面两行表示图——球面码证明中经球面调和与稳定子表示的过渡图结构，用于渐近球面码界。*
 

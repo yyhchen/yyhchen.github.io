@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Finite time blowup for Navier–Stokes
 date: '2026-09-09T15:19:43+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -123,7 +123,9 @@ T=c1v1+c2v2， c1>0， c2>0。
 
 脉冲用向量势取 curl 构造，因此速度增量自动无散。作者额外引入辅助二维环面变量 Y：不同标签的脉冲在 Y 上拥有不相交支持，从而让它们的交叉乘积在点态上消失，同时保留同一标签内部的必要相互作用。这是一个高度技术化的"管理大量振荡脉冲交互"的装置。
 
-*（原图未能本地化：Proof outline page；IMA 媒体接口没有可用媒体编号）*
+![图 5｜背景流到第一轮振荡校正的构造步骤](/img/paper-reading/img_f48c1d70f4c285c25c442d62c40899588223795e17862107740420676dc634e7.png)
+
+*图 5｜背景流到第一轮振荡校正的构造步骤。 [来源](https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf#page=13)*
 
 *图：proof outline 页面展示了背景构造、脉冲修正与最终外力延拓的整体证明结构。*
 
@@ -175,7 +177,9 @@ README 声称使用 Lean 4.34.0-rc2、Mathlib 和 Lake，并提供 Comparator �
 
 但本次环境中 git clone 整个仓库未完成，因此我没有在本机执行 lake build，不能把"源码中存在证明链"升级成"我已独立编译验证"。仓库 README 的"可独立检查"主张仍应以实际的 clean checkout + lake build/Comparator 检查和外部复核为准。
 
-*（原图未能本地化：Geometry page；IMA 媒体接口没有可用媒体编号）*
+![图 3｜集中几何和参照脉冲的径向剖面与衰减](/img/paper-reading/img_78661bd9a9e7cf53489cc45ae2598edbcb52f2ba4314f83deb6774a72c89ba3e.png)
+
+*图 3｜集中几何和参照脉冲的径向剖面与衰减。 [来源](https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf#page=9)*
 
 *图： concentrating geometry 页面展示了核心收缩、环带位置和脉冲位置关系。*
 

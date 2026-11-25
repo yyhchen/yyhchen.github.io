@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes'
 date: '2026-05-06T18:21:31+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -50,6 +50,11 @@ MSM 阶段用合成文档（讨论 Model Spec 的内容、原则和推理方式�
 
 ### MSM 管线
 
+![图 1｜Model Spec Midtraining 如何控制对齐泛化](/img/paper-reading/img_7547277b0cc72ee34b42f9aa1810b0b3f9c45f1965a2fe207b4c0ecb546565c8.png)
+
+*图 1｜Model Spec Midtraining 如何控制对齐泛化。 [来源](https://arxiv.org/html/2605.02087/#S1.F1)*
+
+
 1. <span class="mark-strong">编写 Model Spec 文档</span>： 定义期望模型行为的原则。
 
 2. <span class="mark-strong">合成训练数据</span>： 生成大量讨论这些 Spec 的合成文档。
@@ -61,6 +66,11 @@ MSM 阶段用合成文档（讨论 Model Spec 的内容、原则和推理方式�
 5. <span class="mark-strong">泛化测试</span>： 观察模型在分布外场景中的行为。
 
 ### 关键实验
+
+![图 3｜六项价值的对齐泛化实验](/img/paper-reading/img_a94ccb1cc76dc51bc85b7db095034021a8565441a6d19c8b482e71a5e8c3ff9a.png)
+
+*图 3｜六项价值的对齐泛化实验。 [来源](https://arxiv.org/html/2605.02087/#S3.F3)*
+
 
 **奶酪偏好实验（归因漂移示范）：**
 

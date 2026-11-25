@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜δ-mem: Efficient Online Memory for Large Language Models'
 date: '2026-05-17T17:39:53+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -57,6 +57,11 @@ LLM 在长期助手和 agent 场景中需要积累和复用历史信息。现有
 ## 3️⃣ 方法解读
 
 ### 三步流程（每步一个位置）
+
+![图 1｜δ-mem 的查询、检索与记忆更新](/img/paper-reading/img_bd2b7341d746af813199736af50c5ec7cc94655bbb83e9b0287ce9eae2359c0d.png)
+
+*图 1｜δ-mem 的查询、检索与记忆更新。 [来源](https://arxiv.org/html/2605.12357v1/#S3.F1)*
+
 
 **① Read**：上一时刻的状态 $S_{t-1}$ 被当前输入的 $q^m_t$ 查询 → 读出向量 $r_t = S_{t-1}q^m_t$
 
@@ -114,6 +119,11 @@ Qwen3-4B-Instruct backbone 上对比：
 在 Qwen3-8B 和 SmolLM3-3B 上也一致提升，SmolLM3-3B 的平均分从 26.08 拉到 36.96（<span class="mark-number">+10.88</span>）——换 backbone 不掉链子，方法不挑模型这一点，至少在 3B-8B 这个规模上立住了。
 
 ### Context Recovery 实验（Figure 2）
+
+![图 2｜HotpotQA 与 LoCoMo 的上下文恢复结果](/img/paper-reading/img_3cac141619001ff693f2b9864a654e945ee10a4c1760ca9b322c464dad15f2e1.png)
+
+*图 2｜HotpotQA 与 LoCoMo 的上下文恢复结果。 [来源](https://arxiv.org/html/2605.12357v1/#S5.F2)*
+
 
 严格测试：**去掉原始 context，只靠压缩的记忆状态推理。** HotpotQA Overall EM 从 0.08% → 6.48%（+6.40），Bridge subset EM 从 0.08% → 3.97%。这是很强的证据——说明 8×8 矩阵确实压缩了有用信息。
 

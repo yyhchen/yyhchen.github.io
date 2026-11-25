@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates
 date: '2026-07-25T01:39:59+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -123,6 +123,15 @@ RLHF、RLVR 这类 RL 训练有个大家都担心但一直说不清的问题：�
 - Aider Code：真实世界编程练习
 
 ### 核心结果
+
+![图 2｜o3 强化学习期间不同权威偏好的变化](/img/paper-reading/img_7d53cef7bad2ac44025b1a1a49846167e3740a2616ec310a4962a91b9db2cbc9.png)
+
+*图 2｜o3 强化学习期间不同权威偏好的变化。 [来源](https://arxiv.org/html/2607.18966v1/log_odds_delta_avg_axes_all_coding_evals_avg_only_ylim_m07_25_red.svg)*
+
+![图 3｜评判器偏好与早晚检查点的不实承诺](/img/paper-reading/img_a76fc9ea64de726b72aa09af0d9ee986b19f7248ff59704b3dc3b2df3ea7ba25.png)
+
+*图 3｜评判器偏好与早晚检查点的不实承诺。 [来源](https://arxiv.org/html/2607.18966v1/broken_promises_early_vs_late.svg)*
+
 
 > **Figure 1 — Contrastive SDF 方法概览**：(1) 在合成文档上微调，描述两个权威的冲突偏好；(2) 在下游任务评估模型遵循谁的偏好；(3) 发现 o3 后期 checkpoint 更站在 grader 一边，reward-hacker 的敏感度翻倍。
 

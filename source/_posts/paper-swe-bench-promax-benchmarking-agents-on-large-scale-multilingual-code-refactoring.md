@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring'
 date: '2026-08-12T20:37:36+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -150,6 +150,11 @@ AI 编码 agent 的评测正面临双重危机：
 - <span class="mark-strong">TS/Rust 方差惊人</span>：Claude Sonnet 4.6 在 TS/Rust 高分（53.6%/63.6%），Gemini-3-Pro 在 TS 0.0%、Kimi-K2.5 在 Rust 18.2%——可能是语言特定训练数据差异而非语言本身难度
 
 ### Agent 行为分析（Figure 5）——两个互补失败模式
+
+![图 5｜智能体修改文件数量与失败模式分析](/img/paper-reading/img_d931562567ef33e474f3b0c4751a3483db3f3c83f24721485e920ab2ac3c0522.png)
+
+*图 5｜智能体修改文件数量与失败模式分析。 [来源](https://arxiv.org/html/2608.09802v1/#S5.F5)*
+
 
 1. <span class="mark-strong">不完整重构是主导失败模式</span>：小改动（~5 文件）agent 紧贴 gold patch 分布；大补丁严重发散——gold 90% 分位在 ~20 文件，agent 在 ~10 文件就到 90%。**agent 识别并修改部分受影响文件，但<span class="mark-strong">未把变换传播到所有需要协调更新的位置</span>**——外围调用点、文档、配置文件、测试固件。核心逻辑改对了但下游依赖不一致 → 测试失败
 

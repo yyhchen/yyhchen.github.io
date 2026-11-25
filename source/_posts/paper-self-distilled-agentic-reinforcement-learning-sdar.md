@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)
 date: '2026-05-20T13:00:21+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -83,6 +83,11 @@ L_SDAR = Agg(g_t · log π_T(y_t|s_t^+))
 
 ### 技能检索
 
+![图 4｜SDAR 将门控自蒸馏与可验证奖励结合](/img/paper-reading/img_c880308d6c6f7a8eb8d408ff18567df84ac15077466e7531494a8a5bd8cdf55d.png)
+
+*图 4｜SDAR 将门控自蒸馏与可验证奖励结合。 [来源](https://arxiv.org/html/2605.15155v1/#S2.F4)*
+
+
 SDAR 利用 SkillBank（基于 SkillRL），在一个多臂老虎机框架下检索与当前任务最相关的技能文件：
 
 - **UCB Retrieval**：标准 UCB 算法，维护每个技能的历史平均奖励，平衡探索-利用
@@ -117,6 +122,11 @@ SDAR 利用 SkillBank（基于 SkillRL），在一个多臂老虎机框架下检
 - **环境：** ALFWorld（家务文本游戏）、WebShop（网购）、Search-QA（搜索增强 QA）
 
 ### 核心结果
+
+![图 1｜SDAR 与 GRPO 加在线自蒸馏的对照及总体表现](/img/paper-reading/img_9be720c867535a46ccf81fd5cf1e57bd693faba4fa272f6b902df189b893f7ce.png)
+
+*图 1｜SDAR 与 GRPO 加在线自蒸馏的对照及总体表现。 [来源](https://arxiv.org/html/2605.15155v1/#S0.F1)*
+
 
 | **环境** | **相对 GRPO 提升** |
 | --- | --- |

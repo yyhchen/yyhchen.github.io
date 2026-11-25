@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Let ViT Speak: Generative Language-Image Pre-training'
 date: '2026-05-06T18:26:29+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -41,6 +41,11 @@ math: true
 
 ## 3️⃣ 方法解读
 
+![图 2｜GenLIP 的生成式语言图像预训练架构](/img/paper-reading/img_0f05f4c9df3e0b674313812ea86be05997d8f42eb71c949d896eda5cd60f3f7d.png)
+
+*图 2｜GenLIP 的生成式语言图像预训练架构。 [来源](https://arxiv.org/html/2605.00809v1/#S3.F2)*
+
+
 GenLIP 框架的核心设计：
 
 1. **单一 transformer 架构：** 视觉和文本 token 拼在一起，由同一个 transformer 联合建模。输入就是图像 patches 的视觉 token 加上对应的文本 token。
@@ -64,6 +69,11 @@ GenLIP 框架的核心设计：
 ---
 
 ## 4️⃣ 实验部分怎么读
+
+![图 6｜预训练样本规模对三类任务的影响](/img/paper-reading/img_290cd4f41ec5f1a27eca764926d7e41dcdb004967e70f45819d3916057226868.png)
+
+*图 6｜预训练样本规模对三类任务的影响。 [来源](https://arxiv.org/html/2605.00809v1/#S4.F6)*
+
 
 - **基础预训练实验：** Recap-DataComp-1B 上 8B 样本训练。盯它与 CLIP、SigLIP 在 14 项多模态基准上的对比——这是范式之争的主战场
 

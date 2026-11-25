@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding
 date: '2026-08-14T13:09:12+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -107,7 +107,9 @@ Claude Code 等 agentic 编码工具兴起后，CLAUDE.md / AGENTS.md 成了"age
 
 - **多作者 × 年龄交互显著**（β=-0.021, z=-11.7）——只有不完美记忆能预测这一点：记忆在多人交接中损失更快
 
-*（原图未能本地化：Figure 1: 因果与观测双重证据——(a) 无注释/注释形状噪音的 prompt 无界增长，有信息量注释则稳定在最优大小附近；(b) 真实仓库中指令数生命周期 +226%；IMA 媒体接口没有可用媒体编号）*
+![图 1｜有信息的注释抑制提示增长，真实仓库中的提示指令仍持续累积](/img/paper-reading/img_96058cb34ec8b439278e865c541bd5af485b3260ceb4d4ab9f9aeb9cb06f97b7.png)
+
+*图 1｜有信息的注释抑制提示增长，真实仓库中的提示指令仍持续累积。 [来源](https://arxiv.org/html/2608.11095v1/#S0.F1)*
 
 *Figure 1（核心证据）：(a) 因果：无注释（或注释形状噪音）的 prompt 无界增长；有信息量注释的 prompt 以同等正确性稳定在最优大小附近（excess = |Dt|/|D⋆| − 1，184 worlds 的 95% bootstrap）；(b) 观测：1,867 仓库中 agentic README 指令数生命周期 +226%。*
 
@@ -149,7 +151,9 @@ Claude Code 等 agentic 编码工具兴起后，CLAUDE.md / AGENTS.md 成了"age
 
 *Figure 5（机制识别）：Nelson–Aalen 删除危险估计（28,426 次删除）随指令年龄下降——log-hazard -0.032/commit。指令过时假说预测危险上升、年龄无关假说预测平坦；只有不完美记忆（推理衰减）预测下降。*
 
-*（原图未能本地化：Figure 6: 注释的形态——每条注释指名其指令背后的失败、假设与结果（绿色 # 开头，从不到达 executor）；IMA 媒体接口没有可用媒体编号）*
+![图 6｜提示指令与记录失败原因、假设和结果的注释示例](/img/paper-reading/img_2fc1d3a1fb22cfef4400b72d8063b090500a6879093d468bfab68d12040feac6.png)
+
+*图 6｜提示指令与记录失败原因、假设和结果的注释示例。 [来源](https://arxiv.org/pdf/2608.11095v1#page=6)*
 
 *Figure 6（注释形态）：每条注释命名其指令背后的失败、一个假设及其结果（如 "# r3: task 0 failed with 'certain wording is not used the right number of times' — … d12 was passing, so keeping that approach"）。注释绿色（#）标记、从不到达 executor——8,541 次添加中每约束族 3 例。*
 

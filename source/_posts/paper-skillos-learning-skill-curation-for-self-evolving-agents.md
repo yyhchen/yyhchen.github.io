@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents'
 date: '2026-05-10T21:13:17+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -50,6 +50,11 @@ SkillOS 的判断是：技能策展不是提示词工程问题，是**<span clas
 ## 3️⃣ 方法解读
 
 ### 系统架构（双 Agent 设计）
+
+![图 2｜SkillOS 的双智能体架构与技能库训练流程](/img/paper-reading/img_45b9735c0d148763ab4ad28cba5852c41b525031c6f2f537a136dc7836071c63.png)
+
+*图 2｜SkillOS 的双智能体架构与技能库训练流程。 [来源](https://arxiv.org/html/2605.06614v1/#S3.F2)*
+
 
 ```
 任务序列 → [Executor (冻结)] → 轨迹 → [Curator (可训练)] → 更新 SkillRepo
@@ -102,6 +107,11 @@ SkillOS 的判断是：技能策展不是提示词工程问题，是**<span clas
 | 交互步数减少 2-3 步 | 好技能库让 agent 走直线，不用瞎摸 |
 
 ### 泛化性实验
+
+![图 3｜不同模型上的跨任务泛化结果](/img/paper-reading/img_a4096b5f0f101bd559dc301875a4b2d657caa286d966e45e88dd68ed2bb90b1f.png)
+
+*图 3｜不同模型上的跨任务泛化结果。 [来源](https://arxiv.org/html/2605.06614v1/#S4.F3)*
+
 
 - **跨 executor**：训练时用 Qwen3-8B 做 executor，测试时换 Qwen3-32B、Gemini-2.5-Pro，均保持提升
 

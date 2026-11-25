@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯'
 date: '2026-05-13T20:50:48+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -66,6 +66,11 @@ ELF 的配方：
 
 ### 嵌入空间构建
 
+![图 3｜ELF 在训练中的连续嵌入、去噪与解码路径](/img/paper-reading/img_5be8250c09a4905a66463eeb87817571958b933a584d725a0cca47ea97c7bc7a.png)
+
+*图 3｜ELF 在训练中的连续嵌入、去噪与解码路径。 [来源](https://arxiv.org/pdf/2605.10938v1#page=3)*
+
+
 token 先经冻结的 T5-small encoder（35M）映射到 512 维连续嵌入，再用 bottleneck 压到 128 维。encoder 只在训练时用，推理时不背任何开销。
 
 ### Flow Matching 公式
@@ -89,6 +94,11 @@ ODE/SDE 两套采样器：ODE 确定性采样 64 步，SDE 加随机噪声换多
 ---
 
 ## 实验结果
+
+![图 7｜ELF 与多类扩散语言模型基线的系统级对照](/img/paper-reading/img_42b471922aa5a35bdc37271d8d7d33a4dd3f2ca4a705a02ccf7367eabe51a586.png)
+
+*图 7｜ELF 与多类扩散语言模型基线的系统级对照。 [来源](https://arxiv.org/pdf/2605.10938v1#page=8)*
+
 
 | **数据集** | **任务** | **ELF-B (105M)** | **对比基线** |
 | --- | --- | --- | --- |

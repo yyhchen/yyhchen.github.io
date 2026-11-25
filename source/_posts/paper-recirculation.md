@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Recirculation
 date: '2026-08-21T20:06:24+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -101,11 +101,20 @@ z(t+1,t,d) = α·f(z(t,t,s) | d,t) + β·z(t,t,d)
 
 - 轻量调超参 + 冻结原权重 = 训练零成本的自适应 recirculation
 
-*（原图未能本地化：Figure 2: 处理 Figure 1 银行/河岸例子时 Transformer 激活的示意——层网格中状态传播的失败可视化；IMA 媒体接口没有可用媒体编号）*
+![图 2｜银行与河岸歧义案例中的 Transformer 状态传播](/img/paper-reading/img_819a3a066404c204985f7a426009def2d4015efa7628381aa112817229221119.png)
+
+*图 2｜银行与河岸歧义案例中的 Transformer 状态传播。 [来源](https://arxiv.org/html/2608.17981v1/#S1.F2)*
 
 *Figure 2（动机示意）：处理"bank=河岸/银行"例子时 Transformer 各层激活的可视化——状态信息未能在层间正确传播，导致上下文化错误。*
 
-*（原图未能本地化：Figure 3/4: (a) 引入循环连接的 Transformer（layer 6 → layer 3）；(b) unrolled looped transformer——循环仅在深度方向、严格状态传播；(c)/(b') unrolled recirculation——深度与时间步双方向投影，同层可同时持有 z(t) 与 z(t+1)；IMA 媒体接口没有可用媒体编号）*
+![图 3｜引入循环连接的 Transformer 架构](/img/paper-reading/img_110ac12560aca4d7e1f613bc8b52beaaedb80b0677b5fdfede945b02191e3271.png)
+
+*图 3｜引入循环连接的 Transformer 架构。 [来源](https://arxiv.org/html/2608.17981v1/#S2.F3)*
+
+![图 4｜展开的循环 Transformer 与 recirculation 状态更新](/img/paper-reading/img_748dfc606c6fd99652f2beb96f019aeb21dd1bbbce217b58958dc6086e0e5b9b.png)
+
+*图 4｜展开的循环 Transformer 与 recirculation 状态更新。 [来源](https://arxiv.org/html/2608.17981v1/#S2.F4)*
+
 
 *Figure 3/4（核心机制对比）：上排 looping（循环仅深度方向，z(t+1) 必须比 z(t) 深一层）；下排 recirculation（深度与时间步双方向投影——同一层同时容纳 z(t) 与 z(t+1)，任意状态更新函数 f 可直接实现）。*
 
@@ -145,7 +154,9 @@ z(t+1,t,d) = α·f(z(t,t,s) | d,t) + β·z(t,t,d)
 
 - **layer 4 是理想 destination，source 高 5-7 层**；跨三个数据集平均最优降低 4.72%（调优集）
 
-*（原图未能本地化：Figure 5: Gemma3 1B 超参扫描——α ∈ {0.04, 0.07, 0.10, 0.16} 的 source/destination 热力图；蓝=困惑度低于基线（16.6），红=高于；IMA 媒体接口没有可用媒体编号）*
+![图 5｜Gemma3 1B 的回流层配置与困惑度](/img/paper-reading/img_b8f96aa3e9a806696cfaa9842dc3108bc5b4a8d6d08eb21b77bd09f50ed8e233.png)
+
+*图 5｜Gemma3 1B 的回流层配置与困惑度。 [来源](https://arxiv.org/html/2608.17981v1/#S4.F5)*
 
 *Figure 5（超参扫描）：Gemma3 1B 在 arXiv 上的 source/destination 层热力图（α=0.04/0.07/0.10/0.16）。热图平滑且有系统模式：layer 4 是好的 destination、source 高 5-7 层；α 越大效应越强但有害的 s/d 对越多——"由模型自身性质引导架构修改"。*
 

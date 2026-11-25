@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models'
 date: '2026-05-12T14:35:45+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -98,6 +98,11 @@ math: true
 
 ### 关键结果（Table 2）
 
+![图 1｜不同训练方法在多项奖励任务上的轨迹](/img/paper-reading/img_66119826f811ae1d3f3ab0e8c78ed4084e14670ddc67f7fd45a75ceb2c53fd34.png)
+
+*图 1｜不同训练方法在多项奖励任务上的轨迹。 [来源](https://arxiv.org/html/2605.08063v1/#S1.F1)*
+
+
 | **方法** | **GenEval ↑** | **OCR ↑** | **PickScore ↑** | **DeQA ↑** |
 | --- | --- | --- | --- | --- |
 | SD 3.5-M (base) | 0.63 | 0.59 | 0.74 | — |
@@ -111,6 +116,11 @@ math: true
 - 冒出**超越教师（Teacher-Surpassing）** 涌现效应：某些边缘案例里，学生的生成质量超过了**所有**教师
 
 ### 消融实验
+
+![图 5｜流形锚点正则化的定性消融](/img/paper-reading/img_799bbf883ee0922fd66a00b0947060bffd285aaca74f587beb9e74a89afa1829.png)
+
+*图 5｜流形锚点正则化的定性消融。 [来源](https://arxiv.org/html/2605.08063v1/#S6.F5)*
+
 
 - **Cold-Start 是地基**：SFT 初始化 50 step 内快速立起稳健基础；模型融合起点更高，但终点略输 SFT 一头。
 

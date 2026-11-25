@@ -1,7 +1,7 @@
 ---
 title: Paper精读｜Thinking with Visual Primitives
 date: '2026-05-06T18:26:29+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -40,6 +40,11 @@ math: true
 
 ## 3️⃣ 方法解读
 
+![图 2｜Thinking with Visual Primitives 的模型架构与训练流程](/img/paper-reading/img_3972695c22f4f422b12454ca99faf662ff348f5815c981ac554a713f3bdcfd69.png)
+
+*图 2｜Thinking with Visual Primitives 的模型架构与训练流程。 [来源](https://www.k-a.in/Thinking_with_Visual_Primitives.pdf#page=3)*
+
+
 1. **视觉原语注入：** 在推理过程（CoT）中，穿插表示点坐标和包围框的特殊 token。模型可以在思维序列中输出 $(x,y)$ 坐标对来指向图像中的特定位置，或输出 $(x1,y1,x2,y2)$ 来框定空间范围。
 
 2. **极高效的视觉 token 架构：** 图像 token 预算给得极低，性能却没掉出第一梯队——敢跟闭源旗舰对表，这个效率是前提。
@@ -61,6 +66,11 @@ math: true
 ---
 
 ## 4️⃣ 实验部分怎么读
+
+![图 1｜各模型的视觉 token 消耗与七项基准平均表现](/img/paper-reading/img_97e08df7f1566848d2eac1d9cb71ce53deae92afa8b8938c632d064ec312eae8.png)
+
+*图 1｜各模型的视觉 token 消耗与七项基准平均表现。 [来源](https://www.k-a.in/Thinking_with_Visual_Primitives.pdf#page=2)*
+
 
 论文挑的基准全是需要严格空间定位的那类视觉问答：计数、空间推理、拓扑导航。读实验时盯三处：
 

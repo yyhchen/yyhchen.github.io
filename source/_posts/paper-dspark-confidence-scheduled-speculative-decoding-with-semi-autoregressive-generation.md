@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation'
 date: '2026-07-03T13:06:29+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -53,7 +53,9 @@ DSpark 两个坑都接：草稿质量靠半自回归补上依赖，验证开销�
 >
 > 3. **<span class="mark-strong">验证预算要看系统负载的脸色</span>**：低负载时多验几个 token 等于白送；高负载时验证低置信度 token 是在挤占别的请求的批容量。置信度调度器不设静态阈值，直接把分配写成全局吞吐量最大化问题去解。
 
-*（原图未能本地化：Figure 1: DSpark 架构总览 — 并行主干 + 序列头 + 置信度调度器组成推测解码流水线；IMA 媒体接口没有可用媒体编号）*
+![图 1｜DSpark 架构与推测解码循环](/img/paper-reading/img_223802f280fbaccad6e486e7c304238445dad5aa606151d9710f491c6948ec16.png)
+
+*图 1｜DSpark 架构与推测解码循环。 [来源](https://arxiv.org/html/2607.05147v1/#S3.F1)*
 
 *图1说明：DSpark 的完整解码流程。给定 prompt tokens ABC，目标模型执行一步生成 anchor token D。然后 DSpark 通过并行主干 + 轻量序列头生成 draft tokens EFGH 及其置信度分数 c₁-c₄。硬件感知前缀调度器评估这些分数，保留前缀 EFG 并丢弃低置信度 token H。最后目标模型并行验证截断后的前缀。图中 E 和 F 被接受，G 被拒绝，模型生成修正 token G* 完成当前轮次。*
 
@@ -134,7 +136,9 @@ DSpark 两个坑都接：草稿质量靠半自回归补上依赖，验证开销�
 
 ### Position-wise 条件接受率分析
 
-*（原图未能本地化：Figure 2: 位置-wise 条件接受率 — DSpark 结合并行模型的高初始接受率和自回归模型的后缀稳定性；IMA 媒体接口没有可用媒体编号）*
+![图 2｜不同解码器的位置条件接受率](/img/paper-reading/img_76a1fa193edc1fec72e48d65a4893b9871ba892d40a77f14f0c2d6fe38b39715.png)
+
+*图 2｜不同解码器的位置条件接受率。 [来源](https://arxiv.org/html/2607.05147v1/#S4.F2)*
 
 *图2说明：在 Qwen3-4B 目标模型上，分别在 Math、Code、Chat 领域绘制的位置-wise 条件接受率曲线。自回归模型（Eagle3）保持稳定甚至上升趋势，但并行模型（DFlash）因独立预测后缀衰减严重（Math 0.87→0.78，Chat 0.72→0.63）。DSpark 继承并行模型的高初始接受率（Math 0.93），同时通过序列头保持高且稳定的条件接受率。*
 
@@ -175,13 +179,17 @@ DSpark 两个坑都接：草稿质量靠半自回归补上依赖，验证开销�
 
 ### DeepSeek-V4 线上性能（Figure 7）
 
-*（原图未能本地化：Figure 7: Throughput vs TPS — DSpark 在吞吐量和每用户生成速度间实现帕累托前沿外移；IMA 媒体接口没有可用媒体编号）*
+![图 7｜线上总吞吐量与单用户生成速度](/img/paper-reading/img_cd9715857f547d8d197e20a462ce505469101cc35cf57237cf36420394b88047.png)
+
+*图 7｜线上总吞吐量与单用户生成速度。 [来源](https://arxiv.org/html/2607.05147v1/#S5.F7)*
 
 *图7说明：在 DeepSeek-V4-Flash 和 V4-Pro 上的生产部署结果。左图 V4-Flash：在 80 tok/s/user SLA 下吞吐量提升 51%；120 tok/s/user SLA 下吞吐量提升 661%（因为 MTP-1 在该点已接近崩溃边缘）。右图 V4-Pro：35 tok/s/user SLA 下提升 52%；50 tok/s/user SLA 下提升 406%。DSpark 将吞吐量-交互性帕累托前沿向外推移。*
 
 ### 负载自适应调度（Figure 8）
 
-*（原图未能本地化：Figure 8: 负载自适应吞吐量与验证预算 — 调度器随并发增加自动收紧验证预算；IMA 媒体接口没有可用媒体编号）*
+![图 8｜负载自适应吞吐量与验证预算](/img/paper-reading/img_acb2606ff1ea3b005ad2df559d84eecc57485f0791ba76ffdce1603e02749748.png)
+
+*图 8｜负载自适应吞吐量与验证预算。 [来源](https://arxiv.org/html/2607.05147v1/#S5.F8)*
 
 *图8说明：上行展示 V4-Flash(a) 和 V4-Pro(b) 在不同并发下的聚合吞吐量；下行展示平均验证预算随并发增加而自动减少。在中低并发（V4-Flash <200请求，V4-Pro <150请求）时，调度器利用空闲算力分配 4-6 token 的验证预算；当系统饱和时，调度器动态收紧验证长度以防止资源争用。*
 

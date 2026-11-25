@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力'
 date: '2026-05-13T20:50:49+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -60,6 +60,11 @@ Evolving-RL 的设计基于一个核心观察：<span class="mark-strong">下游
 
 ### 架构
 
+![图 2｜Evolving-RL 的在线技能提取与下游执行框架](/img/paper-reading/img_3bcacde7c3ea90a6b0dfc90d382f4eb3d504888f9f5eae3b454e42d75aba3080.png)
+
+*图 2｜Evolving-RL 的在线技能提取与下游执行框架。 [来源](https://arxiv.org/html/2605.10663v1/#S3.F2)*
+
+
 - **单策略双角色：** extractor 和 solver 共享同一组策略参数 pi_theta
 
 - **Extractor：** 给定源任务的交互轨迹 -> 生成 N 个候选技能（textual skill）
@@ -108,6 +113,11 @@ Evolving-RL 的设计基于一个核心观察：<span class="mark-strong">下游
 - RL 类：GRPO, SkillRL
 
 ### 核心结果
+
+![图 1｜学习到的技能向其他策略迁移及其效果](/img/paper-reading/img_b4f2748730cd7a128c2a5c65cca33c92ecfc2b39ea9becb04965fd6efaaf1c9c.png)
+
+*图 1｜学习到的技能向其他策略迁移及其效果。 [来源](https://arxiv.org/html/2605.10663v1/#S1.F1)*
+
 
 | **基准** | **指标** | **Evolving-RL** | **GRPO 基线** | **相对提升** |
 | --- | --- | --- | --- | --- |

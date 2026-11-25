@@ -1,7 +1,7 @@
 ---
 title: 'Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention'
 date: '2026-06-13T14:44:27+08:00'
-updated: '2026-11-19T23:59:34+08:00'
+updated: '2026-11-25T20:08:57+08:00'
 tags:
 - Paper精读
 categories:
@@ -52,6 +52,11 @@ math: true
 ## 3️⃣ 方法解读
 
 ### 组件1：Memory Indexer 架构
+
+![图 2｜LSA 前瞻稀疏索引与标准 CSA 流程](/img/paper-reading/img_07a04a3314154e20bec85d4cfbe54e99c99bb11c7012ef6e8c60755662e7cc30.png)
+
+*图 2｜LSA 前瞻稀疏索引与标准 CSA 流程。 [来源](https://arxiv.org/html/2606.09079v1/#S1.F2)*
+
 
 - 完全复用 DeepSeek-V4 原生 Lightning Indexer 的架构设计，保持对 backbone 的最小修改
 
@@ -108,6 +113,11 @@ math: true
 - 评估基准：LongBench-v2（三档长度 46K/179K/493K）、LongMemEval（125K/500K）、RULER（64K/128K/256K/512K）
 
 ### 核心结果
+
+![图 1｜长上下文性能与硬件效率](/img/paper-reading/img_7f2cb9b4244c2be2e9df73ea7ba40fe723a5f91a8d7f27d19387f33265132090.png)
+
+*图 1｜长上下文性能与硬件效率。 [来源](https://arxiv.org/html/2606.09079v1/#S0.F1)*
+
 
 | **指标** | **DS-V4-Flash** | **FM-DS-V4 (Ours)** | **Recency Only** | **Random 10%** |
 | --- | --- | --- | --- | --- |
