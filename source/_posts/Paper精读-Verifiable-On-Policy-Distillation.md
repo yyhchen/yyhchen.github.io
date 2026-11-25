@@ -6,7 +6,7 @@ tags:
   - RL
   - 蒸馏
 categories: [强化学习与后训练, Paper]
-banner_img: /img/verifiable-on-policy-distillation/img_6339981170cd94909a2eb738b71b162c0bb55659d0d757ce76e94274173af12f.png
+banner_img: /img/verifiable-on-policy-distillation/img_3e39aada2f4bedda2a7a852eae44ed8bc6a0dbff6445e2d90bec17a74c977037.png
 excerpt: VOPD 把 RLVR 的稀疏验证器奖励投影到 OPD 教师的隐式奖励方向上、再经 Rao–Blackwell 化铺满全词表，得到“有验证背书、又逐 token 密集”的监督信号：4B 同尺寸蒸馏下 8 个数学基准平均从 64.71 提到 66.38（教师本身 64.16），强到弱蒸馏从 50.88 提到 53.32。
 math: true
 ---
@@ -44,7 +44,7 @@ math: true
 
 ## 2️⃣ 核心洞察
 
-![Figure 1: RLVR、OPD 与 VOPD 的监督信号对比](/img/verifiable-on-policy-distillation/img_6339981170cd94909a2eb738b71b162c0bb55659d0d757ce76e94274173af12f.png)
+![Figure 1: RLVR、OPD 与 VOPD 的监督信号对比](/img/verifiable-on-policy-distillation/img_3e39aada2f4bedda2a7a852eae44ed8bc6a0dbff6445e2d90bec17a74c977037.png)
 
 *图注：论文 Figure 1。(A) RLVR 只把已验证的稀疏奖励赋给被采样 token；(B) OPD 在学生访问的每个前缀上给全词表分布反馈，但不看对错；(C) VOPD 先把验证器偏好投影到教师隐式奖励方向上，再对该方向信号做 Rao–Blackwell 化，铺满整个假设性下一 token 空间。*
 
@@ -162,7 +162,7 @@ $$
 
 强到弱（4B→1.7B）：<span class="mark-entity">VOPD</span> 平均 <span class="mark-number">53.32</span>，对 OPD 的 50.88（+2.44）、ExOPD 的 52.34（+0.98）、OPD+GRPO 的 50.97（+2.35），同样 6/8 基准最佳；1.7B 学生仍明显低于 4B 教师。两个设置合起来读，结论有两层：<span class="mark-strong">验证器接地的密集监督压过了所有"规则式组合"基线</span>；同时蒸馏学生（66.38）**超过**了教师（64.16）——这与 ExOPD/外推蒸馏一脉的结果一致，说明收益的大头来自"往教师之外推"这一步，VOPD 的自适应让这步推得更准。
 
-![Figure 2: 4B 同尺寸蒸馏的验证准确率曲线](/img/verifiable-on-policy-distillation/img_22a3eb60b4f1a3a910be63208d2ee3b4115ed3094c887792ccfa86c838634332.png)
+![Figure 2: 4B 同尺寸蒸馏的验证准确率曲线](/img/verifiable-on-policy-distillation/img_f44f594db86d7e53561d48394a9f957513937f8446e026cbde2ba882623d39e6.png)
 
 *图注：论文 Figure 2。AIME 2024/2025 验证准确率随训练步数的曲线：VOPD 早期即与 OPD、ExOPD 拉开并一路保持到收敛，支持"每次 rollout 用得更足"的效率主张。图为定性曲线，论文未给曲线级数值表。*
 
@@ -172,13 +172,13 @@ $$
 
 **教师-验证器合拍度 $c_x$ 的实测（Figure 3）**：强到弱设置下，$c_x$ 的全程均值稳定为正——教师排序平均而言与对错同向，且这一现象在纯 OPD 训练里同样存在，不是 VOPD 制造的。但分布很宽：多数组在"跟教师走"，也有不可忽略的组接近中性甚至反向。这正是 VOPD 相对 <span class="mark-entity">ExOPD</span> 的加价来源——它逐组踩油门/刹车，而不是全场固定外推。需要指出：论文没有把"$c_x$ 分布"与"性能增益"直接对上（如按 $c_x$ 分桶看增益），机制链的最后一环靠的是间接论证。
 
-![Figure 3: 教师与验证器一致系数 c_x 的全程分析](/img/verifiable-on-policy-distillation/img_eb0a6fd27ddf6eba4eee844a23b7f800a5cc41326f4088f727e717bbfd489b67.png)
+![Figure 3: 教师与验证器一致系数 c_x 的全程分析](/img/verifiable-on-policy-distillation/img_9c34cc7b59dff1323f3e4c4b4bc13134874cb1aa5842f47e01f0ec436aa4bf60.png)
 
 *图注：论文 Figure 3。(a) VOPD 与纯 OPD 训练全程的 $c_x$ 均值，稳定为正；(b) 各训练步里"跟教师/中性/反向"三类的组占比；(c) 全程 $c_x$ 分布。*
 
 **零方差组与组大小（Figure 4 + Table 4）**：$n=4$ 时平均 <span class="mark-number">约 65%</span> 的组验证奖励零方差（全对或全错），走 λ=0.25 的 fallback；训练推进中全错组减少、全对组增多，零方差占比反而上升——因为模型变强后简单题整组通过，剩下的组全都落在同一侧。$n=8$ 把零方差占比压低一些，性能与 $n=4$ 相当或略好（AIME24 57.08 vs 57.29，AIME25 43.54 vs 42.71）。这组实验说明方法对组大小不敏感，但也暴露了一个诚实的事实——**默认设置下约三分之二的组并没有在"自适应"，它们跑的是 ExOPD 式固定外推**，真正吃到 $c_x$ 自适应的是剩下约三分之一的难组。之所以自适应仍能带来稳定增益，我理解是因为难组恰恰是蒸馏收益最大的组：简单组怎么练都能会，对错分化的组才是教师方向该加速或刹车的战场。
 
-![Figure 4: 零方差组占比随训练的变化](/img/verifiable-on-policy-distillation/img_b5a5e0b03dbe092d00f8d85d0ce21f45d764fdffc774c3d4e237e6c539b6abb2.png)
+![Figure 4: 零方差组占比随训练的变化](/img/verifiable-on-policy-distillation/img_1d66c09807e26a23a54d7fc33d5424210e4d49e2b1a6f420834232bc4fbf8c51.png)
 
 *图注：论文 Figure 4。$n=4$（左）与 $n=8$（右）下，全对、全错、合计零方差组的占比曲线：训练中全错组下降、全对组上升，总零方差占比随之走高。*
 
