@@ -5,7 +5,9 @@ updated: "2025-05-03T09:13:37.919Z"
 tags:
   - RL
   - LLM
-categories: [强化学习, 算法]
+  - 算法
+categories: [技术解析]
+excerpt: 从 KL 正则化最优策略与重参数化出发对比 PPO 与 DPO 的数学推导，重点分析两者在分布偏移（Distribution Shift）、隐式 Reward Hacking 与省略配分函数 Z(x) 三个核心差异。
 banner_img: /img/rl.png
 ---
 

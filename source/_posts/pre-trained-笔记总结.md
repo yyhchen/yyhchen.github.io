@@ -3,7 +3,8 @@ title: pre-trained 笔记总结
 date: 2024-09-25 12:25:46
 updated: "2025-05-03T09:13:37.919Z"
 tags: [LLM, pre-trained]
-categories: [LLM]
+categories: [技术解析]
+excerpt: 围绕数据清洗去重与课程配比、Tokenizer 与 LLaMA 架构选型、Megatron/DeepSpeed 并行策略及 PPL/探针评估四个维度，总结大模型从零预训练的工程实践要点。
 banner_img: /img/pretrain_task.png
 ---
 

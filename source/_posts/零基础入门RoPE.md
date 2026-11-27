@@ -2,8 +2,10 @@
 title: 零基础入门RoPE
 date: 2025-04-18 15:51:29
 updated: "2025-06-28T07:59:41.215Z"
-tags: [LLM]
-categories: [LLM, 算法]
+sticky: 100
+tags: [LLM, 位置编码, 算法]
+categories: [技术解析]
+excerpt: 从复数、复平面旋转与欧拉公式等基础数学出发，一步步推导旋转位置编码（RoPE）为何能用绝对位置旋转自然编码相对位置信息，覆盖 2D 到高维推广与实现直觉。
 banner_img: /img/RoPE/Rotation.png
 ---
 

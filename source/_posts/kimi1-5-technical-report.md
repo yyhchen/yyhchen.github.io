@@ -5,9 +5,9 @@ updated: "2025-05-03T09:13:37.919Z"
 tags:
   - RL
   - LLM
-categories: [强化学习, Paper]
-#   - 强化学习
-#   - Paper
+  - 技术报告
+categories: [技术解析]
+excerpt: 拆解 Kimi k1.5 技术报告的完整五阶段训练管线（多模态预训练、冷却退火、长上下文激活、普通/Long-CoT SFT、RL 与 Long2Short 优化），并辨析 Cooldown 与 SFT 的本质区别。
 banner_img: /img/kimi1.5.png
 ---
 

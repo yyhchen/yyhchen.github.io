@@ -2,8 +2,11 @@
 title: RL_in_LLM
 date: 2025-03-15 13:42:55
 updated: "2025-05-03T09:13:37.919Z"
-tags: RL
-categories: 强化学习
+tags:
+  - RL
+  - LLM
+categories: [技术解析]
+excerpt: 梳理大语言模型对齐中 RLHF、PPO 与 DPO 的核心概念、公式与层级关系，从数据依赖、优化机制、计算开销到适用场景做系统对比。
 ---
 
 # 早期的强化学习与大语言模型
