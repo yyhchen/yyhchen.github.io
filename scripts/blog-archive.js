@@ -337,10 +337,10 @@ function buildArchiveDashboardHtml(locals, context) {
 
   // Heatmap panels by year
   const heatmapYearPanels = sortedYears.map((y) => buildHeatmapYear(y, dayPostsMap));
-  const yearTabsHtml = heatmapYearPanels
+  const yearOptionsHtml = heatmapYearPanels
     .map(
       (p, idx) =>
-        `<button type="button" class="ba-year-tab${idx === 0 ? ' is-active' : ''}" data-hm-tab="${p.year}">${p.year}<span>${p.yearPostTotal}</span></button>`
+        `<option value="${p.year}"${idx === 0 ? ' selected' : ''}>${p.year} 年 · ${p.yearPostTotal} 篇</option>`
     )
     .join('\n');
 
@@ -481,9 +481,9 @@ function buildArchiveDashboardHtml(locals, context) {
             <h2 class="ba-panel-title">更新热力图</h2>
             <p class="ba-panel-sub">整理土地，而非焦虑时光</p>
           </div>
-          <div class="ba-year-tabs" role="tablist" aria-label="选择年份">
-            ${yearTabsHtml}
-          </div>
+          <select id="ba-year-select" class="ba-select ba-year-select" aria-label="选择年份">
+            ${yearOptionsHtml}
+          </select>
         </div>
         <div class="ba-hm-panels">
           ${heatmapYearPanels.map((p) => p.html).join('\n')}

@@ -5,7 +5,7 @@
 
     var tbody = document.getElementById('ba-table-body');
     var rows = Array.prototype.slice.call(tbody.querySelectorAll('.ba-row'));
-    var yearTabs = Array.prototype.slice.call(root.querySelectorAll('[data-hm-tab]'));
+    var yearSelect = document.getElementById('ba-year-select');
     var yearPanels = Array.prototype.slice.call(root.querySelectorAll('[data-hm-year]'));
     var hmCells = Array.prototype.slice.call(root.querySelectorAll('.ba-hm-cell[data-hm-date]'));
     var catBars = Array.prototype.slice.call(root.querySelectorAll('[data-bar-cat]'));
@@ -36,25 +36,25 @@
       sort: 'date-desc',
     };
 
-    // Heatmap year tabs
+    // Heatmap year selector
     function activateYear(year) {
-      yearTabs.forEach(function (tab) {
-        var active = tab.getAttribute('data-hm-tab') === String(year);
-        tab.classList.toggle('is-active', active);
-        tab.setAttribute('aria-selected', active ? 'true' : 'false');
-      });
+      if (yearSelect) {
+        yearSelect.value = String(year);
+      }
       yearPanels.forEach(function (panel) {
         panel.hidden = panel.getAttribute('data-hm-year') !== String(year);
       });
     }
 
-    yearTabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        activateYear(tab.getAttribute('data-hm-tab'));
+    if (yearSelect) {
+      yearSelect.addEventListener('change', function () {
+        activateYear(yearSelect.value);
       });
-    });
-    if (yearTabs.length) {
-      activateYear(yearTabs[0].getAttribute('data-hm-tab'));
+      if (yearSelect.value) {
+        activateYear(yearSelect.value);
+      }
+    } else if (yearPanels.length) {
+      activateYear(yearPanels[0].getAttribute('data-hm-year'));
     }
 
     // Floating tooltip for heatmap cells

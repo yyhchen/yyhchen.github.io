@@ -1079,40 +1079,11 @@ html[data-user-color-scheme="dark"] {
   gap: 1.15rem;
 }
 
-/* Year Tabs */
-.ba-year-tabs {
-  display: inline-flex;
-  gap: 0.35rem;
-  background: var(--ed-bg);
-  border: 1px solid var(--ed-border);
-  border-radius: 8px;
-  padding: 3px;
-}
-
-.ba-year-tab {
-  border: none;
-  background: transparent;
-  color: var(--ed-muted);
-  font-size: 0.8rem;
+/* Year Selector (GitHub-style compact dropdown) */
+.ba-year-select {
   font-weight: 600;
-  padding: 0.3rem 0.65rem;
-  border-radius: 6px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
   font-variant-numeric: tabular-nums;
-}
-
-.ba-year-tab span {
-  font-size: 0.72rem;
-  opacity: 0.75;
-}
-
-.ba-year-tab.is-active {
-  background: var(--ed-surface);
-  color: var(--ed-accent-strong);
-  box-shadow: 0 1px 2px rgba(20, 30, 50, 0.08);
+  padding-right: 1.65rem;
 }
 
 /* Heatmap */
