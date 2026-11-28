@@ -235,6 +235,7 @@ font:
 # Specify the path of your custom js file, support list. The path is relative to the source directory, such as `/js/custom.js` corresponding to the directory `source/js/custom.js`
 custom_js:
   - /js/blog-home.js
+  - /js/blog-archive.js
 
 # 指定自定义 .css 文件路径，用法和 custom_js 相同
 # The usage is the same as custom_js
@@ -372,7 +373,7 @@ navbar:
   menu:
     - { key: "主页", link: "/", icon: "iconfont icon-home-fill" }
     - { key: "专题目录", link: "/paper-reading/", icon: "iconfont icon-category-fill" }
-    - { key: "归档", link: "/archives/", icon: "iconfont icon-archive-fill" }
+    - { key: "足迹·论文库", link: "/archives/", icon: "iconfont icon-archive-fill" }
     - { key: "关于", link: "/about/", icon: "iconfont icon-user-fill" }
 
 # 搜索功能，基于 hexo-generator-search 插件，若已安装其他搜索插件请关闭此功能，以避免生成多余的索引文件
@@ -488,12 +489,12 @@ index:
   # 头图高度，屏幕百分比
   # Height ratio of banner image
   # Available: 0 - 100
-  banner_img_height: 30
+  banner_img_height: 100
 
   # 头图黑色蒙版的不透明度，available: 0 - 1.0，1 是完全不透明
   # Opacity of the banner mask, 1.0 is completely opaque
   # Available: 0 - 1.0
-  banner_mask_alpha: 0.42
+  banner_mask_alpha: 0.3
 
   # 首页副标题的独立设置
   # Independent config of home page subtitle

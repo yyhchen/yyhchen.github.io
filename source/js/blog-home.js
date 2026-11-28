@@ -319,6 +319,13 @@
       state.cat = initialCat;
     }
     applyFilter({ syncHash: false });
+
+    // When returning from a post breadcrumb (/#cat=...), glide past the 100vh hero to the workspace.
+    if (initialCat) {
+      window.requestAnimationFrame(function () {
+        root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
