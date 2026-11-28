@@ -1,0 +1,1103 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="WRBench 是第一个把相机运动当可观测性干预来使的诊断基准：相机转开、目标离开视野、再转回来——这段看不见的时间里，世界有没有照常演化？23 个视频生成模型交出同一份答卷：没有。无法在视线外维持世界状态的持续演化是全员共有的缺陷，一句话——&quot;可见质量高 ≠ 回看状态正确&quot;。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Current World Models Lack a Persistent State Core">
+<meta property="og:url" content="https://yyhchen.github.io/2026/06/22/paper-current-world-models-lack-a-persistent-state-core/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="WRBench 是第一个把相机运动当可观测性干预来使的诊断基准：相机转开、目标离开视野、再转回来——这段看不见的时间里，世界有没有照常演化？23 个视频生成模型交出同一份答卷：没有。无法在视线外维持世界状态的持续演化是全员共有的缺陷，一句话——&quot;可见质量高 ≠ 回看状态正确&quot;。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_a0059478d1e148b4bde90b070390233053b5167605ec9a8bd9c2f8dab08523b0.webp">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9237a4da8919b43d8bb94ca72f7707ccf9821b358ac02f2c5640fd8b8955537c.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_84726c1fe495873d1ee52260a6183756c710a1f2d16259138ffb08c8a67f5554.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_6afd112a8fa6b61f9707304a121c046e9cc748bd2fd7e450a92f8c914412fc9c.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9d6d6bca4956b07af60993c2977f576d6b66a17095d085a4a529bb3f7cf899bd.png">
+<meta property="article:published_time" content="2026-06-22T08:34:39.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_a0059478d1e148b4bde90b070390233053b5167605ec9a8bd9c2f8dab08523b0.webp">
+  
+  
+  
+  <title>Paper精读｜Current World Models Lack a Persistent State Core - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Current World Models Lack a Persistent State Core</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-22 16:34" pubdate>
+          2026-06-22 16:34:39
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="评测与验证"
+        id="heading-8ba97f6ce629a655d313673047092d7b" role="tab" data-toggle="collapse" href="#collapse-8ba97f6ce629a655d313673047092d7b"
+        aria-expanded="true"
+      >
+        评测与验证
+        <span class="list-group-count">(8)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-8ba97f6ce629a655d313673047092d7b"
+           role="tabpanel" aria-labelledby="heading-8ba97f6ce629a655d313673047092d7b">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(8)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/28/paper-sensebench-a-benchmark-for-remote-sensing-low-level-visual-perception-and-description-in-large-vision-language-models/" title="Paper精读｜SenseBench: A Benchmark for Remote Sensing Low-Level Visual Perception and Description in Large Vision-Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SenseBench: A Benchmark for Remote Sensing Low-Level Visual Perception and Description in Large Vision-Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/26/paper-recursive-collective-intelligence-emergence-on-an-equal-budget-ladder-in-multi-agent-llm-systems/" title="Paper精读｜Recursive Collective Intelligence: Emergence on an Equal-Budget Ladder in Multi-Agent LLM Systems"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recursive Collective Intelligence: Emergence on an Equal-Budget Ladder in Multi-Agent LLM Systems</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/26/paper-robouniverse-10k-toward-the-scaling-era-of-agentic-robotics-via-real-to-sim-environments/" title="Paper精读｜RoboUniverse-10K: Toward the Scaling Era of Agentic Robotics via Real-to-Sim Environments"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜RoboUniverse-10K: Toward the Scaling Era of Agentic Robotics via Real-to-Sim Environments</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-seta-scaling-environments-for-terminal-agents/" title="Paper精读｜SETA: Scaling Environments for Terminal Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SETA: Scaling Environments for Terminal Agents</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/12/paper-swe-bench-promax-benchmarking-agents-on-large-scale-multilingual-code-refactoring/" title="Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction/" title="Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-llm-as-a-verifier-a-general-purpose-verification-framework/" title="Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/22/paper-current-world-models-lack-a-persistent-state-core/" title="Paper精读｜Current World Models Lack a Persistent State Core"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Current World Models Lack a Persistent State Core</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Current World Models Lack a Persistent State Core</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;evaluation">评测与验证</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读current-world-models-lack-a-persistent-state-core"><a class="markdownIt-Anchor" href="#paper精读current-world-models-lack-a-persistent-state-core"></a> Paper精读｜Current World Models Lack a Persistent State Core</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>WRBench</strong> 是第一个把相机运动当<strong>可观测性干预</strong>来使的诊断基准：相机转开、目标离开视野、再转回来——这段看不见的时间里，世界有没有照常演化？23 个视频生成模型交出同一份答卷：<span class="mark-strong">没有</span>。**<span class="mark-strong">无法在视线外维持世界状态的持续演化</span>**是全员共有的缺陷，一句话——“<span class="mark-strong">可见质量高 ≠ 回看状态正确</span>”。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Current World Models Lack a Persistent State Core</li>
+<li><strong>arXiv</strong>：2606.20545</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.20545">https://arxiv.org/abs/2606.20545</a></li>
+<li><strong>作者</strong>：Jinpeng Lu, Dexu Zhu, Haoyuan Shi, Linghan Cai, Guo Tang, Yinda Chen, Jie Cao, Duyu Tang, Yi Zhang, Yong Dai, Xiaozhu Ju</li>
+<li><strong>机构</strong>：中国科学技术大学 / 北京人形机器人创新中心 / 中科院自动化所NLPR / 独立研究员 / 德累斯顿工业大学 / 北京大学</li>
+<li><strong>日期</strong>：2026-06-18</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>世界模型被当作通向 AGI 的关键一跳，但这顶帽子发得太随意——现有视频生成模型到底能不能真正建模&quot;物理世界&quot;，其实从没被严查过。爱因斯坦那句&quot;我不看月亮时，月亮依然存在&quot;是现成的试金石：真正的世界模型应该如此，相机移开了，世界状态照样往前走。</p>
+<p>现有基准评测存在严重盲点：它们奖励表面属性（图像保真度、运动流畅性、相机可控性），却从不追问一个根本问题——<strong>当目标物体离开视野后再回来时，它的状态是否与离开的预期一致？</strong> 比如提示词说&quot;猫跳上床&quot;，相机转开后猫应该在床上，但当前模型普遍会在回看时将猫重置为跳之前的地板位置。</p>
+<p>这个问题之所以被忽视，是因为现有benchmark将相机控制视为&quot;渲染命令&quot;而非&quot;可观测性干预&quot;。WRBench的创新在于：把相机运动当作改变观察角度的干预手段，测试模型是否在视野之外维持了事件的持续演化。</p>
+<p><img src="/img/paper-reading/img_a0059478d1e148b4bde90b070390233053b5167605ec9a8bd9c2f8dab08523b0.webp" srcset="/img/loading.gif" lazyload alt="Figure 1: WRBench Teaser — 共享场景、事件和视角干预测试" /></p>
+<p><em>图1：WRBench核心概念。同一场景、同一事件，通过视角干预测试可见和回看的证据是否支持同一个正在演化的世界状态。</em></p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong><span class="mark-strong">可见质量与回看状态是正交能力</span></strong>：模型可以生成高质量画面、执行合理的相机运动、甚至让目标重新进入视野，但在回看时仍然无法维持正确的事件终点状态。这三个能力（preservation → access → re-observed consistency）并不绑定在一起。</p>
+</li>
+<li>
+<p><strong>相机的转动决定&quot;能否测试&quot;，不决定&quot;能否通过&quot;</strong>：相机运动（如左右平移）可以将回看的支持率从接近0提升到约40%，但回看状态得分几乎不变（变化不到0.01）——相机控制只是打开了测试的大门，门后的世界状态演化该不及格还是不及格。</p>
+</li>
+<li>
+<p><strong>空间位移比原位状态变化更容易追踪</strong>：当物体被移动到新位置时，模型可以利用新的坐标和静态场景作为锚点来跟踪；但当物体在原位发生状态变化（如折叠、倾倒）时，没有新坐标可追踪，导致回看时物体漂移和模糊。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">规模增长不带来世界状态演化能力</span></strong>：在23个模型、四个控制范式（显式轨迹、源视频变换、几何缓存、仅提示词）、以及不同参数规模的范围内，这个缺陷反复出现。更清晰的图像、更紧密的控制、更丰富的几何先验或更大的参数量都无法解决这个问题。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="wrbench-四层架构"><a class="markdownIt-Anchor" href="#wrbench-四层架构"></a> WRBench 四层架构</h3>
+<p>WRBench 是一个分层诊断基准，包含四个核心组件：</p>
+<p><strong>Natural-25 提示套件</strong>：25个家庭场景 × 四级事件设计（空间位移 vs 状态变化 × 有相机控制 vs 无相机控制），构成测试的基础场景矩阵。每个测试用例固定相同的初始观察和事件，只变化视角条件。</p>
+<p><strong>WRBenchLib 统一工具包</strong>：将异构模型纳入公平比较的关键创新。不同模型接收相机指令的形式各异（显式轨迹、源视频、几何条件、自然语言提示），WRBenchLib 将每个 event-view record 翻译为各模型可消费的形式，并记录实际交付的条件和生成的视频，建立完整的生成溯源映射。</p>
+<p><strong>六维评估套件</strong>：</p>
+<ol>
+<li>
+<p><strong>Requested-camera precision</strong>：显式轨迹模型是否执行了请求的相机路径</p>
+</li>
+<li>
+<p><strong>Prompt-camera alignment</strong>：仅提示词模型是否遵循了预期的相机意图</p>
+</li>
+<li>
+<p><strong>Visual integrity</strong>：帧证据是否结构完整可读（无切割、消失、身份漂移）</p>
+</li>
+<li>
+<p><strong>Visible spatial/state consistency</strong>：目标可见时的空间关系和动作状态是否正确</p>
+</li>
+<li>
+<p><strong>Re-observation support</strong>：经过隐藏期后，目标是否能以可评分的形式回到视野</p>
+</li>
+<li>
+<p><strong>Re-observed spatial/state consistency</strong>：在满足(5)的子集上，回看的目标是否保持了预期的空间关系和事件终点</p>
+</li>
+</ol>
+<p><strong>人类偏好标注</strong>：2,547条去重的人类标注裁决，用于校准自动评估器的阈值。</p>
+<p><img src="/img/paper-reading/img_9237a4da8919b43d8bb94ca72f7707ccf9821b358ac02f2c5640fd8b8955537c.png" srcset="/img/loading.gif" lazyload alt="Figure 2: WRBench方法概览 — 从Natural-25事件-视角记录到评估的全流程" /></p>
+<p><em>图2：WRBench方法概览。Natural-25事件-视角记录提供场景、事件和视角干预；WRBenchLib将每条记录翻译为生成视频和溯源记录。</em></p>
+<h3 id="评估方法"><a class="markdownIt-Anchor" href="#评估方法"></a> 评估方法</h3>
+<p>评估采用分层诊断链，从控制执行逐步深入到状态闭合。关键设计决策：维度(vi)是条件于维度(v)的——如果目标从未回到可判断的视野中，则记录为&quot;支持不足&quot;而非&quot;通过/失败&quot;。这种设计避免了将&quot;无法回看&quot;误判为&quot;回看状态错误&quot;。</p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>项目</strong></th>
+<th><strong>详情</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>评估模型数</td>
+<td>23个视频生成模型</td>
+</tr>
+<tr>
+<td>控制范式</td>
+<td>四种：source-video、geometry-cache、model-inferred、prompt-only</td>
+</tr>
+<tr>
+<td>生成视频总数</td>
+<td>9,600个</td>
+</tr>
+<tr>
+<td>场景覆盖</td>
+<td>Natural-25（25个家庭场景）</td>
+</tr>
+<tr>
+<td>人类标注</td>
+<td>2,547条去重裁决</td>
+</tr>
+<tr>
+<td>事件设计</td>
+<td>2×2矩阵：空间位移/原位变化 × 有相机控制/无相机控制</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<p>WRBench的核心发现是一个<strong>统一的缺陷模式</strong>：所有23个模型都在&quot;回看状态一致性&quot;上失败。</p>
+<p><strong>关键数据</strong>：</p>
+<ul>
+<li>
+<p>最佳可见状态得分可达 <span class="mark-number">~0.76</span>（Hailuo 0.759），但回看状态得分最高仅 ~0.66</p>
+</li>
+<li>
+<p>相机平移可将回看支持率从近0提升到约40%，但回看状态得分几乎不变</p>
+</li>
+<li>
+<p>空间位移事件的回看状态得分比原位变化事件高约<span class="mark-number">0.038</span>（p&lt;0.01）</p>
+</li>
+<li>
+<p>原位变化使可见位置得分下降0.114（p&lt;0.001），使回看状态下降0.068（p&lt;0.001）</p>
+</li>
+</ul>
+<p><strong>指标相关性揭示了能力的正交性</strong>：</p>
+<p><img src="/img/paper-reading/img_84726c1fe495873d1ee52260a6183756c710a1f2d16259138ffb08c8a67f5554.png" srcset="/img/loading.gif" lazyload alt="Figure 4: 指标相关性热力图 — 可见一致性与回看一致性形成两个独立的局部区块" /></p>
+<p><em>图4：WRBench六维指标的Pearson相关性结构。可见和回看一致性形成局部区块，但它们之间的相关性仅为0.60-0.79，证明这是两种不同的能力。</em></p>
+<p><strong>相机运动的影响</strong>：</p>
+<p><img src="/img/paper-reading/img_6afd112a8fa6b61f9707304a121c046e9cc748bd2fd7e450a92f8c914412fc9c.png" srcset="/img/loading.gif" lazyload alt="Figure 5: 相机运动决定可访问性而非正确性" /></p>
+<p><em>图5：静态相机、左→右平移、右→左平移三种条件下的对比。相机运动主要影响回看支持率（access），但对回看状态一致性（correctness）几乎没有影响。</em></p>
+<p><strong>事件因子压力分析</strong>：</p>
+<p><img src="/img/paper-reading/img_9d6d6bca4956b07af60993c2977f576d6b66a17095d085a4a529bb3f7cf899bd.png" srcset="/img/loading.gif" lazyload alt="Figure 6: 事件因子压力分布 — 原位状态变化对所有指标造成显著负面影响" /></p>
+<p><em>图6：按事件因子分解的箱线图。原位变化（in-place）比空间位移对回看状态造成更大破坏，因为缺少新坐标锚点。</em></p>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<p>论文未涉及模型训练，而是对已有模型进行诊断评估。评估器使用CLIP、DINOv2等预训练视觉编码器，阈值通过人类标注校准。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>问题选得刁，而且落得了地</strong>：Einstein 的&quot;月亮是否存在&quot;听着是个哲学梗，这篇把它变成一个可打的分数——相机转开再回来，状态对不对得上，判据写得清清楚楚。</p>
+</li>
+<li>
+<p><strong>严谨的分层评估设计</strong>：六维诊断链从控制执行到状态闭合层层递进，条件化评估避免了将&quot;无法回看&quot;误判为&quot;回看失败&quot;的逻辑漏洞。</p>
+</li>
+<li>
+<p><strong>广泛的模型覆盖</strong>：23个模型覆盖四种控制范式，证明了缺陷的普遍性——不是某个模型的bug，而是整个范式的系统性缺失。</p>
+</li>
+<li>
+<p><strong>人类校准扎实</strong>：AC1一致性系数在0.788-0.937之间，桥接样本量充足（136-229对），证明自动评估器与人类判断高度对齐。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>诊断多于治愈</strong>：论文清楚地指出了问题的存在，但对“如何修复”的指引有限——仅提出了“what-memory”和“endpoint-persistence”两个方向。</p>
+</li>
+<li>
+<p><strong>Natural-25的场景多样性有限</strong>：25个家庭场景虽然覆盖了常见情况，但可能不足以代表更复杂的真实世界交互。</p>
+</li>
+<li>
+<p><strong>未深入探讨因果机制</strong>：论文观察到缺陷在所有模型中重复出现，但没有深入分析是训练数据偏差、架构限制还是优化目标导致的根本原因。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>扩展事件复杂度</strong>：当前Natural-25聚焦于单一物体的空间/状态变化，未来可扩展到多物体交互、因果链事件</p>
+</li>
+<li>
+<p><strong>架构层面的解决方案</strong>：论文暗示需要&quot;persistent state core&quot;，但未探索具体架构（如显式世界状态表示、记忆模块）的效果</p>
+</li>
+<li>
+<p><strong>Reward模型集成</strong>：论文提到WRBench的结构可直接用于偏好/奖励挖掘，但尚未实现</p>
+</li>
+<li>
+<p><strong>跨模态扩展</strong>：当前仅评估视频生成，可扩展到3D场景生成、机器人规划等需要持续世界状态的任务</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>WRBench 戳破的是一个人人默认已久的等号：把&quot;生成逼真的视频帧&quot;当成&quot;理解物理世界&quot;。前者只需要渲染能力，后者要的是<strong>在视线之外维持事件持续演化的能力</strong>。这项研究最实在的贡献，是把这层模糊的直觉做成可量化的六维诊断框架，再用 23 个模型的全面评估坐实了结论——<span class="mark-strong">这不是某个模型的缺陷，而是整个视频生成范式的一个系统性盲区</span>。往哪儿补，论文指了两条路：“what-memory” 和 “endpoint-persistence”；这两块不补上，视频生成器就还只是视图条件的渲染器，谈不上世界模型。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>WRBench是首个将相机运动视为可观测性干预的基准</strong>，测试视频生成模型在目标离开视野后是否能维持其持续演化状态</p>
+</li>
+<li>
+<p><strong>所有23个模型共享同一缺陷</strong>：可见质量高 ≠ 回看状态正确，回看状态一致性是与帧质量正交的独立能力</p>
+</li>
+<li>
+<p><strong>空间位移比原位状态变化更容易追踪</strong>，因为缺少新坐标锚点的原位变化会导致模型在回看时产生漂移和模糊</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AF%84%E6%B5%8B%E4%B8%8E%E9%AA%8C%E8%AF%81/" class="category-chain-item">评测与验证</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E8%AF%84%E6%B5%8B%E4%B8%8E%E9%AA%8C%E8%AF%81/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Current World Models Lack a Persistent State Core</div>
+      <div>https://yyhchen.github.io/2026/06/22/paper-current-world-models-lack-a-persistent-state-core/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry">
+                        <span class="hidden-mobile">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

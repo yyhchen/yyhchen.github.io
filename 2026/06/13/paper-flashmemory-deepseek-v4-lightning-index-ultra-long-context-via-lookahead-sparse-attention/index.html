@@ -1,0 +1,1227 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="提出 Lookahead Sparse Attention (LSA)：backbone 的主要计算路径不动，只用一个独立的 Neural Memory Indexer 在解码时主动预测并只取回 query-critical 的历史 KV chunk，将 GPU KV cache 占用压缩至完整上下文的 13.5%（500K 长度下达 90%），同时平均准确率反而 +0.6%——这个“反而”不是运">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention">
+<meta property="og:url" content="https://yyhchen.github.io/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="提出 Lookahead Sparse Attention (LSA)：backbone 的主要计算路径不动，只用一个独立的 Neural Memory Indexer 在解码时主动预测并只取回 query-critical 的历史 KV chunk，将 GPU KV cache 占用压缩至完整上下文的 13.5%（500K 长度下达 90%），同时平均准确率反而 +0.6%——这个“反而”不是运">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_07a04a3314154e20bec85d4cfbe54e99c99bb11c7012ef6e8c60755662e7cc30.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_7f2cb9b4244c2be2e9df73ea7ba40fe723a5f91a8d7f27d19387f33265132090.png">
+<meta property="article:published_time" content="2026-06-13T06:44:27.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_07a04a3314154e20bec85d4cfbe54e99c99bb11c7012ef6e8c60755662e7cc30.png">
+  
+  
+  
+  <title>Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-13 14:44" pubdate>
+          2026-06-13 14:44:27
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          23 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="模型架构与推理效率"
+        id="heading-2b414557444ce743ae890d15692b8e1e" role="tab" data-toggle="collapse" href="#collapse-2b414557444ce743ae890d15692b8e1e"
+        aria-expanded="true"
+      >
+        模型架构与推理效率
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2b414557444ce743ae890d15692b8e1e"
+           role="tabpanel" aria-labelledby="heading-2b414557444ce743ae890d15692b8e1e">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-mixture-of-loops-transformer/" title="Paper精读｜Mixture-of-Loops Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mixture-of-Loops Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/" title="Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/02/paper-normalized-low-rank-adaptation/" title="Paper精读｜Normalized Low-Rank Adaptation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Normalized Low-Rank Adaptation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/29/paper-prefix-sliding-for-efficient-test-time-scaling/" title="Paper精读｜Prefix Sliding for efficient test-time scaling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prefix Sliding for efficient test-time scaling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/21/paper-recirculation/" title="Paper精读｜Recirculation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recirculation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-mooncake-a-kvcache-centric-disaggregated-architecture-for-llm-serving/" title="Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-kimi-k3-open-frontier-intelligence/" title="Paper精读｜Kimi K3: Open Frontier Intelligence"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-minimax-sparse-attention/" title="Paper精读｜MiniMax Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MiniMax Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/" title="Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/" title="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF/" title="Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;architecture">模型架构与推理效率</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention"><a class="markdownIt-Anchor" href="#paper精读flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention"></a> Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>提出 <strong>Lookahead Sparse Attention (LSA)</strong>：backbone 的主要计算路径不动，只用一个独立的 <strong>Neural Memory Indexer</strong> 在解码时主动预测并只取回 query-critical 的历史 KV chunk，将 GPU KV cache 占用压缩至完整上下文的 <strong>13.5%</strong>（500K 长度下达 90%），同时平均准确率反而 <strong><span class="mark-number">+0.6%</span></strong>——这个“反而”不是运气：过滤掉无关 chunk 之后，attention 里的噪声也少了，“less is more” 的注意力去噪效应在这儿有实测支撑。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</li>
+<li><strong>arXiv</strong>：2606.09079</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.09079">https://arxiv.org/abs/2606.09079</a></li>
+<li><strong>作者</strong>：Yan Wang, Qifan Zhang, Jiachen Yu, Tian Liang, Dongyang Ma, Xiang Hu, Zibo Lin, Chunyang Li, Zhichao Wang, Miao Peng, Nuo Chen, Jia Li, Yujiu Yang, Haitao Mi, Dong Yu</li>
+<li><strong>机构</strong>：Independent Researchers / Tencent / The Hong Kong University of Science and Technology (Guangzhou) / Tsinghua University</li>
+<li><strong>日期</strong>：2026-06-09</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>当前超长上下文 LLM 推理面临一个根本矛盾：<strong>推理 FLOPs 可以通过稀疏注意力降低到近常数，但 KV cache 的 GPU 显存占用仍然随序列长度线性增长</strong>。DeepSeek-V4 等模型通过重压缩注意力（HCA）缓解了增长速度，但为了保留细粒度事实回忆能力，仍需保留大量低压缩/全注意力层，只是减缓而未能消除线性瓶颈。</p>
+<p>另一方面，作者对生产环境推理日志的实证分析发现：<strong><span class="mark-number">超过 90%</span> 的 64K+ 长上下文请求仅靠最后 8K token 就能准确回答</strong>——绝大多数 GPU 显存被浪费在了对当前 token 无贡献的历史上下文中。但简单使用滑动窗口丢弃历史又会彻底失败于那些真正需要全局上下文合成的任务。</p>
+<p>现有方案处于两难：要么保留全部 KV cache 支付线性增长的显存税，要么丢弃历史丢失远方回忆能力。LSA 的核心理念是：<strong>让模型不再被动地记住所有历史，<span class="mark-strong">而是主动预测未来几步解码需要哪些历史 chunk</span></strong>，按需取回。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">三条核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>预测性上下文选择替代被动缓存</strong>：LSA 不修改 backbone 模型的主要计算路径，而是增加一个轻量级的 Memory Indexer，以固定步长 τ=64 触发，预测未来 τ 步解码所需的历史 compressed KV chunk，只在 GPU 中保留这些 query-critical 的 chunk。这从根本上将 KV cache 从线性增长变为按需分配。</p>
+</li>
+<li>
+<p><strong>骨干无关的解耦训练（Backbone-Free Decoupled Training）</strong>：Memory Indexer 被设计为标准的 Dual-Encoder 检索架构，所有历史 compressed indexer keys 和 label 都可离线预计算并冻结。训练时仅优化 query encoder 端的三个低秩投影矩阵（&lt; 0.1% 全模型参数量），<strong><span class="mark-strong">从来不需要将千亿参数 backbone 模型加载到 GPU 显存</span></strong>。整个 Indexer 在一张 H20 GPU 上 1 小时内收敛。</p>
+</li>
+<li>
+<p><strong>“注意力去噪器”效应</strong>：在超长上下文场景中，LSA 不仅节省显存，还通过过滤掉数千条无关历史 chunk，<strong>减少了 attention dot-product 中的噪声</strong>，从而缓解了长上下文中的事实幻觉。在 LongBench-v2-L (493K) 上<span class="mark-strong">以 10% 的显存预算反而超越全量 baseline</span> +1.9%——去噪假设要的就是这样一条直接证据。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1memory-indexer-架构"><a class="markdownIt-Anchor" href="#组件1memory-indexer-架构"></a> 组件1：Memory Indexer 架构</h3>
+<p><img src="/img/paper-reading/img_07a04a3314154e20bec85d4cfbe54e99c99bb11c7012ef6e8c60755662e7cc30.png" srcset="/img/loading.gif" lazyload alt="图 2｜LSA 前瞻稀疏索引与标准 CSA 流程" /></p>
+<p><em>图 2｜LSA 前瞻稀疏索引与标准 CSA 流程。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2606.09079v1/#S1.F2">来源</a></em></p>
+<ul>
+<li>
+<p>完全复用 DeepSeek-V4 原生 Lightning Indexer 的架构设计，保持对 backbone 的最小修改</p>
+</li>
+<li>
+<p>核心改变只有两处：(1) 将最终激活函数从 ReLU 替换为 <strong>Sigmoid</strong>（将分数归一化到 (0,1)），(2) 将硬 Top-k 选择替换为 <strong>阈值机制</strong>（I ≥ 0.5），实现动态数量召回</p>
+</li>
+<li>
+<p>解码时每 τ=64 步触发一次，用当前隐藏状态通过低秩投影生成 indexer query，与历史 compressed indexer keys 做 head-fused gated matching</p>
+</li>
+<li>
+<p>匹配分数超过 0.5 的历史 compressed KV entry 从 CPU Cold Pool 取回 GPU，参与后续原生 Lightning Indexer 的细粒度 Top-k 筛选</p>
+</li>
+</ul>
+<h3 id="组件2lookahead-数据集构建"><a class="markdownIt-Anchor" href="#组件2lookahead-数据集构建"></a> 组件2：Lookahead 数据集构建</h3>
+<ul>
+<li>
+<p>关键挑战：用原生 Lightning Indexer 的硬 Top-k 输出作为 ground truth 会被大量低概率噪声条目污染（每个窗口近 10,000 个正样本）</p>
+</li>
+<li>
+<p>提出 <strong>Cross-Layer Majority Voting</strong> 黄金标签过滤流水线：对每个解码 token，遍历所有 L=21 层 CSA 提取原生 indexer logit，经 Softmax 归一化 → Top-p (p=0.6) 核采样 → 跨层投票（≥3 层共识才认定为真正正样本）</p>
+</li>
+<li>
+<p>最终正样本量降至每窗口约 100-1000，消除了标签噪声</p>
+</li>
+<li>
+<p>训练集约 10,000 个长文档，上下文长度 16K~512K</p>
+</li>
+</ul>
+<h3 id="组件3解耦训练策略"><a class="markdownIt-Anchor" href="#组件3解耦训练策略"></a> 组件3：解耦训练策略</h3>
+<ul>
+<li>
+<p>训练目标：标准的 <strong>Binary Cross-Entropy</strong> loss，将 Memory Indexer 作为检索模型优化</p>
+</li>
+<li>
+<p>关键系统洞察：历史 compressed indexer keys 完全冻结，仅训练 query encoder 端的投影矩阵 W^DQ, W^IUQ, W^w</p>
+</li>
+<li>
+<p>使用 <strong>Focal Loss (γ=2)</strong> 替代标准 BCE，防止易分类负样本主导梯度</p>
+</li>
+<li>
+<p>负采样比 3:1（三个负样本对应一个正样本）</p>
+</li>
+<li>
+<p>排除了 Pairwise-to-Pointwise 链式训练、强负样本挖掘、加权损失等流行技巧——实验里试过，无效甚至有害</p>
+</li>
+</ul>
+<h3 id="组件4最优架构配置"><a class="markdownIt-Anchor" href="#组件4最优架构配置"></a> 组件4：最优架构配置</h3>
+<ul>
+<li>
+<p>早期实验发现：浅层（初始层）的 indexer 性能极差（只捕捉 token 级统计信息），过多的层联合（8 层）会导致 recall 过高（30%-49% 的 chunk 被召回），违背降显存目标</p>
+</li>
+<li>
+<p>通过约 500 次 Pareto 扫描，确定 <strong>3 个战略中间层（第 10、12、20 层）</strong> 放置独立 Memory Indexer 为最优配置</p>
+</li>
+<li>
+<p>推理时采用 <strong>OR-mode 路由</strong>：任一层的预测分数 ≥ 0.5 即取回该 chunk</p>
+</li>
+<li>
+<p>投影层使用随机初始化（而非加载预训练权重），低秩投影维度设为 r=2048</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<ul>
+<li>
+<p>基线模型：DeepSeek-V4-Flash</p>
+</li>
+<li>
+<p>对比变体：DS-V4-Flash（全量）、<strong>FM-DS-V4（本文方法）</strong>、Recency Only（仅滑动窗口）、Random 10%（随机保留 10% 历史 chunk）</p>
+</li>
+<li>
+<p>所有变体通用保留：全量 HCA 层（128:1 压缩）+ 最后 8K prompt + 已解码 token 的本地 CSA window</p>
+</li>
+<li>
+<p>评估基准：LongBench-v2（三档长度 46K/179K/493K）、LongMemEval（125K/500K）、RULER（64K/128K/256K/512K）</p>
+</li>
+</ul>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<p><img src="/img/paper-reading/img_7f2cb9b4244c2be2e9df73ea7ba40fe723a5f91a8d7f27d19387f33265132090.png" srcset="/img/loading.gif" lazyload alt="图 1｜长上下文性能与硬件效率" /></p>
+<p><em>图 1｜长上下文性能与硬件效率。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2606.09079v1/#S0.F1">来源</a></em></p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>指标</strong></th>
+<th><strong>DS-V4-Flash</strong></th>
+<th><strong>FM-DS-V4 (Ours)</strong></th>
+<th><strong>Recency Only</strong></th>
+<th><strong>Random 10%</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平均准确率</td>
+<td>76.9%</td>
+<td><strong>77.5%</strong> (+0.6%)</td>
+<td>33.3%</td>
+<td>38.7%</td>
+</tr>
+<tr>
+<td>平均 KV cache 占用</td>
+<td>0.93 GB</td>
+<td><strong>0.10 GB</strong> (13.5%)</td>
+<td>0.04 GB</td>
+<td>0.12 GB</td>
+</tr>
+<tr>
+<td>LongBench-v2-L (493K)</td>
+<td>68.1% (1.80 GB)</td>
+<td><strong>70.0%</strong> (0.18 GB)</td>
+<td>54.3% (0.04 GB)</td>
+<td>46.9% (0.22 GB)</td>
+</tr>
+<tr>
+<td>LongMemEval-S (125K)</td>
+<td>80.6% (0.46 GB)</td>
+<td><strong>82.0%</strong> (0.06 GB)</td>
+<td>19.2% (0.04 GB)</td>
+<td>20.1% (0.07 GB)</td>
+</tr>
+<tr>
+<td>RULER (64K)</td>
+<td>94.7% (0.23 GB)</td>
+<td><strong>95.0%</strong> (0.04 GB)</td>
+<td>36.6% (0.03 GB)</td>
+<td>52.8% (0.05 GB)</td>
+</tr>
+<tr>
+<td>RULER (512K)</td>
+<td>88.3% (1.87 GB)</td>
+<td><strong>89.6%</strong> (0.18 GB)</td>
+<td>18.8% (0.04 GB)</td>
+<td>27.2% (0.22 GB)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="关键发现"><a class="markdownIt-Anchor" href="#关键发现"></a> 关键发现</h3>
+<ul>
+<li>
+<p><strong><span class="mark-strong">FM-DS-V4 在所有任务上匹配或超越全量 baseline</span></strong>，平均 +0.6%，最长 500K 下显存节省达 90%</p>
+</li>
+<li>
+<p>在同一显存限制下，Recency Only 和 Random 10% 全面崩溃（33-39% vs 77%），证明 LSA 的预测性路由是有效的</p>
+</li>
+<li>
+<p>注意：Recency/Random 在 LongBench-v2 上尚有一定表现，是因为 DeepSeek-V4 的 HCA 层（128:1 压缩全局注意力）已经能支撑粗粒度语义理解，但细粒度事实回忆仍需 CSA chunk</p>
+</li>
+</ul>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<ul>
+<li>
+<p>Memory Indexer 在一张 H20 GPU 上 1 小时内收敛</p>
+</li>
+<li>
+<p>约 500 次训练 runs 在 8×H20 集群上 1 周内完成</p>
+</li>
+<li>
+<p>训练仅涉及不到 0.1% 的全模型参数量</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>效率-精度平衡是实打实拿到了</strong>：86.5% 的平均显存节省下精度不降反升——长上下文推理这条线里，「省显存」和「涨点」能同时报出来的结果不多</p>
+</li>
+<li>
+<p><strong>解耦训练是个能单独学走的设计</strong>：indexer 训练与 backbone 完全物理隔离，500 runs 一周扫完；「训千亿模型的 indexer 却不用加载千亿模型」这一条，把实验门槛砍掉了一大截</p>
+</li>
+<li>
+<p><strong>局限披露得坦率</strong>：项目因组织调整中断、大量超参数未做系统消融、MRCR 基准失败——全写在论文里，这种坦率在同类论文里不常见</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>MRCR 基准上严重退化</strong>（<span class="mark-number">76.0% → 48.0%</span>）：在多范围密集检索任务上全面失败，暴露了当前 frozen key + 浅层 dot-product 匹配的容量上限</p>
+</li>
+<li>
+<p><strong>上下文长度泛化天花板仅 2× 训练长度</strong>：在超过 2× 训练长度时 recall 退化为随机采样，归因于 OOD 位置编码问题</p>
+</li>
+<li>
+<p><strong>非恒定显存开销</strong>：即使上下文无关任务，绝对 chunk 保留量仍随序列长度膨胀（500K 下约为 125K 的 2.5×），Sigmoid 阈值在大规模候选池中仍会累积假阳性</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>Frozen Key Representation</strong>：受限于计算预算，从未调整或优化原生 DeepSeek-V4 的 compressed indexer keys（仅训练 query encoder）——key 端的联合优化是这套方案最顺手的下一步，卡住的只是算力</p>
+</li>
+<li>
+<p><strong>浅层交叉交互</strong>：纯通过 64 步粗粒度 dot-product 相似度做匹配，缺少多轮交互能力。引入 Late-Interaction 架构（如 ColBERT 式的 token 级交叉匹配）是对 MRCR 那类密集检索最对症的方向</p>
+</li>
+<li>
+<p><strong>解耦训练隔离</strong>：缺乏与 backbone 的端到端联合优化，indexer 受限于静态伪标签，无法感知自回归解码的动态偏移</p>
+</li>
+<li>
+<p><strong>项目已中断</strong>：由于组织调整，项目主导者已离开腾讯，项目暂停。论文中多个超参数（τ=64、阈值 0.5）未经系统消融，索引器层配置（10/12/20）虽经 500-run 扫描但缺乏更细粒度的逐层消融</p>
+</li>
+<li>
+<p><strong>位置编码泛化限制</strong>：当前 2× 训练长度的泛化天花板需要新的位置编码方案或更长的训练分布来解决</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>FlashMemory 的路子一句话讲得清：<span class="mark-strong">不再被动缓存全部历史，而是训练一个轻量级预测器主动按需取回</span>。在 DeepSeek-V4-Flash 上，不到 0.1% 的额外参数、1 GPU hour 的训练，换来 86.5% 的平均显存节省和 +0.6% 的精度提升——这个交换比在长上下文推理这条线里相当能打。真正让它从一堆 KV cache 压缩工作里站出来的是 +0.6% 那一头：过滤无关 chunk 不只是省钱，还顺手给 attention 去了噪，超长上下文里的事实幻觉跟着缓解——“less is more” 在这儿是字面成立的。当然，MRCR 上 76%→48% 的崩盘和 2× 训练长度的泛化天花板，把 Dual-Encoder + frozen key 这套方案的能力边界标得清清楚楚——下一步往哪儿走（key 端联合优化、late interaction）论文自己都指了，可惜项目因组织调整中断，只能等后来者接手。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>LSA 范式</strong>通过 Neural Memory Indexer 主动预测并取回 query-critical KV chunk，将 LLM 推理的 KV cache 占用压缩至 13.5%（500K 下达 90%），同时精度 +0.6%。</p>
+</li>
+<li>
+<p><strong>Backbone-Free Decoupled Training</strong> 将 Indexer 训练与千亿参数 backbone 物理隔离，仅优化不到 0.1% 参数、1 GPU hour 内收敛——500-run 扫描一周做完，靠的就是这套隔离。</p>
+</li>
+<li>
+<p><strong>核心局限</strong>：MRCR 密集检索全面失败（76%→48%），上下文泛化仅 2× 训练长度，Sigmoid 假阳性随序列长度累积导致非恒定开销。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/" class="category-chain-item">模型架构与推理效率</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</div>
+      <div>https://yyhchen.github.io/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/13/paper-minimax-sparse-attention/" title="Paper精读｜MiniMax Sparse Attention">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜MiniMax Sparse Attention</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/26/paper-vector-policy-optimization-training-for-diversity-improves-test-time-search/" title="Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search">
+                        <span class="hidden-mobile">Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

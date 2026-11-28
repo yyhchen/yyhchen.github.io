@@ -1,0 +1,1456 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="深度研究里有个发现-验证不对称：找到满足全部耦合约束的答案很贵，逐条约束去查证却便宜。AREX 整套架构就搭在这个差价上——双层递归自改进（RSI）：内循环研究攒证据、出候选答案，外循环逐约束审计、定向修正，配上自主的上下文更新工具，4B 和 10B 激活参数的模型打出了能和 frontier model 掰手腕的 deep research 能力。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="深度研究里有个发现-验证不对称：找到满足全部耦合约束的答案很贵，逐条约束去查证却便宜。AREX 整套架构就搭在这个差价上——双层递归自改进（RSI）：内循环研究攒证据、出候选答案，外循环逐约束审计、定向修正，配上自主的上下文更新工具，4B 和 10B 激活参数的模型打出了能和 frontier model 掰手腕的 deep research 能力。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_1120b0b23f2b0fb2b4df777629466871f7b989b30e82f08a3c891bcf4bb4aacc.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_02c57dcb6b6916572e8efb91320f6ee7b09a34523fc3cf5887d8b42a575b3aa9.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_ca40e27394794342bc4ddb01169e1e92d6af0753ba6e3f52d5260115a8ac94d5.svg">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_02dc162e90b04ad5a1ff7641149a793c34e6ff40b577776721dc3a9fcd3d83ef.svg">
+<meta property="article:published_time" content="2026-07-25T09:16:50.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_1120b0b23f2b0fb2b4df777629466871f7b989b30e82f08a3c891bcf4bb4aacc.png">
+  
+  
+  
+  <title>Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-25 17:16" pubdate>
+          2026-07-25 17:16:50
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读arex-towards-a-recursively-self-improving-agent-for-deep-research"><a class="markdownIt-Anchor" href="#paper精读arex-towards-a-recursively-self-improving-agent-for-deep-research"></a> Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>深度研究里有个<span class="mark-strong">发现-验证不对称</span>：找到满足全部耦合约束的答案很贵，逐条约束去查证却便宜。AREX 整套架构就搭在这个差价上——双层递归自改进（RSI）：内循环研究攒证据、出候选答案，外循环逐约束审计、定向修正，配上自主的上下文更新工具，4B 和 10B 激活参数的模型打出了能和 frontier model 掰手腕的 deep research 能力。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：AREX: Towards a Recursively Self-Improving Agent for Deep Research</li>
+<li><strong>arXiv</strong>：2607.21461</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2607.21461">https://arxiv.org/abs/2607.21461</a></li>
+<li><strong>作者</strong>：AREX Team</li>
+<li><strong>机构</strong>：Beijing Academy of Artificial Intelligence (BAAI)</li>
+<li><strong>日期</strong>：2026-07-23</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>Deep research 任务的难点不只在找到相关证据，在让答案同时满足一串耦合约束。现有系统靠单一长程搜索轨迹硬啃：推理步骤和工具调用堆上去，探索范围是大了，但进展不成体系——早期错误一路带到尾、已经榨干的方向被反复翻、半对的候选过早拍板。</p>
+<p>真正的挑战不是搜更久，而是<span class="mark-strong">诊断出哪些约束还没解决，再拿这个诊断去构造更有针对性的下一轮研究问题</span>。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">三条核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">发现-验证不对称性（Discovery-Verification Asymmetry）</span>：找到一个满足所有约束的答案，要在大而稀疏的空间里导航；验证一个候选却能拆成一串逐约束的小检查。验证不只回答对错，还顺带告诉你哪些声明被支持、哪些没着落、哪些证据在打架。</p>
+</li>
+<li>
+<p><span class="mark-strong">验证还能定义轮次之间的转换</span>：已有工作拿验证来给候选轨迹排序、或在轨迹内细化决策。AREX 多走一步——<span class="mark-strong">验证充当研究轮次之间的状态转换</span>：临时答案转成部分验证的状态，确认过的进度存下来，剩余的不确定性圈起来，下一轮的研究问题直接从诊断里长出来。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">自主上下文更新</span>是 RSI 的地基</strong>：长程研究里交互历史只增不减——已验证证据、失败查询、被拒候选、过时计划。全留着会搅浑后续推理，随手截断又可能扔掉后面验证要用的东西。AREX 让模型自己学什么时候调 <code>update_context</code>，把交互历史压成紧凑的&quot;改进状态&quot;（improvement state）。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_1120b0b23f2b0fb2b4df777629466871f7b989b30e82f08a3c891bcf4bb4aacc.png" srcset="/img/loading.gif" lazyload alt="Figure 1: AREX 基准性能对比" /></p>
+<p><em>图注：AREX 在 BrowseComp、GAIA、xbench-DeepSearch-2510、DeepSearchQA、WideSearch-en、HLE with tools 六个基准上的性能对比。AREX-Base（10B 激活参数）在 BrowseComp 82.5、GAIA 85.4、WideSearch-en 82.0，超越 Qwen3.5-397B 并匹敌 frontier model。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1双层循环架构"><a class="markdownIt-Anchor" href="#组件1双层循环架构"></a> 组件1：双层循环架构</h3>
+<p>架构就是不对称性的直接落地：发现交给内循环，验证和调度交给外循环。</p>
+<p><strong>内循环（Research Loop）</strong>：</p>
+<ul>
+<li>
+<p>目标 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>q</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">q^{(k)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0824399999999998em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8879999999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span></span></span></span> 由原始问题 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span>（第一轮）或外循环提供（后续轮次）</p>
+</li>
+<li>
+<p>策略 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">\pi_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 执行搜索/浏览工具 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">T</mi></mrow><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.25417em;">T</span></span></span></span></span>，收集证据，构建候选答案</p>
+</li>
+<li>
+<p>目标被充分研究后，调用 <code>finish</code> 输出结构化结果：临时答案 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>y</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">y^{(k)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0824399999999998em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8879999999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span></span></span></span>、支持证据 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi mathvariant="script">E</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\mathcal{E}^{(k)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8879999999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathcal" style="margin-right:0.08944em;">E</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8879999999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span></span></span></span>、置信度 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>s</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup><mo>∈</mo><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mn>100</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">s^{(k)} \in [0, 100]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9270999999999999em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord mathdefault">s</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8879999999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mclose">]</span></span></span></span></p>
+</li>
+</ul>
+<p><strong>外循环（Self-Improvement Loop）</strong>：</p>
+<ul>
+<li>
+<p>接收内循环的结构化结果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>r</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">r^{(k)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8879999999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8879999999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span></span></span></span></p>
+</li>
+<li>
+<p>置信度阈值 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span> 控制终止：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>s</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">s^{(k)} \geq \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0239699999999998em;vertical-align:-0.13597em;"></span><span class="mord"><span class="mord mathdefault">s</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8879999999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span> 则接受答案</p>
+</li>
+<li>
+<p>否则评估当前轨迹还有没有救：</p>
+<ul>
+<li>
+<p><span class="mark-strong">Refine</span>：留住有用发现，把未解决问题转成目标 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>q</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">q^{(k+1)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0824399999999998em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8879999999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mbin mtight">+</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span></span></span></span></p>
+</li>
+<li>
+<p><span class="mark-strong">Restart</span>：丢掉噪声轨迹，从原始问题重来</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_02c57dcb6b6916572e8efb91320f6ee7b09a34523fc3cf5887d8b42a575b3aa9.png" srcset="/img/loading.gif" lazyload alt="Figure 2: AREX 递归自改进框架" /></p>
+<p><em>图注：AREX 的递归自改进框架。内循环维护研究状态并输出带证据和置信度的临时答案，外循环基于置信度和轨迹评估决定接受、修正还是重启。</em></p>
+<h3 id="组件2自主上下文更新工具update_context"><a class="markdownIt-Anchor" href="#组件2自主上下文更新工具update_context"></a> 组件2：自主上下文更新工具（update_context）</h3>
+<ul>
+<li>
+<p>自己决定什么时候调（解决完一个有意义的子问题后、排除一个主要候选后、调和完冲突证据后）</p>
+</li>
+<li>
+<p>构建刷新状态 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>z</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>=</mo><msub><mi>f</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msubsup><mi>h</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">z_t^{(k)} = f_\theta(h_t^{(k)})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2905559999999998em;vertical-align:-0.24575599999999992em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.454244em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.2197999999999998em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999992em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.2948em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.10764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.454244em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.2197999999999998em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999992em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，保留：已验证发现及来源、当前候选、未解决约束、有效性担忧、被拒绝候选、下一步计划</p>
+</li>
+<li>
+<p>删掉冗余观察、过时结论、过时计划</p>
+</li>
+<li>
+<p>有效上下文 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mover accent="true"><mi>h</mi><mo>ˉ</mo></mover><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">\bar{h}_t^{(k)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2905559999999998em;vertical-align:-0.24575599999999992em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8312199999999998em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">h</span></span></span><span style="top:-3.26344em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;">ˉ</span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.454244em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.2197999999999998em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999992em;"><span></span></span></span></span></span></span></span></span></span> = 最近一次更新状态 + 更新后的交互</p>
+</li>
+</ul>
+<h3 id="组件3多阶段训练框架"><a class="markdownIt-Anchor" href="#组件3多阶段训练框架"></a> 组件3：多阶段训练框架</h3>
+<p><strong>渐进式多轮能力训练</strong>：</p>
+<ul>
+<li>
+<p>第一阶段：browse-intensive 多轮轨迹（搜索、阅读、证据收集、查询重构）</p>
+</li>
+<li>
+<p>第二阶段：expert-level 推理数据（长程思维、多步演绎、假设验证）</p>
+</li>
+<li>
+<p>第三阶段：混合能力巩固 + 验证驱动的研究状态转换</p>
+</li>
+</ul>
+<p><strong>关键步骤聚焦监督（Key-Step Focused Supervision）</strong>：</p>
+<ul>
+<li>
+<p>规则检测器挑出候选关键步骤：</p>
+<ul>
+<li>
+<p>多次探索后首次发现答案相关实体的工具调用</p>
+</li>
+<li>
+<p>拒绝错误实体/假设、重定向搜索的第一步</p>
+</li>
+<li>
+<p>关键上下文更新步骤</p>
+</li>
+</ul>
+</li>
+<li>
+<p>损失只压在成功轨迹的关键步骤上（prefix-conditioned, step-only loss）</p>
+</li>
+</ul>
+<p><strong>步骤感知强化学习（Step-Aware RL）</strong>：</p>
+<ul>
+<li>
+<p>Turn-level policy optimization + hierarchical step-balanced normalization</p>
+</li>
+<li>
+<p>关键步骤额外奖励：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow></msub><mo>=</mo><msubsup><mi>A</mi><mi>i</mi><mtext>out</mtext></msubsup><mo>+</mo><msub><mi>λ</mi><mtext>key</mtext></msub><msub><mover accent="true"><mi>B</mi><mo stretchy="true">~</mo></mover><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">A_{i,j} = A^{\text{out}}_i + \lambda_{\text{key}} \widetilde{B}_{i,j}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.05222em;vertical-align:-0.258664em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.441336em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">out</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.258664em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.229438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">key</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.94333em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05017em;">B</span></span></span><span class="svg-align" style="width:calc(100% - 0.16668em);margin-left:0.16668em;top:-3.6833299999999998em;"><span class="pstrut" style="height:3em;"></span><span style="height:0.26em;"><svg width='100%' height='0.26em' viewBox='0 0 600 260' preserveAspectRatio='none'><path d='M200 55.538c-77 0-168 73.953-177 73.953-3 0-7
+-2.175-9-5.437L2 97c-1-2-2-4-2-6 0-4 2-7 5-9l20-12C116 12 171 0 207 0c86 0
+ 114 68 191 68 78 0 168-68 177-68 4 0 7 2 9 5l12 19c1 2.175 2 4.35 2 6.525 0
+ 4.35-2 7.613-5 9.788l-19 13.05c-92 63.077-116.937 75.308-183 76.128
+-68.267.847-113-73.952-191-73.952z'/></svg></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span></p>
+</li>
+</ul>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p><span class="mark-strong">参数效率</span>：10B 激活参数的 AREX-Base 超越 Qwen3.5-397B（397B 参数）</p>
+</li>
+<li>
+<p><span class="mark-strong">系统性进展</span>：靠验证驱动的状态转换往前推，不是靠暴力堆搜索</p>
+</li>
+<li>
+<p><span class="mark-strong">证据保留</span>：已验证发现被显式存着，不重复探索</p>
+</li>
+<li>
+<p><span class="mark-strong">不确定性隔离</span>：未解决约束被显式追踪，后续搜索有方向</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<p><strong>模型规格</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>类型</strong></th>
+<th><strong>参数</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AREX-Turbo</td>
+<td>Dense</td>
+<td>4B</td>
+</tr>
+<tr>
+<td>AREX-Base</td>
+<td>MoE</td>
+<td>122B total, 10B activated</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>基准测试</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>基准</strong></th>
+<th><strong>核心考察</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BrowseComp</td>
+<td>深度研究：多步检索、查询重构、证据聚合</td>
+</tr>
+<tr>
+<td>WideSearch</td>
+<td>大范围检索与合成</td>
+</tr>
+<tr>
+<td>DeepSearchQA</td>
+<td>深度研究：多步检索、查询重构</td>
+</tr>
+<tr>
+<td>HLE (with tools)</td>
+<td>高级推理 + 网络搜索和计算工具</td>
+</tr>
+<tr>
+<td>GAIA</td>
+<td>Agent 任务完成：信息寻求 + 规划 + 工具使用</td>
+</tr>
+<tr>
+<td>xbench-2510</td>
+<td>Agent 任务完成</td>
+</tr>
+</tbody>
+</table></div>
+<p><span class="mark-strong">评估协议</span>：最多 300 轮内循环 + 5 轮外循环</p>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<p><strong>整体性能</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>BrowseComp</strong></th>
+<th><strong>GAIA</strong></th>
+<th><strong>xbench</strong></th>
+<th><strong>DeepSearchQA</strong></th>
+<th><strong>WideSearch</strong></th>
+<th><strong>HLE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-5.4</td>
+<td>82.7</td>
+<td>—</td>
+<td>—</td>
+<td>88.5</td>
+<td>77.5</td>
+<td>52.1*</td>
+</tr>
+<tr>
+<td>Opus-4.6</td>
+<td>83.7</td>
+<td>—</td>
+<td>—</td>
+<td>91.3</td>
+<td>77.5</td>
+<td>53.0*</td>
+</tr>
+<tr>
+<td>Gemini-3.1-Pro</td>
+<td>85.9</td>
+<td>80.6</td>
+<td>53.0</td>
+<td>93.3</td>
+<td>66.4</td>
+<td>51.4*</td>
+</tr>
+<tr>
+<td>Qwen3.5-397B</td>
+<td>78.6</td>
+<td>83.5</td>
+<td>61.0</td>
+<td>82.1</td>
+<td>74.0</td>
+<td>48.3</td>
+</tr>
+<tr>
+<td>MiroThinker-H1</td>
+<td>88.2</td>
+<td>88.5</td>
+<td>72.0</td>
+<td>80.6</td>
+<td>—</td>
+<td>47.7</td>
+</tr>
+<tr>
+<td><strong>AREX-Turbo (4B)</strong></td>
+<td>70.7</td>
+<td>81.6</td>
+<td>57.0</td>
+<td>78.5</td>
+<td>68.5</td>
+<td>40.6</td>
+</tr>
+<tr>
+<td><strong>AREX-Base (10B)</strong></td>
+<td><strong>82.5</strong></td>
+<td><strong>85.4</strong></td>
+<td><strong>71.0</strong></td>
+<td><strong>89.9</strong></td>
+<td><strong>82.0</strong></td>
+<td><strong>52.4</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><em>AREX-Base 在 BrowseComp 超越 Qwen3.5-397B (78.6)，在 WideSearch 达到最佳 (82.0)，在 DeepSearchQA 超越 DeepSeek-V4-Pro (88.7)。</em></p>
+<h3 id="消融研究"><a class="markdownIt-Anchor" href="#消融研究"></a> 消融研究</h3>
+<p><strong>训练消融</strong>（BrowseComp）：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>设置</strong></th>
+<th><strong>Accuracy</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Replace multi-round capability training by mixed training</td>
+<td>77.5</td>
+</tr>
+<tr>
+<td>Replace key-step focused supervision by random-step replay</td>
+<td>74.1</td>
+</tr>
+<tr>
+<td>Replace step-aware RL by standard GRPO</td>
+<td>79.4</td>
+</tr>
+<tr>
+<td><strong>Full AREX</strong></td>
+<td><strong>82.5</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><em><span class="mark-strong">关键步骤聚焦监督贡献最大（-8.4 点）</span>，其次是多轮能力训练（-5.0 点），步骤感知 RL 进一步改进（-3.1 点）。</em></p>
+<p><strong>推理框架分析</strong>（BrowseComp）：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>配置</strong></th>
+<th><strong>Accuracy</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AREX w/o ACU, w/o outer loop</td>
+<td>59.6</td>
+</tr>
+<tr>
+<td>AREX w/o ACU, w/ outer loop</td>
+<td>69.8</td>
+</tr>
+<tr>
+<td>AREX w/ ACU, w/o outer loop</td>
+<td>71.4</td>
+</tr>
+<tr>
+<td><strong>AREX w/ ACU, w/ outer loop</strong></td>
+<td><strong>82.5</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><em>ACU 单独贡献 <span class="mark-number">+11.8 点</span>，外循环单独贡献 <span class="mark-number">+10.2 点</span>，两者结合达到 82.5（+22.9 点）。</em></p>
+<p><img src="/img/paper-reading/img_ca40e27394794342bc4ddb01169e1e92d6af0753ba6e3f52d5260115a8ac94d5.svg" srcset="/img/loading.gif" lazyload alt="Figure 3: 置信度分布" /></p>
+<p><em>图注：正确与错误输出的置信度分布。正确输出集中在 90-100 区间（ACU 下 95.9%），错误输出保留大量低置信度质量（55.2% 低于 60），支持基于置信度的决策程序。</em></p>
+<p><img src="/img/paper-reading/img_02dc162e90b04ad5a1ff7641149a793c34e6ff40b577776721dc3a9fcd3d83ef.svg" srcset="/img/loading.gif" lazyload alt="Figure 4: 关键步骤损失分析" /></p>
+<p><em>图注：全轨迹 mid-training 后的平均步骤损失。普通步骤损失 0.232，关键步骤损失明显更高：证据发现 0.277（+19%）、路径拒绝重定向 0.298（+28%）、关键上下文更新 0.300（+29%），模型在决策关键步骤上还有不小的改进空间。</em></p>
+<p><strong>上下文更新行为</strong>：</p>
+<ul>
+<li>
+<p>80.3% 的 BrowseComp 案例调用了 update_context</p>
+</li>
+<li>
+<p>平均在 25,721 tokens 时调用（128K 上限的 20%）</p>
+</li>
+<li>
+<p>触发原因：搜索策略修订（66.9%）、候选拒绝（13.6%）、识别新线索（7.2%）</p>
+</li>
+<li>
+<p>保留内容：未解决约束（95.5%）、下一步计划（96.4%）、已验证发现（72.1%）、被拒绝候选（81.5%）</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">问题重构立得住</span>：deep research 不是&quot;搜索更长&quot;，是&quot;验证驱动的递归自改进&quot;——后面整套架构都从这一个换法里推出来</p>
+</li>
+<li>
+<p><span class="mark-strong">架构没有多余的零件</span>：双层循环 + 一个 <code>update_context</code> 工具，每个部件都有消融数字撑腰</p>
+</li>
+<li>
+<p><span class="mark-strong">训练链条一环扣一环</span>：渐进式 mid-training → 关键步骤聚焦 → 步骤感知 RL，拆开测过：多轮能力训练 -5.0、关键步骤聚焦 -8.4、步骤感知 RL -3.1</p>
+</li>
+<li>
+<p><span class="mark-strong">参数效率摆在那儿</span>：10B 激活参数打 397B 密集的 Qwen3.5，MoE 这笔账算得划算</p>
+</li>
+<li>
+<p><span class="mark-strong">行为数据让方法可信</span>：80.3% 的案例主动调 update_context，平均 25,721 tokens 就动手——远没等到 128K 上限，模型是真学会了管理自己的上下文</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：把火力集中在 deep research 一个点上打透，泛化的账以后再算，这个打法我理解。但有几条必须记着：</p>
+<ol>
+<li>
+<p><span class="mark-strong">只验了搜索密集型任务</span>：六个基准全是信息检索/研究导向，数学推理、代码生成这些非搜索任务上泛不泛化，一个字没有</p>
+</li>
+<li>
+<p><span class="mark-strong">MoE 架构的特殊性没掰开</span>：AREX-Base 用的是 Qwen3.5-122B-A10B，MoE 的训练动态对 RSI 是帮忙还是添乱，不清楚</p>
+</li>
+<li>
+<p><span class="mark-strong">缺人类评估</span>：只有自动指标，答案质量、证据可靠性没有人类判断背书</p>
+</li>
+<li>
+<p><span class="mark-strong">训练数据靠强教师</span>：高质量轨迹从强 teacher model 来，可复现性受限</p>
+</li>
+<li>
+<p><span class="mark-strong">没和最先进的专有系统正面碰</span>：OpenAI Deep Research、Google Gemini Deep Research 这些都缺席</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p>扩展到非搜索领域（数学推理、代码生成、创意写作）</p>
+</li>
+<li>
+<p>研究 MoE 架构对 RSI 的影响</p>
+</li>
+<li>
+<p>开发更精确的上下文更新策略（当前基于学习，无显式优化目标）</p>
+</li>
+<li>
+<p>探索与 parameter-based self-improvement 的结合（当前仅做 state-level improvement）</p>
+</li>
+<li>
+<p>研究上下文更新的理论最优（何时更新、保留什么、丢弃什么）</p>
+</li>
+<li>
+<p>开发更轻量的 teacher-free 训练方法</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>AREX 给出的答案不是搜更久，是<span class="mark-strong">用验证驱动的状态转换做递归自改进</span>：每轮结束盘点一遍哪些约束站住了、哪些还悬着，下一轮的问题从诊断里长出来。这和 test-time compute scaling 是一个方向的两种说法——与其在 training time 堆 computation，不如在 inference time 聪明地分配。全文最硬的数字是关键步骤聚焦那 -8.4 点：长程轨迹里真正决定成败的就那么几步，监督就该花在那儿。我拿不准的是这套验证驱动的循环出了搜索密集区还转不转——六个基准全是检索导向，数学和代码上还没有任何证据。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">发现-验证不对称是 deep research 的核心特征</span>：验证比发现便宜，AREX 靠这个差价驱动轮次间的状态转换。</p>
+</li>
+<li>
+<p><span class="mark-strong">双层递归架构（内循环研究 + 外循环自改进）+ 自主上下文更新</span>：临时答案转成部分验证状态，已确认进度存住、未解决问题圈出来，研究进展从此成体系。</p>
+</li>
+<li>
+<p><span class="mark-strong">关键步骤聚焦 + 步骤感知 RL</span>：长程轨迹里少数决策步骤定成败，对这些步骤加码监督，消融里是贡献最大的一块（-8.4 点）。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</div>
+      <div>https://yyhchen.github.io/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/26/paper-hilbert-operator-for-progressive-encoding-hope-a-mathematical-framework-for-deconstructing-learned-representations/" title="Paper精读｜Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/25/paper-measuring-reward-seeking-via-contrastive-belief-updates/" title="Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates">
+                        <span class="hidden-mobile">Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

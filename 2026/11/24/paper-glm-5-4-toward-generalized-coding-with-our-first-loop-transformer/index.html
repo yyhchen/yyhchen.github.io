@@ -1,0 +1,1197 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Z.ai 把 GLM-5 750B 基座中间的 28 层改造成跑两遍的 Loop Transformer（权重共享 + 每趟独立的 per-token 门控 + 跨趟稀疏 KV 复用），在参数量不变、训练算力只多约 10%的条件下加&quot;计算深度&quot;：30B 同参数对照上 AIME25 从 19.17 提到 30.42（+11.25），并宣称达到 2T-3T 参数模型的智能水平——后半句目前没有任何公开">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer">
+<meta property="og:url" content="https://yyhchen.github.io/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="Z.ai 把 GLM-5 750B 基座中间的 28 层改造成跑两遍的 Loop Transformer（权重共享 + 每趟独立的 per-token 门控 + 跨趟稀疏 KV 复用），在参数量不变、训练算力只多约 10%的条件下加&quot;计算深度&quot;：30B 同参数对照上 AIME25 从 19.17 提到 30.42（+11.25），并宣称达到 2T-3T 参数模型的智能水平——后半句目前没有任何公开">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_75fb04fddf43b440a5439844662602232cdd02065b5690299898b6a1fb10f8a8.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_ccaffb74aab9041405139bf900c9ba83d393456841be9132c85fe296b4333f29.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9e7a6d4551a297f9696eaaf54622f3e8807864d2dcd32aef483938ce0219f6e3.png">
+<meta property="article:published_time" content="2026-11-24T05:36:48.000Z">
+<meta property="article:modified_time" content="2026-11-24T05:36:48.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_75fb04fddf43b440a5439844662602232cdd02065b5690299898b6a1fb10f8a8.png">
+  
+  
+  
+  <title>Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-11-24 13:36" pubdate>
+          2026-11-24 13:36:48
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          57 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="模型架构与推理效率"
+        id="heading-2b414557444ce743ae890d15692b8e1e" role="tab" data-toggle="collapse" href="#collapse-2b414557444ce743ae890d15692b8e1e"
+        aria-expanded="true"
+      >
+        模型架构与推理效率
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2b414557444ce743ae890d15692b8e1e"
+           role="tabpanel" aria-labelledby="heading-2b414557444ce743ae890d15692b8e1e">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-mixture-of-loops-transformer/" title="Paper精读｜Mixture-of-Loops Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mixture-of-Loops Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/" title="Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/02/paper-normalized-low-rank-adaptation/" title="Paper精读｜Normalized Low-Rank Adaptation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Normalized Low-Rank Adaptation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/29/paper-prefix-sliding-for-efficient-test-time-scaling/" title="Paper精读｜Prefix Sliding for efficient test-time scaling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prefix Sliding for efficient test-time scaling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/21/paper-recirculation/" title="Paper精读｜Recirculation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recirculation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-mooncake-a-kvcache-centric-disaggregated-architecture-for-llm-serving/" title="Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-kimi-k3-open-frontier-intelligence/" title="Paper精读｜Kimi K3: Open Frontier Intelligence"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-minimax-sparse-attention/" title="Paper精读｜MiniMax Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MiniMax Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/" title="Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/" title="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF/" title="Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;architecture">模型架构与推理效率</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读glm-54-toward-generalized-coding-with-our-first-loop-transformer"><a class="markdownIt-Anchor" href="#paper精读glm-54-toward-generalized-coding-with-our-first-loop-transformer"></a> Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong><a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a> 把 GLM-5 750B 基座中间的 28 层改造成跑两遍的 Loop Transformer（权重共享 + 每趟独立的 per-token 门控 + 跨趟稀疏 KV 复用），在<span class="mark-number">参数量不变、训练算力只多约 10%</span>的条件下加&quot;计算深度&quot;：30B 同参数对照上 AIME25 从 19.17 提到 30.42（+11.25），并宣称达到 2T-3T 参数模型的智能水平——后半句目前没有任何公开评测表佐证，只能当作厂商声明。</strong></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://www.alphaxiv.org/abs/2611.glm-5">https://www.alphaxiv.org/abs/2611.glm-5</a></li>
+<li><strong>原始来源</strong>：<a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a> 官方博客 <a target="_blank" rel="noopener" href="https://z.ai/blog/glm-5.4">https://z.ai/blog/glm-5.4</a>；产品文档 <a target="_blank" rel="noopener" href="https://docs.z.ai/guides/llm/glm-5.4">https://docs.z.ai/guides/llm/glm-5.4</a></li>
+<li><strong>作者</strong>：<a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a>（模型发布公告，未署个人作者）</li>
+<li><strong>机构</strong>：<a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a></li>
+<li><strong>日期</strong>：2026-11-23</li>
+<li><strong>阅读范围</strong>：公告全文（alphaXiv Markdown 版与 <a target="_blank" rel="noopener" href="http://z.ai">z.ai</a> 博客原文逐段对照，内容一致）+ 官方架构图与 30B 消融表 OCR 读取。<strong>本文是发布公告而非同行评审论文：无技术报告、无附录、无 750B 完整 benchmark 对照表</strong>——旗舰级声明目前只有叙述、没有公开评测数据，证据缺口在 4️⃣ 节逐条指出。</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>这一节先回答：<a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a> 为什么愿意把旗舰模型押在一个 2018 年就提出、但从未在 750B 量级成功过的老架构上。</p>
+<p>公告的直接动机来自他们在 GLM-5.3 技术博客里给出的论断：<strong>记忆密集型任务（memory-intensive tasks）吃参数，推理密集型任务（reasoning-intensive tasks）吃有效算力（effective compute）</strong>。大型软件工程、网络安全、3D 建模、物理控制都属于超长因果链任务——模型要沿着多步因果链走下去，同时维持全局逻辑一致性。公告原话：“堆参数和背数据解决不了这个问题”（Stacking parameters and memorizing data cannot solve this）。</p>
+<p>用一个贯穿全文的例子把&quot;失败机制&quot;说具体：想象模型正在生成一段 1M 上下文的 CAD 建模代码，遇到一个难 token——它必须引用 30 万 token 之前定义过的一条几何约束才能正确落笔。在标准的单遍前向里，这个 token 只有<strong>一次</strong>被深度加工的机会：78 层走完就出结果了。要么靠参数把这类关联&quot;背&quot;下来（那就要 2T-3T 级参数量去背所有可能的长程组合），要么在输出层显式&quot;绕弯&quot;——生成长思维链，在 token 层面兜圈子来补偿层内深度的不足。前者贵在参数和显存，后者贵在输出延迟。这个例子后面会在 3️⃣ 的端到端流程和 4️⃣ 的输出长度分析里反复回来。</p>
+<p>既然出路是&quot;深度&quot;，为什么不能直接把网络加深？因为加深 = 加参数 = 显存和部署成本同步膨胀。**Loop Transformer（循环 Transformer）**给出的第三条路是：让同一组权重层跑多遍，深度换来了，参数不涨。这个想法并不新——2018 年的 Universal Transformer 就提出了权重共享深度，近年的 recurrent depth / looped LM 工作也在小规模上验证过收益。但公告诚实承认了这条路线的死穴：<span class="mark-strong">从零开始训练的 looped 模型，在同等预训练算力预算下始终落后于不做层共享的模型</span>。层共享省下的参数，又被表示能力的损失原样吃回去了。</p>
+<p><a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a> 的转向就在这一步：<strong>不从零训练，而是把一个已经预训练好的 GLM-5 基座，通过继续训练（continued training）改造成 Loop Transformer</strong>。基座已经学会&quot;一遍怎么把 token 加工好&quot;，继续训练只需要教它&quot;第二遍怎么利用第一遍的状态&quot;，所以训练开销相对小——这解释了为什么这套方法能在 ~10% 额外算力（30B 对照）下跑通，而 from-scratch 路线八年都没能走到旗舰量级。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">三条核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li><strong>Loop 的价值在&quot;改造已预训练基座&quot;，不在&quot;从头训练循环网络&quot;</strong>。Universal Transformer 一系失败在&quot;同算力下共享吃亏&quot;；GLM-5.4 绕开这个失败模式的方式是不跟预训练算力硬碰——基座的表示能力是现成的，继续训练只学&quot;第二遍怎么用第一遍&quot;。对应 3️⃣ 组件0，也解释了消融表里 Baseline 与 +Loop 之间只差 ~10% 训练算力。</li>
+<li><strong>第二趟不能粗暴覆写残差流，必须按 token、按趟数做门控渐近写入</strong>。直接覆写会让激活范数跨迭代爆炸，下游层收到超出训练分布尺度的表示，训练直接崩掉。<a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a> 的解法是 per-token 门控（damp gate）：第一趟小步保守写、第二趟大开写、难 token 第一趟写得更狠。对应 3️⃣ 组件1，是整套方法里最&quot;驯服失败模式&quot;的一环。</li>
+<li><strong>第二趟的显存与索引开销可以压到几乎免费</strong>。朴素实现下每趟循环各存一份全量 KV cache，显存随趟数线性翻倍，1M 上下文根本没法部署。GLM-5.4 用&quot;第一趟稀疏 KV 复用 + 第二趟独立滑窗 + 注意力索引跨趟复用&quot;三件套，把第二趟成本压到一个滑窗。对应 3️⃣ 组件2/3——三个组件干的是同一件事：让多趟循环在 750B、1M 上下文下部署得起。</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_75fb04fddf43b440a5439844662602232cdd02065b5690299898b6a1fb10f8a8.png" srcset="/img/loading.gif" lazyload alt="官方架构图" /></p>
+<p><em>图注：GLM-5.4 官方架构图（OCR 读取）。78 层基座切三段：L1-26 Prelude 段（26 层，单次）→ L27-54 循环段（28 层，共享权重跑两趟，Pass 1 / Pass 2 各带一个 Damp Gate）→ L55-78 段（24 层，单次）→ Final RMSNorm → LM Head。循环段标注 Two-Bank Sparse MLA（softmax over Sparse Prefix + Local Window）、KV Latent + Top-k（L27-54 段 k=2048）、第二趟复用第一趟 indexer 的 top-k 索引。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件0loop-拓扑78-层怎么切-两趟怎么排"><a class="markdownIt-Anchor" href="#组件0loop-拓扑78-层怎么切-两趟怎么排"></a> 组件0：Loop 拓扑——78 层怎么切、两趟怎么排</h3>
+<p><strong>是什么</strong>：GLM-5 基座共 78 层，GLM-5.4 把它切成 Prelude（L1-26，26 层）、循环段（L27-54，28 层）、后段（L55-78，24 层）三部分；循环段的 28 层权重共享地执行两遍（Loop Pass 1 → Loop Pass 2），前后段照旧单遍执行，最后过 RMSNorm 出 LM Head。</p>
+<p><strong>为什么需要</strong>：之所以选&quot;中间段&quot;做循环而不是整网循环，是因为首尾段承担的是输入嵌入加工和输出投影这类&quot;单次性&quot;职能，循环它们没有推理收益只有开销；而中段是长程关联形成的主要场所——回到那个 CAD 难 token 的例子，跨 30 万 token 的几何约束关联主要在中段 Attention 里建立，把深度加在这里收益最大。</p>
+<p><strong>怎么做</strong>：参数量不变（还是 78 层的权重），变的是前向计算量——等价深度从 78 层变成 26+28+28+24=106 层。按层前向 FLOPs 粗算（分析者推算，公告未给数字），循环段计算翻倍使全模型前向 FLOPs 增加约 <span class="mark-number">36%</span>；推理吞吐的账在 4️⃣「部署与吞吐」里单独算。</p>
+<p><strong>代价与反事实</strong>：第二趟不是白来的——它假设&quot;第一趟的中间状态值得精炼&quot;。拿掉第二趟，模型就退回 GLM-5 基线，消融表的 Baseline 列正是这个反事实：AIME25 立刻从 30.42 掉回 19.17。</p>
+<h3 id="组件1gated-progressive-updatesper-token-门控驯服激活爆炸"><a class="markdownIt-Anchor" href="#组件1gated-progressive-updatesper-token-门控驯服激活爆炸"></a> 组件1：Gated Progressive Updates——per-token 门控驯服激活爆炸</h3>
+<p><strong>是什么</strong>：<strong>门控渐近更新（Gated Progressive Updates）</strong>——每个循环趟为每个 token 维护一个独立的标量门（官方图标作 Damp Gate 1 / Damp Gate 2），循环层的候选更新按门的比例写回残差流（residual stream，即 Transformer 里各层输出的累加通道）。按公告文字描述形式化（分析者推导，公告未给公式）：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo>=</mo><msup><mi>h</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup><mo>+</mo><msubsup><mi>g</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>⊙</mo><mi mathvariant="normal">Δ</mi><msubsup><mi>h</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msubsup><mo separator="true">,</mo><mspace width="2em"/><msubsup><mi>g</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>∈</mo><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">h^{(k+1)} = h^{(k)} + g^{(k)}_t \odot \Delta h^{(k)}_t, \qquad g^{(k)}_t \in [0,1]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.938em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mbin mtight">+</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.0213299999999998em;vertical-align:-0.08333em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.290556em;vertical-align:-0.24575599999999997em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.454244em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⊙</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.290556em;vertical-align:-0.24575599999999997em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.454244em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999997em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.454244em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span></span></p>
+<blockquote>
+<p>人话：第二遍不是把答案直接盖在第一遍上面，而是&quot;按比例掺进去&quot;——掺多少由每个 token 自己的门说了算。</p>
+</blockquote>
+<p><strong>为什么需要</strong>：公告给出了明确的失败机制——把已有模型的中间层改造成多趟循环时，<strong>直接覆写隐藏状态会让激活范数（activation norms）跨迭代爆炸</strong>，下游层收到的是尺度和分布都超出预期的表示。这不是理论担忧而是工程实测：下游 L55-78 段的权重是在&quot;单遍分布&quot;上训练出来的，第二趟写入幅度一旦失控，等于把表示推出这些层的工作范围。反事实很直接：把门恒设为 1，就退回&quot;直接覆写&quot;，公告描述的爆炸随之出现。</p>
+<p><strong>怎么做</strong>：训练之后门自己长出了分工——<strong>第一遍小门保守写</strong>（写全局上下文，门值小，维持尺度稳定），<strong>第二遍开门写完整更新</strong>（复用第一遍的状态做精炼）。更进一步，门还会按 token 难度动态调步长：难 token 上第一遍写得更激进，让复杂预测更多享受迭代精炼。回到 CAD 例子：普通 token（右括号、缩进）第一遍几乎不写，而那个需要引用几何约束的难 token 会在第一遍就被大步写入、第二遍再做修正。</p>
+<p><strong>代价</strong>：每个 token 每趟多一个标量参数与一次逐元素乘法（开销可忽略）；真正的代价是新增了一个结构性假设——第二趟的收益依赖第一趟写出的状态质量，第一趟如果写坏，第二趟是在坏状态上精炼。公告没有讨论这个误差传播问题。</p>
+<h3 id="组件2hybrid-kv-cache两-bank-稀疏注意力让第二趟几乎不花显存"><a class="markdownIt-Anchor" href="#组件2hybrid-kv-cache两-bank-稀疏注意力让第二趟几乎不花显存"></a> 组件2：Hybrid KV Cache——两 bank 稀疏注意力让第二趟几乎不花显存</h3>
+<p><strong>是什么</strong>：<strong>混合 KV 缓存（Hybrid KV Cache）</strong>，官方图标注为 Two-Bank Sparse MLA（MLA，Multi-head Latent Attention，DeepSeek 系的潜空间注意力，KV 以压缩潜向量存储）。第二趟的注意力查询同时看两个&quot;bank&quot;：<strong>Sparse Prefix bank</strong>（直接复用第一趟 indexer 筛出的 top-k KV，架构图标注 L27-54 段 k=2048）与 <strong>Local Window bank</strong>（第二趟自己新产生的 KV，只保留一个滑动窗口）。两个 bank 在同一位置可以重叠——同一位置既留下第一趟的&quot;旧表示&quot;也有第二趟的&quot;新表示&quot;。形式化（分析者推导）：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false">(</mo><msub><mi>q</mi><mi>t</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow><mrow><mo fence="true">(</mo><mrow><mo fence="true">[</mo><mtext> </mtext><msub><mi>s</mi><mn>1</mn></msub><mo>⋅</mo><msub><mi>A</mi><mtext>sparse</mtext></msub><mo stretchy="false">(</mo><msub><mi>q</mi><mi>t</mi></msub><mo separator="true">,</mo><mtext> </mtext><msubsup><mi>K</mi><mtext>top-k</mtext><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">)</mo><mtext> </mtext><mo separator="true">;</mo><mtext>  </mtext><msub><mi>s</mi><mn>2</mn></msub><mo>⋅</mo><msub><mi>A</mi><mtext>local</mtext></msub><mo stretchy="false">(</mo><msub><mi>q</mi><mi>t</mi></msub><mo separator="true">,</mo><mtext> </mtext><msubsup><mi>K</mi><mtext>window</mtext><mrow><mo stretchy="false">(</mo><mn>2</mn><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">)</mo><mtext> </mtext><mo fence="true">]</mo></mrow><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathrm{Attn}(q_t) = \mathrm{softmax}\left(\left[\, s_1 \cdot A_{\text{sparse}}(q_t,\ K^{(1)}_{\text{top-k}})\ ;\ \ s_2 \cdot A_{\text{local}}(q_t,\ K^{(2)}_{\text{window}})\ \right]\right)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathrm">A</span><span class="mord mathrm">t</span><span class="mord mathrm">t</span><span class="mord mathrm">n</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.80002em;vertical-align:-0.65002em;"></span><span class="mord"><span class="mord mathrm">s</span><span class="mord mathrm">o</span><span class="mord mathrm" style="margin-right:0.07778em;">f</span><span class="mord mathrm">t</span><span class="mord mathrm">m</span><span class="mord mathrm">a</span><span class="mord mathrm">x</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">[</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">sparse</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace"> </span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.3986920000000005em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">top-k</span></span></span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4374159999999999em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace"> </span><span class="mpunct">;</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace"> </span><span class="mspace"> </span><span class="mord"><span class="mord mathdefault">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">local</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace"> </span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.3986920000000005em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">window</span></span></span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight">2</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3013079999999999em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace"> </span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">]</span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span></span></span></span></span></p>
+<blockquote>
+<p>人话：第二遍回顾历史时，只翻第一遍画过重点的那几页（2048 条），外加自己刚写下的草稿（滑窗）；整本笔记本从不重新抄一遍。</p>
+</blockquote>
+<p><strong>为什么需要</strong>：朴素实现是每趟各存一份全量 KV cache，显存随趟数线性相乘。1M token 上下文下，750B 模型的单份 KV 已经是天文数字，翻倍即不可部署。反事实：不引入复用，“多一遍循环&quot;在 1M 上下文上就不是优化项而是部署否决项——公告明说 1M 上下文部署成本增幅&quot;控制得很好”，靠的就是这一层。</p>
+<p><strong>怎么做</strong>：第一趟的稀疏注意力（DSA，DeepSeek-style Sparse Attention）先用 indexer 选出 top-k 上下文 KV；第二趟把这些直接拿来当 Prefix bank，自己的新 KV 落在 Local Window bank 里；注意力对两个 bank 的拼接做 softmax。</p>
+<p><strong>代价</strong>：这里有一个公告没有讨论的结构性信息瓶颈——<span class="mark-strong">第二趟的&quot;视野&quot;被限定在第一趟 indexer 选中的 top-k 加自己的滑窗之内</span>。如果第一趟的 indexer 为某个 token 漏选了关键上下文（例如 30 万 token 前的那条几何约束恰好没进 top-2048），第二趟没有任何机制能把它找回来。跨趟复用省下的显存，是用&quot;第二趟不能反悔第一趟的选择&quot;换的。</p>
+<h3 id="组件3sparse-attention-index-reuse索引复用零开销"><a class="markdownIt-Anchor" href="#组件3sparse-attention-index-reuse索引复用零开销"></a> 组件3：Sparse Attention Index Reuse——索引复用，零开销</h3>
+<p><strong>是什么</strong>：GLM-5 基座本身用稀疏注意力，每个循环趟原本要各自跑一遍 indexer（负责从全上下文中挑 top-k 的轻量网络）。GLM-5.4 让<strong>第二趟直接复用第一趟 indexer 生成的注意力索引</strong>，第二趟索引开销为零。</p>
+<p><strong>为什么需要</strong>：没有这步，indexer 的前向成本随趟数翻倍——而 indexer 正是稀疏注意力在长上下文下的主要计算负担之一。</p>
+<p><strong>怎么做与证据</strong>：公告称实验显示复用索引与每趟重算索引的表现&quot;几乎一致&quot;（performs nearly identically）。注意：这里没有给数字，属于<strong>未量化声明</strong>——到底差多少个百分点、在哪些 benchmark 上测的，均未报告。</p>
+<p><strong>代价</strong>：与组件2 的瓶颈同源且叠加：第一趟的索引选择同时决定了第二趟能看什么。两处复用（KV、索引）共享同一个单点假设——第一趟的选择对第二趟足够好。</p>
+<h3 id="组件之间怎么连端到端走一遍"><a class="markdownIt-Anchor" href="#组件之间怎么连端到端走一遍"></a> 组件之间怎么连：端到端走一遍</h3>
+<p>一个样本从进入到输出，依次经过：</p>
+<ol>
+<li><strong>Prelude（L1-26）</strong>：单遍，把 token 加工成带全局初步上下文的表示；</li>
+<li><strong>Loop Pass 1（L27-54，28 层）</strong>：第一遍循环。门控保守写入，建立全局上下文；indexer 选出 top-2048 稀疏索引；对应 KV 落入潜空间缓存；</li>
+<li><strong>Loop Pass 2（L27-54，同一组权重）</strong>：第二遍。开门写入精炼更新；注意力看 Sparse Prefix bank（第一趟的 top-k KV）+ Local Window bank（自己的滑窗新 KV）；索引直接复用第一趟的；</li>
+<li><strong>后段（L55-78）+ RMSNorm + LM Head</strong>：单遍，读出最终分布。</li>
+</ol>
+<p>那个 CAD 难 token 走完这条流水线：第一遍就被门控识别为难 token、大步写入几何约束关联的初步表示；第二遍在两 bank 注意力里同时对照第一趟的全局视野和自己的局部新状态，把落笔修正到位。对照消融表：正是这套机制让 AIME25 上 19.17 → 30.42——难 token 的&quot;被加工两次&quot;变成了分数。</p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读证据审计"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读证据审计"></a> 4️⃣ 实验部分怎么读（证据审计）</h2>
+<p>先说结论：<strong>整篇公告唯一的受控硬数据是 30B iso-parameter 消融表</strong>。旗舰级声明（可比 2T-3T）没有随附任何评测表。这一节把有的和没有的分开列清楚。</p>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<p>30B iso-parameter（同参数量）对照：模型为与 750B 基座<strong>完全同架构</strong>的 30B 模型；对照组（Baseline）与实验组（+Loop）参数量相同，总训练算力只差约 10%；两者都在 <strong>200K 长上下文 SFT 之后</strong>评测，<strong>thinking mode 开启</strong>。采样次数、随机种子、方差：<strong>未报告</strong>。</p>
+<h3 id="核心结果30b-iso-parameter-消融表"><a class="markdownIt-Anchor" href="#核心结果30b-iso-parameter-消融表"></a> 核心结果：30B iso-parameter 消融表</h3>
+<p><img src="/img/paper-reading/img_ccaffb74aab9041405139bf900c9ba83d393456841be9132c85fe296b4333f29.png" srcset="/img/loading.gif" lazyload alt="30B iso-parameter 消融表" /></p>
+<p><em>图注：官方 30B iso-parameter 消融表（公告原表，OCR 读取）。条件：同架构 30B、同参数量、总训练算力 +~10%、200K long-context SFT 后、thinking mode enabled。Baseline = 单遍（即 GLM-5 式前向），+Loop = 两遍循环。</em></p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>Baseline（单遍）</th>
+<th><strong>+Loop（两遍）</strong></th>
+<th>差值（绝对/相对*）</th>
+<th>平均输出长度变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AIME25</td>
+<td>19.17</td>
+<td><strong>30.42</strong></td>
+<td>+11.25 / +58.7%</td>
+<td>-635 tokens（相对值 OCR 未读全）</td>
+</tr>
+<tr>
+<td>GPQA-Diamond</td>
+<td>47.58</td>
+<td><strong>56.26</strong></td>
+<td>+8.68 / +18.2%</td>
+<td>-2,473 tokens（-11.7%）</td>
+</tr>
+<tr>
+<td>AA-LCR</td>
+<td>40.33</td>
+<td><strong>47.67</strong></td>
+<td>+7.34 / +18.2%</td>
+<td>-539 tokens（-9.7%）</td>
+</tr>
+<tr>
+<td>MMLU-Pro</td>
+<td>71.65</td>
+<td><strong>75.05</strong></td>
+<td>+3.40 / +4.7%</td>
+<td>-863 tokens（-14.9%）</td>
+</tr>
+<tr>
+<td>IFBench</td>
+<td>50.20</td>
+<td><strong>53.47</strong></td>
+<td>+3.27 / +6.5%</td>
+<td>-763 tokens（-13.0%）</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>相对提升为分析者按表中两列差值计算（公告表只给绝对差值列，OCR 读出 11.3 与 7.3 两处，与分析者计算的四舍五入一致）。AA-LCR 的全称与评测协议公告未说明。</em></p>
+<p>两个发现值得展开：</p>
+<p><strong><span class="mark-strong">增益排序与&quot;推理链长度&quot;一致</span></strong>。增益从大到小：AIME25（数学竞赛推理，+58.7% 相对）&gt; GPQA-Diamond（博士级科学推理，+18.2%）≈ AA-LCR（长上下文推理，+18.2%）&gt; IFBench（指令遵循，+6.5%）&gt; MMLU-Pro（通识知识，+4.7%）。这正好是公告&quot;长推理链收益最大&quot;主张的数据形态——<strong>越是需要多步因果链的任务，多跑一遍的边际收益越大</strong>；而 MMLU-Pro 这类主要考&quot;记没记住&quot;的通识任务，深度帮不上忙，增益最小。要诚实地说：这是<strong>相关性证据</strong>（增益排序与任务类型排序吻合），不构成机制归因——公告没有做&quot;关掉某一趟只留另一趟&quot;之类的中间消融。</p>
+<p><strong><span class="mark-strong">一部分推理从显式输出 token 移进了循环层内部</span></strong>。GPQA-Diamond、MMLU-Pro 等基准上平均输出长度降 10-14%，且主要降在思维链长度上。这回扣开头那个 CAD 难 token 的例子——旧路线是&quot;在 token 层面绕弯补偿层内深度&quot;，新路线把一部分弯子搬回了层内。<strong>这是本公告最有信息量的实证发现</strong>：&quot;加深度&quot;与&quot;省推理 token&quot;是同一枚硬币的两面，同参数下既更准又更便宜。</p>
+<h3 id="750b-声明与证据缺口"><a class="markdownIt-Anchor" href="#750b-声明与证据缺口"></a> 750B 声明与证据缺口</h3>
+<p>公告对 GLM-5.4 旗舰级的全部证据是叙述性的：先在 1B、4B、30B、750B 基座上渐进验证（公告称为 <strong>Scaling Correctness</strong> 验证，各量级数字未给），750B 上&quot;达到可比 2T-3T 参数模型的智能水平&quot;。缺口清单：<strong>没有任何 750B 对照表</strong>；&quot;可比 2T-3T&quot;没有指名对照模型、没有 benchmark、没有评测条件；没有第三方复测。按本笔记的证据标准，这条主张目前的状态是：<strong>作者陈述，本文未验证</strong>。</p>
+<h3 id="部署与吞吐"><a class="markdownIt-Anchor" href="#部署与吞吐"></a> 部署与吞吐</h3>
+<p>服务端吞吐：非高峰最高 <strong><span class="mark-number">200 tokens/s</span></strong>，高峰维持 <strong><span class="mark-number">70-80 tokens/s</span></strong>（未披露硬件、batch、并发配置）。之所以单独拎出来讲，是因为循环架构天然抬高每 token 前向 FLOPs（分析者按 106 层等价深度粗算约 +36%），吞吐能维持靠的是公告明说的&quot;模型-系统协同设计&quot;：KV 复用与索引复用省下的访存、加上系统层 kernel 融合砍掉循环放大的碎片化读写开销。1M 上下文下部署成本相对 GLM-5.3 的增幅&quot;控制得很好&quot;——同样无数字。这些数字属于&quot;厂商在自己的部署上测的&quot;，与外部基准不可比，但至少说明循环架构没有把在线服务推向不可用区。</p>
+<h3 id="应用演示generalized-coding"><a class="markdownIt-Anchor" href="#应用演示generalized-coding"></a> 应用演示（Generalized Coding）</h3>
+<p>公告用四段演示视频展示&quot;编码能力外溢&quot;：自述式音乐视频《Hello World》、FreeCAD 里的六轴机械臂工程级建模、完整游戏（角色移动/物理/地图/战斗/美术资产）、纯数学几何 + 自定义 GLSL shader 的交互式 3D 观鸟体验。</p>
+<p><img src="/img/paper-reading/img_9e7a6d4551a297f9696eaaf54622f3e8807864d2dcd32aef483938ce0219f6e3.png" srcset="/img/loading.gif" lazyload alt="FreeCAD 六轴机械臂演示帧" /></p>
+<p><em>图注：官方演示视频&quot;Scaling Coding to Engineering&quot;的抽帧（分析者自源视频截取）：GLM-5.4 在 FreeCAD 中通过生成 CAD 脚本建模六轴机械臂。演示无评测协议，不能作为能力证据，只能作为能力展示。</em></p>
+<p>要给这些演示定位准确：<strong>没有评测协议、没有成功率、没有失败案例展示</strong>，属于 cherry-pick 风险最高的证据层级。“Generalized Coding”（代码成为解决更广任务的基础介质）作为路线宣言是清晰的，作为能力结论目前不可验证。另外，公告坦率披露了一个失效模式：模型会陷入过长的**“马拉松思考”（marathon thinking）循环**——但又称这种拖长的自省与自我修正&quot;确实持续带来超出参数量的准确率&quot;。这是作者自认的局限里唯一带正面解释的一条。</p>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<p>几乎全部未披露：循环段为何选 L27-54（而非其他层段）、门控的具体参数化、两 bank 注意力的归一方式、继续训练的数据配比与步数、750B 改造的实际算力开销（只有 30B 的 ~10% 口径）。复现所需的核心信息当前均不在公开域；且 API&quot;即将推出&quot;、权重&quot;计划在安全加固后开源&quot;——现阶段外部无法验证任何旗舰级声明。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li><strong>iso-parameter 对照是公告里最干净的一段证据</strong>：同架构、同参数量、训练算力只差 ~10%，比较的不是&quot;新模型 vs 别人家旧模型&quot;而是&quot;同一模型加不加第二趟&quot;——这种对照设计在模型发布公告里少见，让&quot;AIME25 +11.25 归因于循环深度&quot;的因果链基本站得住（残余混淆只剩那 10% 算力）。</li>
+<li><strong>Scaling Correctness 验证阶梯（1B→4B→30B→750B）是工程上负责任的路径</strong>：把未在旗舰量级验证过的架构逐级放大，而不是直接押注。</li>
+<li><strong>诚实披露 marathon-thinking 失效模式</strong>：厂商公告里主动写自家模型的坏习惯，并对它给出一个功能性解释，可信度加分。</li>
+<li><strong>&quot;隐式深度替代显式思考 token&quot;的发现</strong>（输出长度降 10-14%）为&quot;层内深度 vs 输出层推理&quot;的替代关系提供了旗舰量级的第一手数据点，对接下来的 test-time compute 研究有参考价值。</li>
+<li><strong>三个组件全部服务于&quot;部署可行性&quot;这一单一约束</strong>（门控保训练稳定、KV 复用保显存、索引复用保吞吐），工程目标一致而非特性堆砌。</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li><strong>旗舰级声明（可比 2T-3T）零证据</strong>：无对照模型名、无 benchmark 表、无评测条件。这条主张的可信度完全取决于对 <a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a> 的先验信任。</li>
+<li><strong>关键设计选择未说明理由</strong>：为什么循环段是中间 28 层（L27-54）？为什么恰好两趟？门控为什么按 token 而不是按层？没有消融支撑任何一个选择。</li>
+<li><strong>跨趟复用的单点假设未做敏感性分析</strong>：&quot;复用索引与重算几乎一致&quot;无数字；第一趟 indexer 误选关键上下文时第二趟无法补救（组件2 的结构性瓶颈），公告未讨论该风险。</li>
+<li><strong>发布者即作者</strong>：无同行评审、无第三方评测；30B 消融虽干净，也是自家测自家。权重未开源、API 未开放，当前外部可复现性为零。</li>
+<li><strong>Generalized Coding 演示无协议</strong>：四段视频证据层级最低，不能支撑&quot;通用编码&quot;能力主张。</li>
+<li>30B 消融的采样次数与方差未报告——AIME25 这种小样本基准上，19.17 与 30.42 的差值受采样波动影响的空间不小（分析者疑问，非指控）。</li>
+</ol>
+</div></div><h3 id="与已有工作的对话"><a class="markdownIt-Anchor" href="#与已有工作的对话"></a> 与已有工作的对话</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th>关联工作</th>
+<th>它到哪一步</th>
+<th>GLM-5.4 推进到哪</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Universal Transformer（Dehghani et al., 2018）</td>
+<td>提出权重共享深度，从头训练，小规模</td>
+<td>绕开 from-scratch 陷阱：预训练基座 + 继续训练，首次做到 750B 旗舰量级</td>
+</tr>
+<tr>
+<td>Recurrent Depth / Looped LM（近年小规模工作）</td>
+<td>小模型上验证循环深度收益</td>
+<td>同参数、+10% 算力的受控对照（30B），并给出部署级方案（门控/KV/索引）</td>
+</tr>
+<tr>
+<td>DeepSeek Sparse Attention（DSA 一系）</td>
+<td>indexer + top-k 稀疏注意力</td>
+<td>把稀疏索引跨趟复用，让第二趟索引零开销——稀疏结构成了循环的&quot;免费午餐&quot;</td>
+</tr>
+<tr>
+<td>GLM-5.3 技术博客（<a target="_blank" rel="noopener" href="http://Z.ai">Z.ai</a>）</td>
+<td>&quot;memory 吃参数、reasoning 吃算力&quot;论断</td>
+<td>用 Loop 架构把该论断兑现成产品；GLM-5.4 是论断的架构答案</td>
+</tr>
+<tr>
+<td>SWE-Bench ProMax（本库已精读）</td>
+<td>GLM-5 作为开源基线：22.9%/36.5%（mini-swe-agent/OpenHands）</td>
+<td>GLM-5.4 主打&quot;Generalized Coding&quot;，同一战场的新一代选手；等 API 开放后可在同基准复测</td>
+</tr>
+<tr>
+<td>Tencent WorkBuddy Bench（本库已精读）</td>
+<td>GLM-5.2 在 Security 双榜夺冠，“开源≠落后”</td>
+<td>GLM-5.4 若开源，&quot;参数效率 × 安全加固&quot;将成为榜单新变量</td>
+</tr>
+<tr>
+<td>δ-mem / Mooncake（本库已精读，推理效率谱系）</td>
+<td>显存/缓存侧的效率创新</td>
+<td>GLM-5.4 的 Two-Bank KV 复用是同一约束（显存墙）下的架构侧答案</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ol>
+<li><strong>自适应趟数（作者自列的开放问题）</strong>：假设——固定两趟对所有 token 一致；改变——按 token 难度动态分配趟数（简单 token 一趟、难 token 三趟）；看——难 token 准确率与服务吞吐的 Pareto 前沿；推翻条件——若动态深度导致门控失效或吞吐崩塌，说明 damp gate 的两趟分工是过拟合到固定深度的产物。</li>
+<li><strong>趟数扩展的回报曲线</strong>：假设——两趟已接近收益饱和；改变——30B 同协议下跑 3/4 趟；看——AIME25 增益与输出长度的变化；若增益停滞而长度继续降，则隐式推理容量已饱和，&quot;深度换推理&quot;存在上限。</li>
+<li><strong>循环段位置的消融</strong>：假设——中段是长程关联形成的最优位置；改变——循环 Prelude 段或后段同层数对比；看——长上下文基准（AA-LCR 类）是否大幅回落；若不回落，&quot;中段最优&quot;只是巧合而非机制。</li>
+<li><strong>第一趟 indexer 的容错</strong>：假设——第一趟 top-k 选择对第二趟足够好；改变——在长上下文检索型任务上人工注入&quot;关键上下文未被首趟选中&quot;的案例；看——第二趟能否通过 Local Window 自纠；若不能，跨趟复用的显存节省要重新计价。</li>
+<li><strong>门控的可解释性</strong>：假设——门值是 token 难度的代理信号；检验——把门值分布与人工难度标注/困惑度做相关；若相关强，damp gate 可顺带当难度估计器，服务路由与早停。</li>
+</ol>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>GLM-5.4 的真正贡献不是&quot;又一个更强的模型&quot;，而是给&quot;参数之外的第二条智能轴&quot;补上了旗舰量级的工程可行性证据：同参数、只多 ~10% 训练算力，30B 上 AIME25 +58.7%（相对）、输出长度还降了一成多。它的三个架构组件（门控、两 bank KV、索引复用）没有一个在发明新理论，全部在解决&quot;老想法为什么一直落不了地&quot;的工程死穴——这个定位本身就值得做架构与推理效率方向的人细读。但也要把话说全：<span class="mark-strong">750B 旗舰声明的证据是零表零第三方</span>，&quot;可比 2T-3T&quot;在开放权重发布之前只能当营销话术听；marathon-thinking 的失效模式提示循环深度不是免费午餐。这份公告的可复现性当前为零，所有结论的最终检验要等 API 与开源兑现。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li><strong>Loop Transformer 首次旗舰化</strong>：GLM-5 750B 中段 28 层权重共享跑两遍，参数不变、训练算力 +~10%，30B 同参数对照 AIME25 19.17→30.42（+58.7% 相对），长推理链任务收益最大。</li>
+<li><strong>三个组件都是&quot;驯服部署成本&quot;</strong>：per-token 门控防激活爆炸、两 bank 稀疏 KV 让第二趟只花一个滑窗、索引复用让第二趟零索引开销——1M 上下文部署成本因此可控。</li>
+<li><strong>旗舰声明尚无证据</strong>：&quot;可比 2T-3T&quot;零表零第三方、marathon-thinking 失效模式自认、权重与 API 均未开放——架构方向可信（30B 对照干净），产品结论待验。</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/" class="category-chain-item">模型架构与推理效率</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</div>
+      <div>https://yyhchen.github.io/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年11月24日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/11/25/Paper%E7%B2%BE%E8%AF%BB-Verifiable-On-Policy-Distillation/" title="Paper精读｜Verifiable On-Policy Distillation">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Verifiable On-Policy Distillation</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists">
+                        <span class="hidden-mobile">Paper精读｜A Society of AI Scientists</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

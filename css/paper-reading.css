@@ -1,0 +1,567 @@
+/* Adapted from the vault's active paper-reading-beautify.css for Fluid. */
+
+#board:has(.paper-reading) { background: #fafbfc; }
+html[data-user-color-scheme="dark"] #board:has(.paper-reading) { background: #12151a; }
+
+.markdown-body .paper-reading {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: auto;
+  color: var(--pr-ink);
+  font: 400 16px/1.8 Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-wrap: break-word;
+}
+
+.markdown-body .paper-reading h1,
+.markdown-body .paper-reading h2,
+.markdown-body .paper-reading h3,
+.markdown-body .paper-reading h4 { line-height: 1.35; }
+
+.markdown-body .paper-reading a { color: var(--pr-accent); }
+.markdown-body .paper-reading blockquote { margin: 1em 0; }
+.markdown-body .paper-reading img { max-width: 100%; height: auto; background: transparent; }
+
+.markdown-body .paper-reading .paper-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0.9em 0;
+  padding: 2px 2px 4px;
+}
+
+.markdown-body .paper-reading .paper-table-scroll > table {
+  display: table;
+  width: auto;
+  min-width: min(100%, 26rem);
+  margin: 0;
+}
+
+.markdown-body .paper-reading tbody tr { border: 0; background: transparent; }
+.markdown-body .paper-reading pre,
+.markdown-body .paper-reading .katex-display { max-width: 100%; overflow-x: auto; }
+
+.markdown-body .paper-reading .callout {
+  --callout-color: #086ddd;
+  overflow: hidden;
+  mix-blend-mode: normal;
+}
+
+.markdown-body .paper-reading .callout:is([data-callout="abstract"], [data-callout="summary"], [data-callout="important"]) {
+  --callout-color: #00bfbc;
+}
+
+.markdown-body .paper-reading .callout[data-callout="cite"] { --callout-color: #9e9e9e; }
+
+.markdown-body .paper-reading .callout .callout-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.markdown-body .paper-reading .callout-title-icon { display: flex; flex: none; align-items: center; min-height: 1.5em; }
+.markdown-body .paper-reading .callout-title-icon svg { width: 18px; height: 18px; }
+.markdown-body .paper-reading .callout-title-inner { font-weight: inherit; color: inherit; }
+.markdown-body .paper-reading .callout-content > p:empty { display: none; }
+.markdown-body .paper-reading .callout-content > :last-child { margin-bottom: 0; }
+
+.markdown-body .paper-reading details.callout > summary { list-style: none; cursor: pointer; }
+.markdown-body .paper-reading details.callout > summary::-webkit-details-marker { display: none; }
+.markdown-body .paper-reading details.callout > summary:focus-visible { outline: 2px solid var(--pr-accent); outline-offset: 4px; }
+.markdown-body .paper-reading details.callout .callout-fold {
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+  margin: 0.52em 0 0 2px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  background: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+  transform: rotate(-45deg);
+}
+
+.markdown-body .paper-reading details.callout[open] .callout-fold { transform: rotate(45deg); }
+
+/* ============================================================
+   Paper Reading · 学术期刊风 v2
+   设计语言：衬线大标题 / 单一主色调 / 柔和层次 / 克制装饰
+   ============================================================ */
+.markdown-body .paper-reading {
+  /* 主色：沉稳的靛蓝，学术、不刺眼 */
+  --pr-accent: #4c6ef5;
+  --pr-accent-soft: rgba(76, 110, 245, 0.08);
+  --pr-ink: #1e2a3a;
+  --pr-muted: #6b7686;
+  --pr-card-bg: #ffffff;
+  --pr-page-bg: #fafbfc;
+}
+html[data-user-color-scheme="dark"] .markdown-body .paper-reading {
+  --pr-accent: #7b96ff;
+  --pr-accent-soft: rgba(123, 150, 255, 0.1);
+  --pr-ink: #dfe4ec;
+  --pr-muted: #8b95a5;
+  --pr-card-bg: #1b2029;
+  --pr-page-bg: #12151a;
+}
+
+/* ---------- 页面整体 ---------- */
+.markdown-body .paper-reading {
+  background: var(--pr-page-bg);
+  line-height: 1.8;
+}
+
+/* 正文宽一点，别太挤 */
+.markdown-body .paper-reading {
+  max-width: 46em;
+}
+
+/* ---------- H1：期刊封面式大标题（衬线） ---------- */
+.markdown-body .paper-reading h1 {
+  font-family: "Songti SC", "Source Han Serif SC", Georgia, serif;
+  font-size: 1.9em;
+  font-weight: 700;
+  color: var(--pr-ink);
+  text-align: left;
+  line-height: 1.35;
+  padding: 0.9em 0 0.6em;
+  border-bottom: none;
+  letter-spacing: 0.01em;
+}
+
+/* 标题下一条短而雅的主色细线，居左 */
+.markdown-body .paper-reading h1::after {
+  content: "";
+  display: block;
+  width: 3.2em;
+  height: 3px;
+  margin-top: 0.45em;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--pr-accent), transparent);
+}
+
+/* ---------- H2：章节横幅（卡片式） ---------- */
+.markdown-body .paper-reading h2 {
+  font-family: inherit;
+  font-size: 1.28em;
+  font-weight: 700;
+  color: var(--pr-ink);
+  background: linear-gradient(
+    to right,
+    var(--pr-accent-soft),
+    transparent 78%
+  );
+  border: none;
+  border-left: 3.5px solid var(--pr-accent);
+  border-radius: 6px;
+  padding: 0.5em 0.9em;
+  margin: 2.1em 0 1em;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- H3：细竖线，安静从属 ---------- */
+.markdown-body .paper-reading h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--pr-ink);
+  border-left: 2px solid color-mix(in srgb, var(--pr-accent) 45%, transparent);
+  padding-left: 0.65em;
+  margin-top: 1.5em;
+}
+.markdown-body .paper-reading h4 {
+  color: var(--pr-muted);
+  font-weight: 600;
+  font-size: 1em;
+}
+
+/* ---------- 正文 ---------- */
+.markdown-body .paper-reading p {
+  color: var(--pr-ink);
+  margin: 0.9em 0;
+}
+.markdown-body .paper-reading strong {
+  font-weight: 700;
+  color: var(--pr-ink);
+}
+
+/* ---------- Callout：悬浮卡片 ---------- */
+.markdown-body .paper-reading .callout {
+  border: none;
+  border-left: 4px solid var(--callout-color);
+  border-radius: 10px;
+  background: color-mix(
+    in srgb,
+    var(--callout-color) 7%,
+    var(--pr-card-bg)
+  );
+  box-shadow: 0 1px 3px rgba(20, 30, 50, 0.06), 0 4px 14px rgba(20, 30, 50, 0.04);
+  padding: 0.9em 1.15em;
+  margin: 1.3em 0;
+}
+.markdown-body .paper-reading .callout-title {
+  font-weight: 700;
+  font-size: 0.95em;
+  color: color-mix(in srgb, var(--callout-color) 70%, var(--pr-ink));
+}
+
+/* ---------- 分隔线：隐入背景 ---------- */
+.markdown-body .paper-reading hr {
+  border: none;
+  height: 1px;
+  margin: 2.4em auto;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--pr-muted) 35%, transparent),
+    transparent
+  );
+}
+
+/* ---------- 表格：出版级 ---------- */
+.markdown-body .paper-reading table {
+  font-size: 0.9em;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(20, 30, 50, 0.06);
+  background: var(--pr-card-bg);
+}
+.markdown-body .paper-reading thead th {
+  background: linear-gradient(to bottom, var(--pr-accent-soft), transparent);
+  border-bottom: 2px solid var(--pr-accent);
+  font-weight: 700;
+  color: var(--pr-ink);
+}
+.markdown-body .paper-reading td,
+.markdown-body .paper-reading th {
+  padding: 0.55em 1em;
+  border: none;
+}
+.markdown-body .paper-reading tbody td {
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--pr-muted) 15%, transparent);
+}
+.markdown-body .paper-reading tbody tr:last-child td {
+  border-bottom: none;
+}
+.markdown-body .paper-reading tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--pr-accent-soft) 55%, transparent);
+}
+
+/* ---------- 图片与图注 ---------- */
+.markdown-body .paper-reading img {
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(20, 30, 50, 0.07), 0 10px 28px rgba(20, 30, 50, 0.08);
+  margin: 0.6em 0;
+}
+.markdown-body .paper-reading img + em,
+.markdown-body .paper-reading p:has(> img:only-child) + p > em:only-child,
+.markdown-body .paper-reading p:has(> a:only-child > img:only-child) + p > em:only-child {
+  display: block;
+  text-align: center;
+  color: var(--pr-muted);
+  font-size: 0.88em;
+  margin-top: -0.2em;
+}
+
+/* ---------- 引用块：优雅左线 ---------- */
+.markdown-body .paper-reading blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--pr-accent) 55%, transparent);
+  color: var(--pr-muted);
+  padding: 0.2em 1em;
+  font-style: normal;
+}
+
+/* ---------- 行内代码 ---------- */
+.markdown-body .paper-reading :not(pre) > code {
+  background: var(--pr-accent-soft);
+  color: var(--pr-accent);
+  border-radius: 5px;
+  padding: 0.12em 0.45em;
+  font-weight: 500;
+}
+
+/* ---------- 高亮 ==xx==：无底色，仅主色细下划线 ---------- */
+.markdown-body .paper-reading mark {
+  background: transparent;
+  color: inherit;
+  font-weight: inherit;
+  border-bottom: 2px solid
+    color-mix(in srgb, var(--pr-accent) 75%, transparent);
+  padding-bottom: 0.1em;
+  margin: 0 0.05em;
+  box-decoration-break: clone;
+  border-radius: 0;
+}
+
+/* 高亮内的粗体保持不变，避免双重强调 */
+.markdown-body .paper-reading mark strong {
+  font-weight: 700;
+}
+
+/* ============================================================
+   Editorial Semantic Layer · 克制的资讯杂志式语义排版
+   三种行内标注 + 两种语气块 + 编辑部小标题 + 话题分隔线
+   ============================================================ */
+.markdown-body .paper-reading {
+  --ed-accent: #fb7299;      /* key_number 系：强调线 100% */
+  --ed-number-bg: #ffe7ef;   /* 数字底块 ~10% 透明度等效 */
+  --ed-number-ink: #bd3567;  /* 数字文字：降明度 */
+  --ed-entity: #315f9f;      /* 实体：静谧蓝 */
+  --ed-quote: #6d83b5;       /* 引用块竖线：灰蓝 */
+  --ed-quote-bg: #f5f7fb;
+  --ed-quote-ink: #414b63;
+  --ed-warn: #e36a7e;        /* 警示块竖线：柔红 */
+  --ed-warn-bg: #fff4f5;
+  --ed-warn-ink: #70434b;
+  --ed-line: #eceef0;        /* 小标题细底线 */
+}
+html[data-user-color-scheme="dark"] .markdown-body .paper-reading {
+  --ed-number-bg: rgba(251, 114, 153, 0.18);
+  --ed-number-ink: #ffb0cc;
+  --ed-entity: #9fc6ff;
+  --ed-quote-bg: rgba(109, 131, 181, 0.14);
+  --ed-quote-ink: #d8dee9;
+  --ed-warn-bg: rgba(227, 106, 126, 0.13);
+  --ed-warn-ink: #f0d0d6;
+  --ed-line: #2a2f38;
+}
+
+/* ---------- H3 改为「编辑部小标题」：细底线收束 ---------- */
+.markdown-body .paper-reading h3 {
+  font-weight: 650;
+  border-left: none;
+  border-bottom: 1px solid var(--ed-line);
+  padding-left: 0;
+  padding-bottom: 8px;
+  margin: 2px 0 10px;
+}
+
+/* ---------- hr 改为「话题转折分隔线」：前 26px 强调色 + 淡灰细线 ---------- */
+.markdown-body .paper-reading hr {
+  border: none;
+  height: 1px;
+  margin: 2em 0 1.2em;
+  background: linear-gradient(90deg, var(--ed-accent) 0 26px, var(--ed-line) 26px 100%);
+}
+
+/* ---------- 行内标注 ①：key_number 粉底玫红荧光笔 ---------- */
+.markdown-body .paper-reading .mark-number {
+  margin: 0 1px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--ed-number-bg);
+  color: var(--ed-number-ink);
+  font-weight: 700;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ---------- 行内标注 ②：entity 无底色静谧蓝 ---------- */
+.markdown-body .paper-reading .mark-entity {
+  color: var(--ed-entity);
+  font-weight: 600;
+}
+
+/* ---------- 行内标注 ③：mark-strong 核心结论 ---------- */
+
+/* Obsidian 里纯加粗与非加粗对比度太低，改为底色块 + 字色：
+   浅玉绿底 + 深墨绿字，与粉底数字、蓝色实体三通道色相互斥 */
+.markdown-body .paper-reading .mark-strong {
+  margin: 0 1px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #e3f2e6;
+  color: #23603a;
+  font-weight: 700;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* 深色模式：低透明度玉绿底 + 提亮字色 */
+html[data-user-color-scheme="dark"] .markdown-body .paper-reading .mark-strong {
+  background: rgba(96, 176, 120, 0.16);
+  color: #bfe8c9;
+}
+
+/* ---------- 语气块：ed-quote（观点/引述）与 ed-warning（风险/局限）---------- */
+.markdown-body .paper-reading .callout[data-callout="ed-quote"],
+.markdown-body .paper-reading .callout[data-callout="ed-warning"] {
+  border: none;
+  border-left: 3px solid var(--callout-color);
+  border-radius: 10px;
+  padding: 13px 16px;
+  box-shadow: none;
+}
+.markdown-body .paper-reading .callout[data-callout="ed-quote"] {
+  --callout-color: var(--ed-quote);
+  background: var(--ed-quote-bg);
+  color: var(--ed-quote-ink);
+}
+.markdown-body .paper-reading .callout[data-callout="ed-warning"] {
+  --callout-color: var(--ed-warn);
+  background: var(--ed-warn-bg);
+  color: var(--ed-warn-ink);
+}
+
+/* 语气块内的标题安静化 */
+.markdown-body .paper-reading .callout[data-callout="ed-quote"] .callout-title,
+.markdown-body .paper-reading .callout[data-callout="ed-warning"] .callout-title {
+  font-weight: 650;
+  font-size: 0.92em;
+  color: inherit;
+  opacity: 0.85;
+}
+
+@media (max-width: 575px) {
+  .markdown-body .paper-reading { font-size: 15px; }
+  .markdown-body .paper-reading h2 { padding-inline: 0.65em; }
+  .markdown-body .paper-reading td,
+  .markdown-body .paper-reading th { padding-inline: 0.6em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown-body .paper-reading .callout-fold { transition: none; }
+}
+
+/* Paper index */
+.paper-index {
+  --index-ink: #1e2a3a;
+  --index-muted: #5f6b7c;
+  --index-accent: #3456d1;
+  --index-panel: #f3f5fb;
+  --index-line: #e4e8ef;
+  color: var(--index-ink);
+  display: grid;
+  grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: start;
+}
+
+html[data-user-color-scheme="dark"] .paper-index {
+  --index-ink: #dfe4ec;
+  --index-muted: #a8b2c2;
+  --index-accent: #a4b5ff;
+  --index-panel: #1e2635;
+  --index-line: #354053;
+}
+
+.paper-index a { color: inherit; }
+
+.paper-index a:hover { color: var(--index-accent); }
+
+.paper-index :focus-visible {
+  outline: 2px solid var(--index-accent);
+  outline-offset: 3px;
+}
+
+.paper-index,
+.paper-index-section { scroll-margin-top: 5rem; }
+
+.paper-index-nav {
+  position: sticky;
+  top: 5rem;
+  padding: 1rem;
+  background: var(--index-panel);
+  border: 1px solid var(--index-line);
+  border-radius: .75rem;
+}
+
+.paper-index-nav h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 .75rem;
+}
+
+.paper-index ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.paper-index-nav li + li { margin-top: .15rem; }
+
+.paper-index-nav a {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+  padding: .45rem .55rem;
+  border-radius: .35rem;
+  font-size: .9rem;
+}
+
+.paper-index-nav a:hover { background: var(--board-bg-color); }
+
+.paper-index-count,
+.paper-index-posts time {
+  color: var(--index-muted);
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.paper-index-section + .paper-index-section { margin-top: 2.5rem; }
+
+.paper-index-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+  padding: .65rem .85rem;
+  border-left: 3px solid var(--index-accent);
+  border-radius: .4rem;
+  background: var(--index-panel);
+}
+
+.paper-index-section:target .paper-index-heading { color: var(--index-accent); }
+
+.paper-index-heading h2 {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 700;
+  margin: 0;
+}
+
+.paper-index-heading .paper-index-count {
+  margin-left: .25rem;
+  font-weight: 400;
+}
+
+.paper-index-heading > a {
+  color: var(--index-accent);
+  font-size: .78rem;
+  flex: none;
+}
+
+.paper-index-posts a {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: .75rem;
+  align-items: baseline;
+  padding: .72rem .85rem;
+  line-height: 1.45;
+  border-bottom: 1px solid var(--index-line);
+  overflow-wrap: anywhere;
+}
+
+.paper-index-posts a:hover { background: var(--index-panel); }
+
+.paper-index-posts time span { display: block; }
+
+@media (max-width: 767px) {
+  .paper-index { grid-template-columns: minmax(0, 1fr); }
+  .paper-index-nav { position: static; }
+  .paper-index-nav ul {
+    display: flex;
+    align-items: start;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+  .paper-index-nav li + li { margin-top: 0; }
+  .paper-index-nav a {
+    background: var(--board-bg-color);
+    border: 1px solid var(--index-line);
+  }
+  .paper-index-posts a { grid-template-columns: 4.65rem minmax(0, 1fr); gap: .5rem; }
+}

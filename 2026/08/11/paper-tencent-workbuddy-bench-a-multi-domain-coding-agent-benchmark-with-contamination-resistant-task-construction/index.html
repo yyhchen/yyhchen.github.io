@@ -1,0 +1,1255 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="腾讯这套多领域编码智能体评测套件，最值得记的是抗污染的任务构建方式：四个工作域（Code &#x2F; Web &#x2F; Office &#x2F; Security）的每个任务都从真实 commit &#x2F; PR &#x2F; 业务场景反向工程而来，再改写成口语化、角色扮演、欠定义的自然语言请求——拿着任务 prompt 去搜底层的 issue&#x2F;PR&#x2F;commit 线程，什么都搜不到。全套开源（任务目录、环境镜像、评测 harness">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/11/paper-tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="腾讯这套多领域编码智能体评测套件，最值得记的是抗污染的任务构建方式：四个工作域（Code &#x2F; Web &#x2F; Office &#x2F; Security）的每个任务都从真实 commit &#x2F; PR &#x2F; 业务场景反向工程而来，再改写成口语化、角色扮演、欠定义的自然语言请求——拿着任务 prompt 去搜底层的 issue&#x2F;PR&#x2F;commit 线程，什么都搜不到。全套开源（任务目录、环境镜像、评测 harness">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_8a813b59ae509f6803cd45930256ae6e34146ed881545bc47b0e9ceb5bf490e5.webp">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_b78392995ffcefdbc4d42111d1995c98ca5da82abb28b8963db0da8d7a2864e8.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_58305ecb31ca2c3d2c4de152c8d1d1f759af07c318c21be281e50d55b7d477c4.webp">
+<meta property="article:published_time" content="2026-08-11T14:42:44.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_8a813b59ae509f6803cd45930256ae6e34146ed881545bc47b0e9ceb5bf490e5.webp">
+  
+  
+  
+  <title>Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-11 22:42" pubdate>
+          2026-08-11 22:42:44
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          32 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="评测与验证"
+        id="heading-8ba97f6ce629a655d313673047092d7b" role="tab" data-toggle="collapse" href="#collapse-8ba97f6ce629a655d313673047092d7b"
+        aria-expanded="true"
+      >
+        评测与验证
+        <span class="list-group-count">(8)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-8ba97f6ce629a655d313673047092d7b"
+           role="tabpanel" aria-labelledby="heading-8ba97f6ce629a655d313673047092d7b">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(8)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/28/paper-sensebench-a-benchmark-for-remote-sensing-low-level-visual-perception-and-description-in-large-vision-language-models/" title="Paper精读｜SenseBench: A Benchmark for Remote Sensing Low-Level Visual Perception and Description in Large Vision-Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SenseBench: A Benchmark for Remote Sensing Low-Level Visual Perception and Description in Large Vision-Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/26/paper-recursive-collective-intelligence-emergence-on-an-equal-budget-ladder-in-multi-agent-llm-systems/" title="Paper精读｜Recursive Collective Intelligence: Emergence on an Equal-Budget Ladder in Multi-Agent LLM Systems"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recursive Collective Intelligence: Emergence on an Equal-Budget Ladder in Multi-Agent LLM Systems</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/26/paper-robouniverse-10k-toward-the-scaling-era-of-agentic-robotics-via-real-to-sim-environments/" title="Paper精读｜RoboUniverse-10K: Toward the Scaling Era of Agentic Robotics via Real-to-Sim Environments"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜RoboUniverse-10K: Toward the Scaling Era of Agentic Robotics via Real-to-Sim Environments</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-seta-scaling-environments-for-terminal-agents/" title="Paper精读｜SETA: Scaling Environments for Terminal Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SETA: Scaling Environments for Terminal Agents</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/12/paper-swe-bench-promax-benchmarking-agents-on-large-scale-multilingual-code-refactoring/" title="Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction/" title="Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-llm-as-a-verifier-a-general-purpose-verification-framework/" title="Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/22/paper-current-world-models-lack-a-persistent-state-core/" title="Paper精读｜Current World Models Lack a Persistent State Core"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Current World Models Lack a Persistent State Core</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;evaluation">评测与验证</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction"><a class="markdownIt-Anchor" href="#paper精读tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction"></a> Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>腾讯这套<strong>多领域编码智能体评测套件</strong>，最值得记的是<strong>抗污染的任务构建方式</strong>：四个工作域（<strong>Code / Web / Office / Security</strong>）的每个任务都从<strong>真实 commit / PR / 业务场景反向工程</strong>而来，再改写成<strong>口语化、角色扮演、欠定义的自然语言请求</strong>——拿着任务 prompt 去搜底层的 issue/PR/commit 线程，<span class="mark-strong">什么都搜不到</span>。全套开源（任务目录、环境镜像、评测 harness、测试、参考答案），<strong>抗污染靠&quot;构建方式 + 数据集版本管理&quot;而非保密</strong>。统一任务目录格式 + 统一可复现协议，跑在两个 harness（CodeBuddy Code 和 Claude Code）上。四子集评分工具不同（隐藏测试 / 规则+LLM/VLM/agent 裁判 / 确定性评分程序），<strong>分数跨子集不可比，不报套件级平均</strong>（刻意设计）。跨模型排行榜显示：<span class="mark-strong">无单一模型通吃</span>，<strong>GLM-5.2 开源模型在 Security 双榜夺冠</strong>。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Tencent WorkBuddy Bench — A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</li>
+<li><strong>arXiv</strong>：2607.20911</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2607.20911">https://arxiv.org/abs/2607.20911</a></li>
+<li><strong>作者</strong>：Tencent WorkBuddy Bench Team（Youtu Lab / Keen Security Lab / Workbuddy / Yunding Security Lab，30+ 人）</li>
+<li><strong>机构</strong>：腾讯</li>
+<li><strong>日期</strong>：2026-07-23</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>现有编码智能体基准有两类，各有缺陷：</p>
+<ol>
+<li><strong>静态公开套件（SWE-bench / SWE-bench Verified）</strong>：</li>
+</ol>
+<ul>
+<li>
+<p>任务集在发布时固定，问题陈述和答案<strong>在网络上公开流通</strong>——分数上升可能是<strong>记住了特定 issue 线程/PR</strong>，而非真正的仓库级推理</p>
+</li>
+<li>
+<p>范围窄——绝大多数是<strong>单一 issue 的 bug 修复</strong></p>
+</li>
+<li>
+<p>前端生成/web agent 基准同样可被爬取（公开仓库、截图、网站）</p>
+</li>
+</ul>
+<ol start="2">
+<li><strong>厂商生产基准（CursorBench）</strong>：</li>
+</ol>
+<ul>
+<li>任务来自真实生产会话，任务分布贴近真实使用——但<strong>基准本身封闭</strong>：外部无法检查任务分布、排除&quot;偏向自家 agent 的选择偏差&quot;、确认任务组合能泛化到该厂商用户群之外</li>
+</ul>
+<p><strong>核心需求</strong>：评估&quot;要在真实组织内部运作的 agent&quot;需要一个套件——① 任务分布由真实工作驱动；② 抗&quot;最关键的污染路径（web 可搜索的 prompt）&quot;——<strong>靠构建方式而非发布时的新颖性</strong>；③ 足够开放，外部方可重跑每个任务并直接审计内容。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>&quot;反向工程 + 改写&quot;是抗污染的构建哲学</strong>：不从公开 issue 文本改编任务，而是从真实 commit/PR/业务场景<strong>反推</strong>出任务，再改写成口语化、角色扮演的请求——<strong><span class="mark-strong">prompt 与源头之间没有可搜索的文本痕迹</span></strong>。这是对 SWE-bench 类&quot;任务文本 = 公开 issue&quot;的根本性规避。</p>
+</li>
+<li>
+<p><strong>开放 + 版本管理取代保密</strong>：数据集完全开放（任务目录/环境镜像/评测 harness/测试/参考答案）——抗污染靠&quot;构建方式让 prompt 不可 web 搜索&quot;+“数据集版本化”（后续任务随版本更新），而非藏起来。<strong><span class="mark-strong">可审计性成为设计目标</span></strong>：第三方可重跑每个任务。</p>
+</li>
+<li>
+<p><strong>任务分布由&quot;使用分类法&quot;驱动，而非任务本身</strong>：各子集的任务类别/模式/角色/难度配比<strong>匹配真实请求的分布</strong>——但<strong>绝不使用真实用户 prompt/会话/数据</strong>（只参考聚合分布）。隐私与分布真实性兼得。</p>
+</li>
+<li>
+<p><strong>故意的欠定义（deliberate underspecification）</strong>：请求像同事/客户的口头委托——<strong>扣住根因、参考 diff、任何会送答案的框架</strong>，agent 必须自己定位工作区中相关的部分。与&quot;提供详细已诊断 issue 报告&quot;的基准形成对比。</p>
+</li>
+<li>
+<p><strong>评分工具因域而异 = 刻意设计</strong>：Code 隐藏测试、Web 规则+LLM/VLM/agent 裁判、Office 确定性规则+证据 LLM 裁判、Security 纯确定性 <a target="_blank" rel="noopener" href="http://scoring.py">scoring.py</a>（<strong>无任何 LLM 裁判</strong>）——**<span class="mark-strong">跨子集分数不可比、不报平均</span>**是诚实的设计决策，不是缺陷。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_8a813b59ae509f6803cd45930256ae6e34146ed881545bc47b0e9ceb5bf490e5.webp" srcset="/img/loading.gif" lazyload alt="Figure 1: WorkBuddy Bench 总览——真实 commit/PR/办公流程/安全案例反向工程为口语化角色扮演请求；四轨道共享开放任务目录格式；每任务在隔离沙箱中双 harness 评分" /></p>
+<p><em>Figure 1（套件总览）：左：真实 commit、PR、办公工作流与安全案例被反向工程为口语化、角色扮演的请求，任务分布匹配真实使用；中：Code/Web/Office/Security 四轨道共享一个开放任务目录格式；右：每个任务在隔离沙箱中、两个 agent harness 下评分。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1统一任务构建协议2"><a class="markdownIt-Anchor" href="#组件1统一任务构建协议2"></a> 组件1：统一任务构建协议（§2）</h3>
+<ul>
+<li>
+<p><strong>任务来源</strong>两类：① 真实上游工件——开源仓库的历史 commit/PR（Code）、真实历史 CVE（Security 白盒审计任务）；② 具体业务场景（Web、Office、Code/Security 的合成任务族）</p>
+</li>
+<li>
+<p><strong>哪些场景值得构建、以什么比例</strong>：由<strong>内部使用分类法</strong>决定——各子集的任务类别/模式/角色/难度配比匹配真实请求分布，<strong>从不匹配请求本身</strong>；无原始用户 prompt/会话/数据进入任何任务</p>
+</li>
+<li>
+<p><strong>改写协议</strong>：Code 的每个任务通过<strong>五种请求者人设</strong>发声（developer、algorithm engineer、product manager、QA、operations）；Security 给每个任务域分配专业角色；指令<strong>扣住根因、参考 diff、任何送答案的框架</strong></p>
+</li>
+<li>
+<p><strong>打包</strong>：每个任务自包含目录——<a target="_blank" rel="noopener" href="http://instruction.md">instruction.md</a>、task.toml 元数据、environment/ Docker 快照、tests/ 隐藏测试 + 诊断用 gold.patch</p>
+</li>
+</ul>
+<h3 id="组件2code-子集3180-任务"><a class="markdownIt-Anchor" href="#组件2code-子集3180-任务"></a> 组件2：Code 子集（§3.1，80 任务）</h3>
+<ul>
+<li>
+<p><strong>三个来源族</strong>：</p>
+<ul>
+<li>
+<p><strong>Family A（34）</strong>：真实 OSS 快照 + 真实人类修复（Django、Flask、pytest、Black、Pydantic、httpx、Celery 等 ~18 仓库）</p>
+</li>
+<li>
+<p><strong>Family B（24）</strong>：目标库公开 API 的 clean-room 重实现（含 4 个跨语言移植：JS/TS/Rust → Python）</p>
+</li>
+<li>
+<p><strong>Family C（22）</strong>：全合成工作区（algo 工作区 12 + pm 数据工作区 10）</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Oracle 门控准入</strong>：每个候选任务须通过 oracle 验证</p>
+</li>
+<li>
+<p><strong>18 个细粒度类别合并为 6 个使用域</strong>；bug 修复只占 80 任务中的 10 个——<strong>远超&quot;单一 issue bug 修复&quot;</strong>（SWE-bench 的窄范围对比）</p>
+</li>
+</ul>
+<h3 id="组件3web-子集3270-任务"><a class="markdownIt-Anchor" href="#组件3web-子集3270-任务"></a> 组件3：Web 子集（§3.2，70 任务）</h3>
+<ul>
+<li>
+<p><strong>artifact-not-chat 契约</strong>：agent 必须在声明的输出路径产出<strong>可运行工件</strong>（如 HTML 入口点）——写得再好但没有工件的答案<strong>直接失败</strong></p>
+</li>
+<li>
+<p><strong>7 类任务</strong>：页面交互（21）、数据可视化（15）占 36/70；其余覆盖视觉设计、前端项目分析、代码测试、页面实现、文档转换——传统前端生成基准很少覆盖的工作</p>
+</li>
+<li>
+<p><strong>6 种生命周期模式</strong>：From Scratch 等（Figure 2c）</p>
+</li>
+</ul>
+<h3 id="组件4office-子集3350-任务"><a class="markdownIt-Anchor" href="#组件4office-子集3350-任务"></a> 组件4：Office 子集（§3.3，50 任务）</h3>
+<ul>
+<li>
+<p>混合格式文件的本地工作区（电子表格、文档、PDF、JSON 导出、Markdown 笔记、文件树）；输出包括更新后的工作簿、报告、结构化记录、状态文件、交接材料</p>
+</li>
+<li>
+<p>必须保持跨文件信息一致、更新关联状态、保留审查证据、遵守任务特定执行约束</p>
+</li>
+<li>
+<p><strong>评估检查最终工作区</strong>——能抓住文本答案分数漏掉的失败（写了合理摘要却没更新它描述的工作簿；创建文件但依赖状态不一致）</p>
+</li>
+<li>
+<p>两条构建路线：任务规格+目标能力重建 / 抽象办公流程扩展</p>
+</li>
+</ul>
+<h3 id="组件5security-子集34"><a class="markdownIt-Anchor" href="#组件5security-子集34"></a> 组件5：Security 子集（§3.4）</h3>
+<ul>
+<li>
+<p>覆盖安全团队光谱：<strong>红队</strong>（发现+安全利用）、<strong>恶意软件分析</strong>、<strong>安全运营</strong>（告警流分流）、<strong>agent 安全评估</strong>（探测工具使用 agent）</p>
+</li>
+<li>
+<p>任务<strong>不预先给出缺陷位置或预期行为</strong>，agent 必须逐步挣得；每任务在沙箱化评估环境运行</p>
+</li>
+<li>
+<p><strong>全套件唯一不带任何 LLM 裁判的子集</strong>：每任务配确定性 <a target="_blank" rel="noopener" href="http://scoring.py">scoring.py</a>，直接把 agent 输出转为分数</p>
+</li>
+<li>
+<p>任务构建自真实历史漏洞（CVE，白盒审计）+ 作者场景</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_b78392995ffcefdbc4d42111d1995c98ca5da82abb28b8963db0da8d7a2864e8.png" srcset="/img/loading.gif" lazyload alt="Figure 2: Code 与 Web 任务构成——(a) 6 个 Code 使用域（bug 修复仅 10/80）(b) 7 类 Web 任务 (c) 6 种 Web 生命周期模式" /></p>
+<p><em>Figure 2（Code/Web 构成）：(a) 18 个细粒度类别合并为 6 个 Code 使用域——bug 修复只占 80 任务中的 10 个，远非 SWE-bench 式&quot;单一 issue 修复&quot;；(b) Web 任务 7 类——页面交互（21）与数据可视化（15）主导；© 6 种 Web 生命周期模式，From Scratch 占比最高。</em></p>
+<h3 id="组件6评测协议4与跨模型排行榜5table-6"><a class="markdownIt-Anchor" href="#组件6评测协议4与跨模型排行榜5table-6"></a> 组件6：评测协议（§4）与跨模型排行榜（§5，Table 6）</h3>
+<ul>
+<li>
+<p>每个分数 = think 模式下<strong>三次独立运行的平均</strong>；四子集都在 CodeBuddy Code（cbc）与 Claude Code（cc）双 harness 下评分</p>
+</li>
+<li>
+<p>无单一模型通吃八个榜单：</p>
+</li>
+</ul>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>Code cbc/cc</strong></th>
+<th><strong>Web cbc/cc</strong></th>
+<th><strong>Office cbc/cc</strong></th>
+<th><strong>Security cbc/cc</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Claude Opus 4.8</strong></td>
+<td>74.43 / 77.90‡</td>
+<td>68.14 / 69.86</td>
+<td>82.37 / 83.23</td>
+<td>64.37 / 65.87</td>
+</tr>
+<tr>
+<td>GPT-5.5</td>
+<td>72.90 / 76.63</td>
+<td>61.14 / 64.86</td>
+<td>81.96 / <strong>86.05</strong></td>
+<td>64.39 / 77.91</td>
+</tr>
+<tr>
+<td><strong>GLM-5.2</strong></td>
+<td>71.54 / 77.06</td>
+<td>67.43 / 60.71</td>
+<td>79.60 / 79.57</td>
+<td><strong>76.32 / 80.86</strong></td>
+</tr>
+<tr>
+<td>HY-3</td>
+<td>62.90 / 66.26</td>
+<td>67.71 / 66.43</td>
+<td>82.08 / 80.08</td>
+<td>64.50 / 65.59</td>
+</tr>
+<tr>
+<td>MiniMax-M3</td>
+<td>60.14 / 66.42</td>
+<td>58.00 / 52.57</td>
+<td>78.28 / 76.30</td>
+<td>74.14 / 59.30</td>
+</tr>
+<tr>
+<td>DeepSeek-V4-Pro</td>
+<td>58.92 / 64.59</td>
+<td>54.57 / 51.57</td>
+<td>79.11 / 78.71</td>
+<td>70.04 / 58.73</td>
+</tr>
+<tr>
+<td>DeepSeek-V4-Flash</td>
+<td>55.73 / 61.89</td>
+<td>47.29 / 50.29</td>
+<td>77.47 / 77.54</td>
+<td>67.11 / 53.90</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>
+<p><strong>排行榜领跑分布</strong>：Claude Opus 4.8 领 5 榜（Code 双榜、Web 双榜、Office-cbc）；GLM-5.2 领 2 榜（Security 双榜）；GPT-5.5 领 1 榜（Office-cc）</p>
+</li>
+<li>
+<p><strong>关键发现 1（开源 ≠ 全面落后）</strong>：开源模型 <span class="mark-entity">GLM-5.2</span> 在 <strong>Security 双榜直接夺冠</strong>——“开源与闭源前沿模型的差距是<strong>榜单依赖的</strong>而非均匀的”</p>
+</li>
+<li>
+<p><strong>关键发现 2（<span class="mark-strong">harness 不是中性仪器</span>）</strong>：Code 上模型排名随 harness 改变（GPT-5.5 在 cbc 领先 GLM-5.2，cc 下反转）；Web 在 cc 下 4/7 模型分数下降——<strong>harness 选择本身影响结论</strong></p>
+</li>
+<li>
+<p><strong>关键发现 3（Office 难度校准）</strong>：Figure 9——各难度层模型差距不同，harness 差异在低难度层更明显</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_58305ecb31ca2c3d2c4de152c8d1d1f759af07c318c21be281e50d55b7d477c4.webp" srcset="/img/loading.gif" lazyload alt="Figure 8: Security 子集总览——任务构建自真实历史漏洞与作者场景；覆盖 6 种红/蓝队任务类型；全部用确定性评分，无 LLM 裁判" /></p>
+<p><em>Figure 8（Security 子集）：任务构建自真实历史漏洞（CVE）与作者场景，形成可复现、自包含的案例；覆盖 6 种红/蓝队任务类型（白盒审计、渗透、恶意软件分析、告警分流、agent 探测等）；每任务配确定性 <a target="_blank" rel="noopener" href="http://scoring.py">scoring.py</a>——全套件唯一无 LLM 裁判的子集。</em></p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>抗污染构建方式是真正的贡献</strong>：不是&quot;发布时新颖、发布后被记忆&quot;，而是<strong>结构性规避</strong>——prompt 从真实工件反向工程 + 口语化改写，web 搜索找不到源头。配合开放发布 + 版本管理，这是对 SWE-bench 数据泄漏问题最系统的回应之一</p>
+</li>
+<li>
+<p><strong>&quot;分布驱动 + 零用户数据&quot;两头都占住了</strong>：任务分布匹配真实使用，构建过程却一条用户 prompt/数据都不碰——隐私合规和分布真实性谁都没牺牲，设计范式可以直接抄走</p>
+</li>
+<li>
+<p><strong>多域扩展了&quot;编码 agent&quot;的定义</strong>：Code（仓库工程）、Web（前端工件）、Office（办公工作流）、Security（红/蓝队）——四个真实工作域，且<strong>每个域都有专属验证风格</strong>（隐藏测试/多裁判/规则+LLM/纯确定性）</p>
+</li>
+<li>
+<p><strong>&quot;分数不可比、不报平均&quot;的诚实</strong>：不同评分工具下报套件级平均是伪科学——论文明确拒绝，这是评测方法论的正确态度</p>
+</li>
+<li>
+<p><strong>harness 敏感性的透明报告</strong>：双 harness 评分暴露&quot;换 harness 结论会变&quot;——对只报单 harness 的基准是降维打击</p>
+</li>
+<li>
+<p><strong>Security 子集无 LLM 裁判</strong>：纯确定性评分规避了&quot;用 LLM 评 LLM&quot;的信任问题，是安全域评测的正确选择</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>规模偏小</strong>：Code 80 / Web 70 / Office 50 / Security 数量更少——相比 SWE-bench（2,294）任务量级小一个数量级，统计显著性受限</p>
+</li>
+<li>
+<p><strong>Office/Web 的裁判仍有主观成分</strong>：LLM/VLM 裁判的 rubric 质量决定分数可信度；agent-judge 的使用引入额外的复杂度与成本</p>
+</li>
+<li>
+<p><strong>“欠定义请求”的双刃剑</strong>：口语化欠定义接近真实，但也引入<strong>评分方差</strong>——不同 agent 对同一请求的理解可能合法地不同，隐藏测试/裁判是否能公平对待“合法但不同的解法”？</p>
+</li>
+<li>
+<p><strong>排行榜的厂商色彩</strong>：CodeBuddy Code 是腾讯自家 harness——cbc 分数与 cc 的差异虽被透明呈现，但“自家 harness 上的自家基准”仍需第三方独立复现背书</p>
+</li>
+<li>
+<p><strong>跨域不可比是双刃剑</strong>：拒绝套件平均是诚实的，但也意味着<strong>无法回答“哪个模型综合最强”</strong>——用户只能看八块板</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>规模扩展</strong>：任务数提升到与 SWE-bench 同级，提升统计功效</p>
+</li>
+<li>
+<p><strong>任务版本化滚动</strong>：随真实 commit/PR 持续增加新任务，防&quot;旧任务被记忆&quot;</p>
+</li>
+<li>
+<p><strong>第三方独立复现</strong>：外部机构在非腾讯 harness 上复跑并报告——验证基准中立性</p>
+</li>
+<li>
+<p><strong>Security 域扩展</strong>：更多 CVE 类型、漏洞利用链、SOC 场景</p>
+</li>
+<li>
+<p><strong>与真实部署对比</strong>：基准分数与 WorkBuddy 产品内真实任务表现的关联度验证</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SWE-bench / SWE-bench Verified</strong></td>
+<td>直接对比对象</td>
+<td>任务文本 = 公开 issue（可记忆）；WorkBuddy 反向工程+改写（结构性抗污染）；且 WorkBuddy 远超&quot;单 issue bug 修复&quot;</td>
+</tr>
+<tr>
+<td><strong>CursorBench</strong></td>
+<td>另一极</td>
+<td>真实生产任务但封闭；WorkBuddy 全开放可审计——&quot;开放 vs 厂商封闭&quot;的对照</td>
+</tr>
+<tr>
+<td><strong>Terminal-Bench / OSWorld</strong></td>
+<td>已有 agent 基准</td>
+<td>单域；WorkBuddy 四域 + 每域专属验证风格</td>
+</tr>
+<tr>
+<td><strong>LongHorizon-Harness（2608.01964）</strong></td>
+<td>同为腾讯系 agent 工作</td>
+<td>LHH 是任务状态管理方法；WorkBuddy Bench 是评测——&quot;方法 + 评测&quot;配套</td>
+</tr>
+<tr>
+<td><strong>LLMRouter（2608.06867）</strong></td>
+<td>评测基础设施主题</td>
+<td>LLMRouter 统一路由评测；WorkBuddy 统一 agent 任务评测——&quot;评测方法论&quot;浪潮的两面</td>
+</tr>
+<tr>
+<td><strong>Leanstral（2608.leanstral）</strong></td>
+<td>开源模型能力</td>
+<td>Leanstral 开源模型证明自己；WorkBuddy 的 GLM-5.2 夺冠同样证明&quot;开源 ≠ 落后&quot;——榜单依赖而非均匀</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>Tencent WorkBuddy Bench 的核心贡献不在&quot;又大又强&quot;，而在<strong>评测方法论</strong>：① 用&quot;反向工程 + 口语化改写 + 开放发布 + 版本管理&quot;系统性解决基准污染问题（SWE-bench 时代的达摩克利斯之剑）；② 把编码 agent 评测从单一仓库 bug 修复扩展到<strong>四个真实工作域</strong>（仓库工程/前端工件/办公流程/红蓝队安全），每域配专属验证；③ 诚实面对&quot;跨域不可比&quot;与&quot;harness 非中性&quot;——不报平均、双 harness 透明呈现。实证发现同样有信息量：<strong>GLM-5.2 开源模型在 Security 双榜夺冠</strong>、“开源 vs 闭源差距是榜单依赖的”、harness 选择会翻转模型排名。对做 agent 评测或部署选型的人，这篇提供了抗污染基准设计的范本；它揭示的&quot;基准结论随评测装置漂移&quot;问题，也是整个 agent 评测领域要正视的。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>抗污染靠构建方式</strong>：任务从真实 commit/PR/业务场景反向工程 + 口语化改写——prompt 无法 web 搜索找回；开放发布 + 版本管理，可审计性内建。</p>
+</li>
+<li>
+<p><strong>四域四验证</strong>：Code 隐藏测试（80 任务，bug 修复仅 10）、Web artifact-not-chat 契约（70）、Office 检查最终工作区（50）、Security 纯确定性评分无 LLM 裁判——跨域分数不可比，不报平均。</p>
+</li>
+<li>
+<p><strong>开源 ≠ 全面落后</strong>：GLM-5.2 在 Security 双榜夺冠（76.32/80.86）；harness 不是中性仪器——换 harness 模型排名会反转。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AF%84%E6%B5%8B%E4%B8%8E%E9%AA%8C%E8%AF%81/" class="category-chain-item">评测与验证</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E8%AF%84%E6%B5%8B%E4%B8%8E%E9%AA%8C%E8%AF%81/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</div>
+      <div>https://yyhchen.github.io/2026/08/11/paper-tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月11日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/12/paper-stealing-reasoning-traces-from-proprietary-llm-apis/" title="Paper精读｜Stealing Reasoning Traces from Proprietary LLM APIs">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Stealing Reasoning Traces from Proprietary LLM APIs</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers">
+                        <span class="hidden-mobile">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,1504 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="EnvHarness：把 agent harness 的思想照搬到&quot;环境的另一侧&quot;——agent harness 用插件组件包装冻结的 LLM 变成 agent；EnvHarness 用插件组件包装冻结的静态环境变成可定制环境（Customized Env &#x3D; Static Env + EnvHarness）。核心是三类环境无关的组件：Stage（改初始状态）、Contract（重写交互：动作&#x2F;转">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="EnvHarness：把 agent harness 的思想照搬到&quot;环境的另一侧&quot;——agent harness 用插件组件包装冻结的 LLM 变成 agent；EnvHarness 用插件组件包装冻结的静态环境变成可定制环境（Customized Env &#x3D; Static Env + EnvHarness）。核心是三类环境无关的组件：Stage（改初始状态）、Contract（重写交互：动作&#x2F;转">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9570552ba06e1b124362204b15703b46c16e425d28fc2af3ca90343c39c78bf8.jpg">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_729ddc22a0b5ac0fe69f93543e27b94b2cc3c3490a6859c6179f46cd7ea584a4.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_2aa2ee4c16aaefd3933439403e4bb57f9d13f2bb50cc52f4c00c03916dab2b64.jpg">
+<meta property="article:published_time" content="2026-08-25T16:11:55.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_9570552ba06e1b124362204b15703b46c16e425d28fc2af3ca90343c39c78bf8.jpg">
+  
+  
+  
+  <title>Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-26 00:11" pubdate>
+          2026-08-26 00:11:55
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          34 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读envharness-awakening-static-worlds-for-agent-learning"><a class="markdownIt-Anchor" href="#paper精读envharness-awakening-static-worlds-for-agent-learning"></a> Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>EnvHarness</strong>：把 agent harness 的思想照搬到&quot;环境的另一侧&quot;——<strong>agent harness 用插件组件包装冻结的 LLM 变成 agent；EnvHarness 用插件组件包装冻结的静态环境变成可定制环境</strong>（Customized Env = Static Env + EnvHarness）。核心是三类环境无关的组件：<strong>Stage</strong>（改初始状态）、<strong>Contract</strong>（重写交互：动作/转换/观测）、<strong>Chain</strong>（拼接/扩展环境），全部在标准接口层操作，<strong><span class="mark-strong">不触碰底层模拟器、保留原始 verifier</span></strong>。配套 <strong>EnvRigger</strong> 把目标策略当黑盒：Observe → Diagnose → Write → Validate 四阶段循环，从执行轨迹诊断缺陷、合成组件、新鲜 rollout 验证。5 个基准 × 4 个领域（ALFWorld/WebArena/SWE-bench Verified/OfficeQA/SpreadsheetBench）：<strong><span class="mark-number">最高 +9.0 点（ALFWorld OOD）</span></strong>、SWE-bench +2.70 SR 且<strong>少用 9.8% 执行步</strong>；RL 训练信号也更优（ALFWorld In-Dist 81.4→87.9）。策略与环境的<strong>持续定向共同进化</strong>。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：EnvHarness: Awakening Static Worlds for Agent Learning</li>
+<li><strong>arXiv</strong>：2608.19880</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.19880">https://arxiv.org/abs/2608.19880</a></li>
+<li><strong>代码</strong>：<a target="_blank" rel="noopener" href="http://github.com/google-research/envharness">github.com/google-research/envharness</a> ｜ 网站：<a target="_blank" rel="noopener" href="http://www.envharness.com">www.envharness.com</a></li>
+<li><strong>作者</strong>：Chengsong Huang, Zifeng Wang, Rujun Han, Jun Yan, Yanfei Chen, Zoey CuiZhu, Ke Jiang, Peng Xia, Han Yu, Yufan Zhuang, Yifei Ming, Jiaqi Pan, Bhavana Dalvi Mishra, Jiaxin Huang, Burak Gokturk, Tomas Pfister, Chen-Yu Lee（Google Cloud AI Research 为主，UNC/WashU 参与）</li>
+<li><strong>日期</strong>：2026-08-20</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>LLM agent 的学习来源正从&quot;策展文本&quot;转向&quot;交互环境&quot;，可现有环境有三个老毛病：</p>
+<ol>
+<li>
+<p><span class="mark-strong">手工构建 + 静态</span>：环境是人工硬编码交互逻辑和 verifier——昂贵、固定</p>
+</li>
+<li>
+<p><span class="mark-strong">对 agent 的弱点&quot;失明&quot;</span>：静态环境不知道 agent 哪里弱——只让 agent 练习它已经会的行为</p>
+</li>
+<li>
+<p><span class="mark-strong">快速过时</span>：agent 进步后环境很快被&quot;甩在后面&quot;——无法持续提供挑战</p>
+</li>
+</ol>
+<p>现有环境生成方法（GenEnv/VeriEnv/SWE-smith 等）也想解决，但各有三个缺陷：</p>
+<ul>
+<li>
+<p><span class="mark-strong">领域特定管线</span>：每个领域要重新搭</p>
+</li>
+<li>
+<p><strong>依赖昂贵或不可靠的 verifier</strong></p>
+</li>
+<li>
+<p><span class="mark-strong">产出的环境仍然是静态的</span>——生成一次就固定了</p>
+</li>
+</ul>
+<p><span class="mark-strong">核心需求</span>：一个<span class="mark-strong">通用的、可编程的、保留原始验证逻辑的</span>环境定制层——不用从零重建环境，也能让环境跟着 agent 一起进化。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">Harness 思想可以镜像</span>：agent harness（Agent = Model + Harness）是&quot;不改权重、外部加层&quot;；EnvHarness（Customized Env = Static Env + EnvHarness）把同一哲学用到环境侧——<strong><span class="mark-strong">环境能力也可以通过外部层扩展，而不是重写核心</span></strong>。Table 1 的对偶是全文最漂亮的洞见。</p>
+</li>
+<li>
+<p><span class="mark-strong">接口级干预 = 安全</span>：只在标准环境接口（reset/step）层面动手，不碰底层模拟器——<span class="mark-strong">ground-truth 评估逻辑保留，原始 verifier 照常打分</span>。这是它跟&quot;环境生成&quot;分道扬镳的地方：生成会替换 verifier，定制不碰 verifier。</p>
+</li>
+<li>
+<p><span class="mark-strong">三类组件覆盖三种定制模式</span>：Stage（初始状态）、Contract（交互规则）、Chain（任务结构）——“三个基本模式，期待更多”。</p>
+</li>
+<li>
+<p><span class="mark-strong">组件策略无关、选择策略相关</span>：组件本身（w 变换）是环境变换、任何策略可用；但<span class="mark-strong">选择与参数化必须基于目标策略的观测行为</span>——黑盒观察轨迹即可，不需要内部权重。</p>
+</li>
+<li>
+<p><span class="mark-strong">静态环境可能有害</span>：从静态环境提取技能可能<strong>降低</strong>性能（SpreadsheetBench 低于无技能基线）或拉长轨迹（SWE-bench 步数变多）——因为静态环境只让 agent 练习已有行为。<strong><span class="mark-strong">定制环境是纠正性的</span></strong>：暴露弱点、提供针对性训练信号。</p>
+</li>
+<li>
+<p><span class="mark-strong">EnvRigger 诊断的双向性</span>：策略挣扎 → 简化/搭脚手架（scaffold missing steps）；策略完美 → <span class="mark-strong">环境太宽松，要加难</span>（inject harder scenarios）——环境的难度是自适应调节的。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1envharness-范式21"><a class="markdownIt-Anchor" href="#组件1envharness-范式21"></a> 组件1：EnvHarness 范式（§2.1）</h3>
+<p><span class="mark-strong">形式化</span>：环境 E = (S, A, O, T, R, s₀)。EnvHarness 组件 = 环境无关变换 w：E’ = w(E)，全部动作发生在接口层——定制初始状态 s₀’、过滤暴露空间（A’, O’）、更新转换机制 T’，<span class="mark-strong">所有干预外部化，原始 verifier 保留</span>。</p>
+<p><strong>与 agent harness 的对偶（Table 1）</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>Agent Harness</strong></th>
+<th><strong>EnvHarness</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基础系统：冻结 LLM</td>
+<td>静态环境</td>
+</tr>
+<tr>
+<td>解决：缺动作/记忆/循环</td>
+<td>硬编码交互逻辑</td>
+</tr>
+<tr>
+<td>Harness 层：能力（工具、记忆）</td>
+<td>定制（状态、规则、观测）</td>
+</tr>
+<tr>
+<td>统一输出：自主 agent</td>
+<td>定制环境</td>
+</tr>
+</tbody>
+</table></div>
+<p><img src="/img/paper-reading/img_9570552ba06e1b124362204b15703b46c16e425d28fc2af3ca90343c39c78bf8.jpg" srcset="/img/loading.gif" lazyload alt="Figure 2: EnvHarness 的核心类比——agent harness 用插件组件（技能/记忆/工具）包装冻结 LLM 而不改权重；EnvHarness 把同一原则应用到交互的另一侧：用插" /></p>
+<p><em>Figure 2（核心类比）：agent harness 通过外部插件层（技能、记忆、工具）把冻结 LLM 变成 agent；EnvHarness 把同一原则应用到交互的另一侧——通过插件组件定制冻结环境，底层环境完全不动。</em></p>
+<h3 id="组件2三类组件22figure-3"><a class="markdownIt-Anchor" href="#组件2三类组件22figure-3"></a> 组件2：三类组件（§2.2，Figure 3）</h3>
+<p>拿 ALFWorld 任务&quot;把干净的杯子放到桌上&quot;当例子最直观：</p>
+<ol>
+<li>
+<p><span class="mark-strong">Stage（改初始状态）</span>：w_stage,δ 在 reset() 后施加一串状态操作 δ=(a₁…a_k)，只改 s₀’。可加难（把杯子藏进抽屉，逼 agent 先搜索）或减难（预先清洗杯子，只留最后放置步骤）——<strong>定制起点</strong>。</p>
+</li>
+<li>
+<p><span class="mark-strong">Contract（重写交互）</span>：w_contract,r 三元组 (f_A, f_T, f_O) 分别改写动作空间/转换动力学/观测空间（默认恒等）。可加动作前置条件（没拿杯子就不能洗）、截断房间描述逼 agent 逐步构建空间表征、移除高级传送命令逼逐步移动——<strong>定制交互规则</strong>。</p>
+</li>
+<li>
+<p><span class="mark-strong">Chain（扩展环境）</span>：w_chain,ℓ 由额外环境 E_ext + 组合逻辑 g 构成，E’ = g(E, E_ext)。空间取并集、R’ 为复合奖励；g 可拼接/交错/按中间结果动态分支。例子：追加&quot;加热土豆放台面&quot;任务，两个环境都验证才成功——<span class="mark-strong">逼 agent 把目标扛过原会停止的点</span>（长时程）。</p>
+</li>
+</ol>
+<p><span class="mark-strong">组合性</span>：共享标准接口 → 自由堆叠（Stage+Contract+Chain）。</p>
+<p><img src="/img/paper-reading/img_729ddc22a0b5ac0fe69f93543e27b94b2cc3c3490a6859c6179f46cd7ea584a4.png" srcset="/img/loading.gif" lazyload alt="Figure 3: EnvHarness 组件包裹标准环境接口——基础环境（原生状态转换 + 原始 verifier）完全冻结；三个组件 Stage/Contract/Chain 通过覆写 reset/step 等方法修改状态初始化、转换动力学或观测处理" /></p>
+<p><em>Figure 3（组件架构）：左→右为基础环境 + 三个组件（Stage/Contract/Chain），高亮箭头与代码块显示每个包装器如何覆写接口方法（reset/step）来修改状态初始化、转换动力学或观测处理——基础环境与 verifier 完全冻结。</em></p>
+<h3 id="组件3envrigger-自动化3figure-4"><a class="markdownIt-Anchor" href="#组件3envrigger-自动化3figure-4"></a> 组件3：EnvRigger 自动化（§3，Figure 4）</h3>
+<p>任务-策略条件化映射：E’ = H(E, t; π) = (w_k ∘ … ∘ w₁)(E)——每个 w_i 针对 π 在任务 t 上的弱点设计。</p>
+<p><strong>四阶段循环</strong>（图 4 右侧）：</p>
+<ol>
+<li>
+<p><span class="mark-strong">Observe</span>：在基任务上跑 π 收集 rollout 批次——失败暴露弱点、成功界定能力边界</p>
+</li>
+<li>
+<p><span class="mark-strong">Diagnose</span>：分析根因（重复动作循环、长观测解析失败、误读工具约束），决定定制方向：挣扎 → 搭脚手架简化；完美 → 环境太宽松，<strong>注入更难场景</strong>。输出文本诊断</p>
+</li>
+<li>
+<p><span class="mark-strong">Write</span>：基于诊断合成一个或多个组件（单个缺陷可能需 Stage+Contract 组合），输出候选集</p>
+</li>
+<li>
+<p><span class="mark-strong">Validate</span>：包装候选组件实例化 E’，跑 π 的新鲜 rollout，按成功率/失败分布决定：接受 / 拒绝（不可解或不具挑战）/ 精炼（信号尺度差）——精炼则回 Write，循环直到接受或预算耗尽。<span class="mark-strong">所有接受的组件加入 EnvHarness</span></p>
+</li>
+</ol>
+<p>假设：基础环境在验证阶段支持确定性 reset（Stage 的初始状态变更可复现）。</p>
+<p><img src="/img/paper-reading/img_2aa2ee4c16aaefd3933439403e4bb57f9d13f2bb50cc52f4c00c03916dab2b64.jpg" srcset="/img/loading.gif" lazyload alt="Figure 4: EnvRigger 工作流——左侧执行循环：策略在当前环境（冻结基础环境 + 已接受组件包裹）跑 rollout；右侧 EnvRigger 循环：Observe（收集轨迹）→ Diagnose（根因诊断）→ Write（合成组件）→ Validate（新鲜 rollout 验证，失败则修订）" /></p>
+<p><em>Figure 4（EnvRigger 循环）：左侧执行循环运行策略产出轨迹，右侧 EnvRigger 以 Observe→Diagnose→Write→Validate 四阶段系统工作，Write+Validate 形成修订循环：生成候选组件 → 新鲜 rollout 评估 → 失败则修订。</em></p>
+<h3 id="组件4技能提取与实验设置4"><a class="markdownIt-Anchor" href="#组件4技能提取与实验设置4"></a> 组件4：技能提取与实验设置（§4）</h3>
+<ul>
+<li>
+<p><span class="mark-strong">学习范式</span>：技能提取（ReasoningBank 方式）为主 + RL 兼容性验证</p>
+</li>
+<li>
+<p><span class="mark-strong">5 基准 × 4 领域</span>：ALFWorld（文本具身）、WebArena（网页）、SWE-bench Verified（软件工程）、OfficeQA + SpreadsheetBench（办公自动化）</p>
+</li>
+<li>
+<p><span class="mark-strong">公平性关键设计</span>：EnvRigger 与策略 agent 用<strong>同一模型骨干</strong>（ALFWorld/WebArena 用 Gemini-3.1-Flash-Lite，其余 Gemini-3.5-Flash）——<span class="mark-strong">排除&quot;蒸馏更强外部模型&quot;的收益来源</span></p>
+</li>
+<li>
+<p><span class="mark-strong">基线</span>：No Skills / Original Envs / GenEnv / VeriEnv / SWE-smith（领域特定生成器），共享种子实例、环境数、提取管线、策略模型</p>
+</li>
+<li>
+<p><span class="mark-strong">Chain 组件排除在自动管线外</span>（EnvRigger 难观察拼接环境的内部状态），单独在 §5 分析</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="主结果table-23一致增益静态环境甚至有害"><a class="markdownIt-Anchor" href="#主结果table-23一致增益静态环境甚至有害"></a> 主结果（Table 2/3）——一致增益，静态环境甚至有害</h3>
+<p><strong>ALFWorld（Table 2）</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>技能来源</strong></th>
+<th><strong>In-Dist</strong></th>
+<th><strong>OOD</strong></th>
+<th><strong>Avg</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No Skills</td>
+<td>62.6</td>
+<td>60.7</td>
+<td>61.7</td>
+</tr>
+<tr>
+<td>Original Envs</td>
+<td>63.3</td>
+<td>61.4</td>
+<td>62.4</td>
+</tr>
+<tr>
+<td>GenEnv</td>
+<td>63.3</td>
+<td>61.9</td>
+<td>62.6</td>
+</tr>
+<tr>
+<td><strong>EnvHarness</strong></td>
+<td><strong>66.2</strong></td>
+<td><strong>70.4</strong></td>
+<td><strong>68.3</strong></td>
+</tr>
+<tr>
+<td>Improvement</td>
+<td>+2.9</td>
+<td><strong>+9.0</strong></td>
+<td>+5.9</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>WebArena（Table 2）</strong>：Avg 38.5 → 41.6（<span class="mark-number">+3.1</span>，Shopping <span class="mark-number">+6.2</span> 最佳），胜过 VeriEnv（39.6）</p>
+<p><strong>SWE-bench Verified / OfficeQA / SpreadsheetBench（Table 3）</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th>****</th>
+<th><strong>SWE SR↑</strong></th>
+<th><strong>SWE 步数↓</strong></th>
+<th><strong>Office EM↑</strong></th>
+<th><strong>Office F1↑</strong></th>
+<th><strong>Sheet Pass@1↑</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No Skills</td>
+<td>47.67</td>
+<td>53.58</td>
+<td>54.23</td>
+<td>55.77</td>
+<td>46.44</td>
+</tr>
+<tr>
+<td>Original Envs</td>
+<td>49.88</td>
+<td>55.01（变长！）</td>
+<td>54.40</td>
+<td>55.77</td>
+<td>45.88（变差！）</td>
+</tr>
+<tr>
+<td>SWE-smith</td>
+<td>50.12</td>
+<td>54.72</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td><strong>EnvHarness</strong></td>
+<td><strong>52.58</strong></td>
+<td><strong>49.61</strong></td>
+<td><strong>56.20</strong></td>
+<td><strong>57.73</strong></td>
+<td><strong>49.15</strong></td>
+</tr>
+<tr>
+<td>Improvement</td>
+<td>+2.70</td>
+<td>-5.40（<strong>9.8% 更少步数</strong>）</td>
+<td>+1.80</td>
+<td>+1.96</td>
+<td>+3.27</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>关键观察</strong>：</p>
+<ul>
+<li>
+<p>每个基准上 EnvHarness 都胜过原始环境，最高 +9.0（ALFWorld OOD）</p>
+</li>
+<li>
+<p><span class="mark-strong">静态环境技能可以有害</span>：SpreadsheetBench 上原始环境技能 &lt; 无技能基线；SWE-bench 上拉长轨迹——静态环境只练已有行为</p>
+</li>
+<li>
+<p>通用接口打败领域特定生成器（GenEnv/VeriEnv/SWE-smith），且覆盖了没有生成基线的办公自动化域</p>
+</li>
+</ul>
+<h3 id="rl-训练信号table-4不只是辅助数据"><a class="markdownIt-Anchor" href="#rl-训练信号table-4不只是辅助数据"></a> RL 训练信号（Table 4）——不只是辅助数据</h3>
+<p>Qwen3-8B-base + GRPO：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th>****</th>
+<th><strong>ALFWorld In-Dist</strong></th>
+<th><strong>OOD</strong></th>
+<th><strong>Avg</strong></th>
+<th><strong>WebShop Score</strong></th>
+<th><strong>SR</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Original Envs</td>
+<td>81.4</td>
+<td>89.6</td>
+<td>85.5</td>
+<td>75.6</td>
+<td>66.0</td>
+</tr>
+<tr>
+<td><strong>EnvHarness Envs</strong></td>
+<td><strong>87.9</strong></td>
+<td>88.8</td>
+<td><strong>88.4</strong></td>
+<td><strong>79.2</strong></td>
+<td><strong>67.4</strong></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>4/5 指标提升（仅 ALFWorld OOD 微降 0.8）——<strong><span class="mark-strong">重塑环境是独立有效的在线策略优化信号，不是辅助数据</span></strong></li>
+</ul>
+<h3 id="chain-长时程table-5效率翻倍级"><a class="markdownIt-Anchor" href="#chain-长时程table-5效率翻倍级"></a> Chain 长时程（Table 5）——效率翻倍级</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th>****</th>
+<th><strong>SR↑</strong></th>
+<th><strong>AS↓</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No Skills</td>
+<td>47.67</td>
+<td>53.58</td>
+</tr>
+<tr>
+<td>Original Envs</td>
+<td>49.88</td>
+<td>55.01</td>
+</tr>
+<tr>
+<td>EnvHarness (Stage/Contract only)</td>
+<td>52.58</td>
+<td>49.61</td>
+</tr>
+<tr>
+<td>EnvHarness (Chain only)</td>
+<td>49.63</td>
+<td><strong>41.96</strong>（-21.7%）</td>
+</tr>
+<tr>
+<td><strong>Combined (S/C + Chain)</strong></td>
+<td><strong>54.30</strong></td>
+<td>43.12</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>
+<p>Chain 单独就把平均步数从 53.58 压到 41.96（-21.7%）——拼接环境逼 agent 规划更高效的路径</p>
+</li>
+<li>
+<p>Stage/Contract + Chain 组合最优（SR 54.30）</p>
+</li>
+</ul>
+<h3 id="环境扩展性figure-5唯一持续改进"><a class="markdownIt-Anchor" href="#环境扩展性figure-5唯一持续改进"></a> 环境扩展性（Figure 5）——唯一持续改进</h3>
+<ul>
+<li>相同环境预算下，EnvHarness 环境随规模增加<strong>持续提升</strong>，而真实/生成环境<strong>平台化</strong>——EnvHarness 的定制环境有更高信息密度</li>
+</ul>
+<h3 id="跨模型迁移figure-6table-9弱模型收益更大"><a class="markdownIt-Anchor" href="#跨模型迁移figure-6table-9弱模型收益更大"></a> 跨模型迁移（Figure 6/Table 9）——弱模型收益更大</h3>
+<ul>
+<li>从最弱到最强策略模型，EnvHarness 技能均有提升；<span class="mark-strong">较弱模型从定制环境获益更多</span>（弱点暴露更充分）</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">对偶洞见是全文最亮的一笔</span>：“Agent = Model + Harness” 的镜像&quot;Customized Env = Static Env + EnvHarness&quot;——把 harness 工程浪潮（Lilian Weng 的 harness engineering 主题）从模型侧推到环境侧，<span class="mark-strong">一篇文章把 agent 学习的两个杠杆打通</span></p>
+</li>
+<li>
+<p><span class="mark-strong">接口级安全干预</span>：不碰底层逻辑、保留原始 verifier——与&quot;环境生成&quot;（换 verifier）划清界限，工程上可审计、可回退</p>
+</li>
+<li>
+<p><span class="mark-strong">黑盒诊断 + 白盒验证</span>：EnvRigger 不看内部权重（只观察轨迹）但用新鲜 rollout 严格验证——<span class="mark-strong">自动化的正确性有保障</span>，且 write-and-validate 循环天然防&quot;合成出不可解环境&quot;</p>
+</li>
+<li>
+<p><span class="mark-strong">公平性设计严谨</span>：EnvRigger 与策略同骨干（排除蒸馏强模型嫌疑）、同种子同管线同环境数对比——结论可信</p>
+</li>
+<li>
+<p><span class="mark-strong">静态环境有害的实证</span>：SpreadsheetBench 降级、SWE-bench 拉长轨迹——<span class="mark-strong">&quot;环境也要共同进化&quot;不是口号而是数据</span></p>
+</li>
+<li>
+<p><span class="mark-strong">三组件设计干净</span>：Stage/Contract/Chain 覆盖&quot;起点/规则/结构&quot;三个正交定制维度，且可自由组合</p>
+</li>
+<li>
+<p><strong>开源</strong>（<a target="_blank" rel="noopener" href="http://github.com/google-research/envharness%EF%BC%89+">github.com/google-research/envharness）+</a> 全领域通用（含无生成基线的办公域）</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：接口级定制是拿安全换约束——不碰底层逻辑，就注定看不到拼接环境的内部状态，Chain 被挡在自动管线外是诚实的取舍，不是疏忽。带着这个前提，几条该提的：</p>
+<ol>
+<li>
+<p><span class="mark-strong">Chain 未进自动管线</span>：EnvRigger 看不到拼接环境的内部状态，Chain 只能靠人工配对——自动化程度打了折扣</p>
+</li>
+<li>
+<p><span class="mark-strong">verifier 依赖</span>：整套方法假设原始环境有可靠 verifier、确定性 reset 可复现（Stage 验证的前提）——无 verifier 或随机环境的领域受限</p>
+</li>
+<li>
+<p><span class="mark-strong">技能提取范式的带宽</span>：主实验走&quot;环境→轨迹→技能&quot;的间接路径，EnvRigger 定制的环境质量被技能提取损失稀释——直接评估定制环境本身的学习信号（如 RL）只在两个基准做了</p>
+</li>
+<li>
+<p><span class="mark-strong">诊断质量依赖 LLM</span>：Diagnose/Write 阶段的缺陷识别与组件合成质量取决于骨干 LLM 能力（同骨干排除了蒸馏嫌疑，但也带来一个副作用——弱骨干时诊断可能不准）</p>
+</li>
+<li>
+<p><span class="mark-strong">成本未充分披露</span>：EnvRigger 的 Observe/Validate rollout 都在烧 token（附录 Table 11 有估计但正文没强调）——自动化是有代价的</p>
+</li>
+<li>
+<p><span class="mark-strong">目标指标适配</span>：Table 12 显示&quot;目标区间命中率&quot;定制是可行的（user-defined target constraints），但正文着墨少——定向定制能力没被充分展示</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><span class="mark-strong">Chain 自动化</span>：让 EnvRigger 能观测/模拟拼接环境的内部状态，把长时程定制纳入自动循环</p>
+</li>
+<li>
+<p><span class="mark-strong">无 verifier 环境</span>：弱监督/自监督验证（LLM-as-judge 做 verifier 的可靠性边界）</p>
+</li>
+<li>
+<p><span class="mark-strong">直接 RL 规模化</span>：更多基准上验证&quot;定制环境作为独立 RL 信号&quot;的规模法则</p>
+</li>
+<li>
+<p><span class="mark-strong">组件库扩展</span>：Stage/Contract/Chain 之外的新组件类型（奖励整形、课程调度、多 agent 环境）</p>
+</li>
+<li>
+<p><span class="mark-strong">与 harness 工程叠加</span>：Agent Harness（模型侧）+ EnvHarness（环境侧）双杠杆共同进化——<strong>Agent+Env 联合优化</strong>是自然的下一步</p>
+</li>
+<li>
+<p><span class="mark-strong">可解释性</span>：EnvRigger 的文本诊断 → 组件的映射审计，确认诊断-组件-技能链路的因果性</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Agent Harness（Anthropic/OpenAI/Lilian Weng harness engineering）</strong></td>
+<td>直接对偶</td>
+<td>Harness 包装冻结 LLM 加能力；EnvHarness 包装冻结环境加定制——<strong>同一哲学的镜像</strong>（Table 1 明示）</td>
+</tr>
+<tr>
+<td><strong>GenEnv / VeriEnv / SWE-smith（环境生成）</strong></td>
+<td>竞争基线</td>
+<td>生成 = 领域特定管线 + 换 verifier + 产出仍静态；EnvHarness = 通用接口 + 保留 verifier + 持续可定制</td>
+</tr>
+<tr>
+<td><strong>ReasoningBank（技能提取）</strong></td>
+<td>提取管线</td>
+<td>EnvHarness 用其从轨迹提取技能——上游定制环境喂给下游提取</td>
+</tr>
+<tr>
+<td><strong>SWE-bench Verified</strong></td>
+<td>评测基准</td>
+<td>EnvHarness 用它做软件工程域验证（SR +2.70、步数 -9.8%）</td>
+</tr>
+<tr>
+<td><strong>GRPO / RL 策略优化（Qwen3）</strong></td>
+<td>RL 兼容性验证</td>
+<td>定制环境作为在线 RL 训练信号（ALFWorld 81.4→87.9）</td>
+</tr>
+<tr>
+<td><strong>Task-CoEvolve（2608.20169，今日同榜）</strong></td>
+<td>harness 优化邻居</td>
+<td>Task-CoEvolve 优化 harness 代码本身（验证任务共同进化）；EnvHarness 定制环境（训练数据侧）——<strong>&quot;共同进化&quot;主题的两翼</strong></td>
+</tr>
+<tr>
+<td><strong>SWE-Bench ProMax（2608.09802）</strong></td>
+<td>评测方法论</td>
+<td>ProMax 提高基准难度（专家策展）；EnvHarness 让环境动态适配 agent——静态基准 vs 动态环境</td>
+</tr>
+<tr>
+<td><strong>Recirculation（2608.17981）</strong></td>
+<td>推理时增强</td>
+<td>Recirculation 增强模型推理；EnvHarness 增强环境侧——模型/环境两侧的外部增强各占一席</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>EnvHarness 的价值在于<span class="mark-strong">把 harness 工程浪潮从模型侧镜像到环境侧</span>：既然 agent 能力可以靠外部插件层扩展（不改权重），环境为什么不能？实现也利落——三类接口级组件（Stage/Contract/Chain）覆盖&quot;起点/规则/结构&quot;三个定制维度，原始 verifier 全程保留；EnvRigger 用&quot;观察-诊断-编写-验证&quot;的循环把合成自动化（黑盒策略、白盒验证）。实证给的答案很硬：<span class="mark-strong">定制环境提取的技能全面超过原始环境与领域特定生成器（最高 +9.0），静态环境技能甚至有害；定制环境是独立有效的 RL 信号（ALFWorld +6.5），且随规模持续改进（真实/生成环境平台化）</span>。它和今日同榜的 Task-CoEvolve 一起，把&quot;共同进化&quot;这个主题做实了：<span class="mark-strong">harness 优化代码、环境定制数据、agent 更新策略——三者开始形成闭环</span>。对做 agent 训练/评测的人，这是&quot;环境即代码&quot;范式的开篇之作。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">环境也有 harness</span>：Agent = Model + Harness 的镜像——Customized Env = Static Env + EnvHarness；插件组件包装冻结环境，原始 verifier 永不触碰。</p>
+</li>
+<li>
+<p><span class="mark-strong">三类组件 + 四阶段自动合成</span>：Stage（初始状态）/Contract（交互规则）/Chain（任务拼接）；EnvRigger 黑盒观察轨迹 → 诊断 → 合成 → 新鲜 rollout 验证，策略与环境持续定向共同进化。</p>
+</li>
+<li>
+<p><span class="mark-strong">静态环境有害、定制环境持续改进</span>：5 基准 × 4 域最高 +9.0（ALFWorld OOD）、SWE-bench 步数 -9.8%；静态环境技能让 SpreadsheetBench 降级、SWE-bench 拉长轨迹；RL 信号 ALFWorld 81.4→87.9，且环境规模越大收益越持续（真实/生成环境平台化）。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</div>
+      <div>https://yyhchen.github.io/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/21/paper-recirculation/" title="Paper精读｜Recirculation">
+                        <span class="hidden-mobile">Paper精读｜Recirculation</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

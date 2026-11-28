@@ -1,0 +1,1363 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="提出 Argus：一个持久、自进化的通用 agentic runtime，冲着长时程推理（性能工程、安全研究、科学探索、数学研究）去设计。四个模型角色（Manager &#x2F; Planner &#x2F; Engineer &#x2F; Reviewer）在持久化项目状态上执行有界任务（mission），核心机制是验证门控的持久化、转向与运行时自进化：稳定的用户意图（standing intent）与可被证据精化的操作目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="提出 Argus：一个持久、自进化的通用 agentic runtime，冲着长时程推理（性能工程、安全研究、科学探索、数学研究）去设计。四个模型角色（Manager &#x2F; Planner &#x2F; Engineer &#x2F; Reviewer）在持久化项目状态上执行有界任务（mission），核心机制是验证门控的持久化、转向与运行时自进化：稳定的用户意图（standing intent）与可被证据精化的操作目">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_00cc69ff4b5b99c7aaa16ed65902e49cf5f30987e0de863e92a26358d00df2df.webp">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_f8171c6eda1fa6e1bdad3b7071bee1140d950978d5d2ff8c6ff4fb1f64870700.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_a3da715493f6b2157956900d5271ec9554bbb71e532f9dec50678be4921f0da0.svg">
+<meta property="article:published_time" content="2026-08-10T06:34:54.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_00cc69ff4b5b99c7aaa16ed65902e49cf5f30987e0de863e92a26358d00df2df.webp">
+  
+  
+  
+  <title>Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-10 14:34" pubdate>
+          2026-08-10 14:34:54
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          36 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning"><a class="markdownIt-Anchor" href="#paper精读argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning"></a> Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>提出 <strong>Argus</strong>：一个<strong>持久、自进化的通用 agentic runtime</strong>，冲着长时程推理（性能工程、安全研究、科学探索、数学研究）去设计。四个模型角色（<strong>Manager / Planner / Engineer / Reviewer</strong>）在持久化项目状态上执行有界任务（mission），核心机制是**<span class="mark-strong">验证门控的持久化、转向与运行时自进化</span><strong>：稳定的用户意图（standing intent）与可被证据精化的操作目标/约束/验证标准分开；任何实质性变更必须</strong>证据支撑、角色门控、被记录**——“<span class="mark-strong">无限制转向 = 合理化失败</span>”，所以每个变更都要过评审。模型权重不动，自进化发生在<strong>持久运行时状态与控制策略</strong>上。战绩：SWE-Bench Pro <span class="mark-number">~78%</span>（vs Direct Copilot <span class="mark-number">59%</span>）、AARRI-Bench <span class="mark-number">76.8%</span>、SWE-Bench Waves 成熟后单任务省 <span class="mark-number">21%</span> token 与 <span class="mark-number">15%</span> 时间。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning — Verification-Guided Persistence, Pivoting, and Runtime Self-Evolution</li>
+<li><strong>arXiv</strong>：2608.05144</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.05144">https://arxiv.org/abs/2608.05144</a></li>
+<li><strong>作者</strong>：Boxiu Li, Zimo Wen, Yijia Fan 等 20+ 人（Co-first: 3 人；Corresponding: Xian Zhang (Microsoft), Zhijie Deng (SJTU)）</li>
+<li><strong>机构</strong>：Microsoft / 上海交通大学 / 复旦大学 / 南京大学 / 清华大学 / 香港大学 / 北京大学 / 港中深 / 东华大学</li>
+<li><strong>日期</strong>：2026-08-05（Technical Report, Aug 2026）</li>
+<li><strong>项目</strong>：<a target="_blank" rel="noopener" href="http://argusbot.cn">argusbot.cn</a> / <a target="_blank" rel="noopener" href="https://github.com/lbx154/Argus">github.com/lbx154/Argus</a></li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>长时程研究不是&quot;沿固定路线推得更远&quot;。现实中：</p>
+<ul>
+<li>
+<p><strong>稳定意图可以不变，但操作目标/约束/验证标准会变得更精确</strong>——数学战役很少终结于最初想证的定理；软件请求在候选实现暴露缺失前常常欠定义；系统验证中 spec 和实现可能都错</p>
+</li>
+<li>
+<p><strong>&quot;允许目标修订&quot;在外部与&quot;失败&quot;不可区分</strong>——系统放弃既定目标，可能是发现了目标被错误定义，也可能是失败后合理化。最终产物无法区分两者</p>
+</li>
+<li>
+<p>允许无约束的目标修订 = <strong>目标漂移</strong>（objective degrades toward whatever the executor can finish）</p>
+</li>
+</ul>
+<p>标准回应是<strong>移除选择</strong>（固定目标、优化执行）——ReAct、SWE-agent、OpenHands 都这么做。但论文认为这不够：长时程研究恰恰需要&quot;<strong>受约束的修订</strong>&quot;能力——既不能固定死（会困在错误路径上），也不能自由改（会漂移）。</p>
+<p>Argus 的答案：<strong>验证门控的转向（verified pivoting）</strong>——“stand intent 稳定，operational objective 可精化，但每次材料性变更都要证据 + 角色门控 + 记录”。区分&quot;发现的失败&quot;与&quot;合理化的失败&quot;靠的是：<strong>变更必须由任务原生验证器（task-native verifier）证据支撑，并经过独立 Reviewer 审查</strong>。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>&quot;受约束的转向&quot;是长时程推理的核心能力</strong>：不是&quot;固定目标硬推&quot;也不是&quot;自由漂移&quot;，而是<strong>证据驱动的目标精化</strong>——中间界、反例、重构都是正常产出且携带真实价值。Argus 把&quot;何时该坚持、何时该转向&quot;从模型直觉变成<strong>可审计的运行时机制</strong>。</p>
+</li>
+<li>
+<p><strong>三平面分离（控制/执行/记录）</strong>：control plane 管调度、execution plane 做有界任务、record plane 只记录&quot;发生了什么&quot;而不裁决&quot;是否科学完成&quot;——<strong><span class="mark-strong">记录与裁决分离</span></strong>，防止自我合理化污染记录。</p>
+</li>
+<li>
+<p><strong>验证门控 = 累积而非临时的进化</strong>：候选记忆、技能、流程、验证器、路由决策、被拒路线，只有在<strong>角色拥有的评审 + 任务原生验证器证据</strong>通过后才成为可复用资源——被拒分支也保留为&quot;已验证排除项&quot;（verified exclusions），后续 mission 可引用其失败证据避免重蹈覆辙。</p>
+</li>
+<li>
+<p><strong>自进化在运行时，不在权重</strong>：模型权重固定，进化发生在<strong>持久状态与控制策略</strong>——admitted mission 改变后续工作的起点、可用流程、验证义务、路由策略。这是&quot;固定模型 + 可变 harness&quot;路线的又一强证据（呼应 harness engineering 主题）。</p>
+</li>
+<li>
+<p><strong>转向需要&quot;角色门控&quot;</strong>：不是任何角色都能转向——Manager 承诺目标/生命周期/路线/阶段，Planner 分解任务，Engineer 执行（低风险有界工作可自审），<strong>独立 Reviewer 才裁决&quot;done/continue/blocked&quot;</strong>——利益分离从结构上防止自欺。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_00cc69ff4b5b99c7aaa16ed65902e49cf5f30987e0de863e92a26358d00df2df.webp" srcset="/img/loading.gif" lazyload alt="Figure 1: Argus runtime 与广度证据——Manager 管控任务/研究垂直/阶段转换，Planner/Engineer/Reviewer 在共享工作区（知识/事件日志/工件/积压/预算/守护进程/记忆持久化）上执行有界任务；周边卡片展示 7 个任务原生评估结果" /></p>
+<p><em>Figure 1（系统总览）：中心图显示 Manager 对任务、研究垂直方向与 Stage 转换的权威；Planner/Engineer/Reviewer 在共享工作区上操作，其知识、事件日志、工件、积压、预算、守护进程与记忆跨有界任务持久化。周围卡片报告 7 个任务原生评估结果（独立刻度，广度证据而非单一归一化榜单）。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1问题形式化dense-intelligence-tasks-与-campaign"><a class="markdownIt-Anchor" href="#组件1问题形式化dense-intelligence-tasks-与-campaign"></a> 组件1：问题形式化——Dense-Intelligence Tasks 与 Campaign</h3>
+<ul>
+<li>
+<p><strong>密集智能任务三条件</strong>：T1 发明性（答案不可检索，须搜索+反馈发现）、T2 长时程（单遍不够，需数小时/天的依赖迭代）、T3 可验证性（任务原生评估器能区分真实改进与有说服力的错误主张）——定义排除无评估器的开放头脑风暴与&quot;只需时间无新决策&quot;的固定流程</p>
+</li>
+<li>
+<p><strong>Campaign 建模</strong>：目标 o、初始工件 y₀、评估过程 f、资源预算 B；分为有界 mission τ_t = ((s, a, y, e, r))——<strong>连续性属于持久 campaign 状态而非无界模型会话</strong></p>
+</li>
+<li>
+<p><strong>契约模型 K_t = (ι, o_t, c_t, v_t)</strong>：standing intent / 当前目标 / 已知约束 / 验证标准——<strong>意图与操作层分离</strong>是&quot;受约束修订&quot;的形式基础</p>
+</li>
+</ul>
+<h3 id="组件2四角色分工table-1"><a class="markdownIt-Anchor" href="#组件2四角色分工table-1"></a> 组件2：四角色分工（Table 1）</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>角色</strong></th>
+<th><strong>主要职责</strong></th>
+<th><strong>权威输出</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Manager</strong></td>
+<td>承诺目标、生命周期、路线、campaign 阶段</td>
+<td>campaign 划分与 Stage 转换</td>
+</tr>
+<tr>
+<td><strong>Planner</strong></td>
+<td>把当前研究状态分解为有界任务与依赖</td>
+<td>任务规格、计划状态、阶段清单更新</td>
+</tr>
+<tr>
+<td><strong>Engineer</strong></td>
+<td>修改工件、调用工具、运行实验（一轮）</td>
+<td>执行结果、工件、测量、交接、review=skip/required 选择</td>
+</tr>
+<tr>
+<td><strong>Reviewer</strong></td>
+<td>按需独立检查工件与执行记录</td>
+<td>done/continue/blocked + 接地下一步 + 保留状态编辑</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>
+<p><strong>评审触发规则</strong>：允许低风险有界工作用 Engineer 自审；<strong>垂直政策、阶段关闭任务、或 Engineer 自己的请求必须独立 Reviewer</strong></p>
+</li>
+<li>
+<p>接口是结构化对象而非非类型化文本——所有权与恢复行为显式</p>
+</li>
+</ul>
+<h3 id="组件3reviewed-mission-loopalgorithm-1"><a class="markdownIt-Anchor" href="#组件3reviewed-mission-loopalgorithm-1"></a> 组件3：Reviewed Mission Loop（Algorithm 1）</h3>
+<figure class="highlight powershell"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs powershell">ManagerCommit(ι, K_t) → 持久 campaign 身份<br><span class="hljs-keyword">while</span> 预算 b 且 c 未完成:<br>    q ← Planner(积压, 状态, c, K_t)      <span class="hljs-comment"># 认领一个有界任务</span><br>    repeat:<br>        (y, e, d) ← Engineer(q, H_t)     <span class="hljs-comment"># 执行一轮</span><br>        <span class="hljs-built_in">r</span> ← SelfReview 或 Reviewer(q, y, e)  <span class="hljs-comment"># 按 d 与允许规则</span><br>        记录 (q, y, e, <span class="hljs-built_in">r</span>, r.source)<br>        <span class="hljs-keyword">if</span> <span class="hljs-built_in">r</span> = <span class="hljs-keyword">continue</span>: q ← r.next_action<br>    <span class="hljs-keyword">until</span> <span class="hljs-built_in">r</span> ∈ &#123;done, blocked, paused&#125;<br>    证据提取 → 结果准入 → 契约精化（如需用户授权）<br>    H_&#123;t+<span class="hljs-number">1</span>&#125; ← U(H_t, τ_t, E_t, K_&#123;t+<span class="hljs-number">1</span>&#125;)  <span class="hljs-comment"># 持久化结果/轨迹/状态</span><br></code></pre></td></tr></table></div></figure>
+<ul>
+<li><strong>材料性精化（material refinement）需用户授权</strong>：证据提议 K’_t 时，须获取 operator 权威 u_t 才更新契约——<strong>升级点（escalation points）由 operator 拥有</strong>，mission 在明确升级点之间自主执行</li>
+</ul>
+<h3 id="组件4运行时自进化7"><a class="markdownIt-Anchor" href="#组件4运行时自进化7"></a> 组件4：运行时自进化（§7）</h3>
+<ul>
+<li>
+<p>持久对象是 campaign 状态而非 provider 转录——接受的结果、失败路线、工具、技能、当前阻塞在会话/进程重启后仍可用</p>
+</li>
+<li>
+<p><strong>准入门控</strong>：每个候选绑定到工件、任务原生证据、授权提交；独立 Reviewer 是门控路径之一（非每次低风险更新都需要）</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">被拒分支 = 已验证排除项</span></strong>：后续 mission 避免重复该分支，且转向时可引用其失败证据</p>
+</li>
+<li>
+<p><strong>SWE-Bench Waves 证据</strong>：成熟 Wave 比启动 Wave 单任务省 21% 输入 token、15% 活跃时间——共享状态累积的纵向收益</p>
+</li>
+<li>
+<p><strong>从运行时学习到模型训练</strong>：轨迹可转化为监督示例/偏好对/RL transition（AgentInstruct/Agent-FLAN/Agent Lightning 机制）——Argus 提供结构化源流</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="七基准能力下限table-4同一-harness-跨域有效"><a class="markdownIt-Anchor" href="#七基准能力下限table-4同一-harness-跨域有效"></a> 七基准能力下限（Table 4）——同一 harness 跨域有效</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>基准</strong></th>
+<th><strong>骨干/后端</strong></th>
+<th><strong>Argus 结果</strong></th>
+<th><strong>对比</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SWE-Bench Pro</td>
+<td>GPT-5.5/xhigh + Copilot</td>
+<td><strong>~78%</strong>（731 软件修复任务）</td>
+<td>Direct Copilot ~59%；1.41× token</td>
+</tr>
+<tr>
+<td>SOL-ExecBench</td>
+<td>GPT-5.5 + Codex</td>
+<td>全球 #6；2×#1；7 个 top-3（101 内核）</td>
+<td>两次正面胜过 Recursive</td>
+</tr>
+<tr>
+<td>nanochat B200</td>
+<td>GPT-5.5 + Codex</td>
+<td><strong>0.9636 BPB</strong></td>
+<td>人类最佳 0.9646</td>
+</tr>
+<tr>
+<td>nanochat H100</td>
+<td>GPT-5.5 + Codex</td>
+<td>0.9855 BPB</td>
+<td>人类最佳 0.9879</td>
+</tr>
+<tr>
+<td>nanoGPT speedrun</td>
+<td>GPT-5.5 + Codex</td>
+<td><strong>79.77 s</strong></td>
+<td>同设备人类 80.18 s</td>
+</tr>
+<tr>
+<td>AARRI-Bench</td>
+<td>GPT-5.5 + Codex</td>
+<td><strong>63/82（76.8%）</strong></td>
+<td>论文最佳 68.3%</td>
+</tr>
+<tr>
+<td>Math-Reasoning Data</td>
+<td>GPT-5.5 + Codex</td>
+<td><strong>28.0 gap</strong></td>
+<td>Arbor 20.83 / Claude 8.33 / Codex 6.25</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>
+<p><strong>关键解读 1（通用性）</strong>：同一 harness、同一骨干（GPT-5.5）横扫七个任务原生评估——SWE 修复、GPU 内核优化、语言模型训练（nanoGPT speedrun 79.77s &lt; 人类 80.18s）、数学数据合成——<strong>runtime 不绑定领域</strong>。</p>
+</li>
+<li>
+<p><strong>关键解读 2（跨骨干迁移）</strong>：GLM-5.2（200K 上下文，经 Claude Code 驱动）在 SWE-Bench Pro 达 70.94%——<strong>同一契约/路由/Reviewer 策略换模型换执行面无需重装</strong>。</p>
+</li>
+<li>
+<p><strong>关键解读 3（上游采纳）</strong>：Argus 优化的 TileLang RWKV6 内核被评审后合并进 fla-org:main（PR #1045）——产出有真实外部价值。</p>
+</li>
+</ul>
+<h3 id="第八竞技场mle-bench-lite部分结果table-5"><a class="markdownIt-Anchor" href="#第八竞技场mle-bench-lite部分结果table-5"></a> 第八竞技场：MLE-Bench Lite（部分结果，Table 5）</h3>
+<ul>
+<li>
+<p>评审批准的奖牌门控：竞赛只有在独立评审的提交获得 Kaggle 奖牌时才算完成——<strong>奖牌而非排行榜位置</strong></p>
+</li>
+<li>
+<p>已关闭 9 个竞赛：3 金 3 银 3 铜；两个&quot;擦边&quot;案例（0.00009 RMSE 差银、0.00018 AUC 过铜）由外部评分器对官方排行榜裁决——<strong>门控是窄的而非名义上的</strong></p>
+</li>
+</ul>
+<h3 id="swe-bench-pro-深度figure-34自适应评审路由"><a class="markdownIt-Anchor" href="#swe-bench-pro-深度figure-34自适应评审路由"></a> SWE-Bench Pro 深度（Figure 3/4）——自适应评审路由</h3>
+<ul>
+<li>
+<p>731 任务中 466 个调用独立 Reviewer、265 个用 Engineer 自审；路由任务消耗 2.75× 输入 token、1.80× 活跃时间——<strong>评审路由是自适应资源分配</strong>，只在值得时启用</p>
+</li>
+<li>
+<p>34 次 verifier 恢复 + 22 次严格评审环救援（review-loop rescues）——纵向轨迹非单调，但失败被捕获并恢复</p>
+</li>
+</ul>
+<h3 id="数学战役案例figure-5被拒路线与前沿更新共存"><a class="markdownIt-Anchor" href="#数学战役案例figure-5被拒路线与前沿更新共存"></a> 数学战役案例（Figure 5）——被拒路线与前沿更新共存</h3>
+<ul>
+<li>
+<p>七个保留更新从被证伪路线（C5）→ 两个独立重推导基线（C20-C21）→ 四个 campaign 前沿结果（C22-C25）——<strong>&quot;保留一条被证伪路线 + 六个证明支撑的前沿更新&quot;</strong></p>
+</li>
+<li>
+<p>163.6 小时论文生产轨迹（Figure 7）：七个早期 no-go 决策修剪弱方法路线，项目从&quot;正向方法主张&quot;转向&quot;审计&quot;——转向有证据、有记录</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_f8171c6eda1fa6e1bdad3b7071bee1140d950978d5d2ff8c6ff4fb1f64870700.png" srcset="/img/loading.gif" lazyload alt="Figure 2: 长时程运行时自进化的操作模型——会话受限路线以重置告终 vs 中央循环角色复用 + 被拒分支保留为已验证排除项" /></p>
+<p><em>Figure 2（自进化模型）：左卡显示会话受限路线以重置结束；中央循环角色循环复用于 8 个 Manager 控制的 Stage；蓝色/橙色路线展示被拒分支如何保留为&quot;已验证排除项&quot;参与后续进化。</em></p>
+<p><img src="/img/paper-reading/img_a3da715493f6b2157956900d5271ec9554bbb71e532f9dec50678be4921f0da0.svg" srcset="/img/loading.gif" lazyload alt="Figure 5: 数学战役的评审主张前沿——从被证伪路线（C5）经独立重推导基线（C20-21）到四个前沿结果（C22-25）" /></p>
+<p><em>Figure 5（数学案例）：七条保留更新从被证伪路线（C5）进展，经两条独立重推导基线（C20-C21），到四条 campaign 前沿结果（C22-C25）——被拒路线与证明支撑的前沿更新共存，正是&quot;验证门控转向&quot;的实证。</em></p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>问题定义是真的锋利</strong>：&quot;无限制转向 = 合理化失败&quot;是全文的钉子——它把&quot;何时允许改目标&quot;从工程细节提到<strong>可验证性的核心问题</strong>，并给了结构化答案（意图/操作分离 + 验证门控 + 角色门控 + 记录）</p>
+</li>
+<li>
+<p><strong>验证门控的自进化是它和邻居拉开差距的地方</strong>：与&quot;权重不变、harness 可变&quot;路线（HarnessX、prime-agent）相比，Argus 的差异化是<strong>准入门控 + 被拒分支保留为已验证排除项</strong>——进化是累积的（SWE-Bench 成熟 Wave 省 21% token、15% 时间是纵向证据）</p>
+</li>
+<li>
+<p><strong>评审路由自适应</strong>：731 任务中只有 466 个用独立 Reviewer（64%），低风险任务自审——<strong>验证成本是按需分配的</strong>，不是一刀切</p>
+</li>
+<li>
+<p><strong>结果的可信度设计</strong>：任务原生评估（不跨归一化）、外部评分器（Kaggle 奖牌门控）、上游合并（FLA PR）、“观测轨迹非单调”（34 次 verifier 恢复 + 22 次评审救援）——<strong>承认失败并记录恢复</strong>，比只报成功指标诚实</p>
+</li>
+<li>
+<p><strong>跨骨干/跨执行面迁移</strong>：GPT-5.5 → GLM-5.2 + Copilot → Claude Code 无重装迁移——runtime 与模型/后端解耦</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：跨七个域的系统论文，先把整体跑通再拆机制消融，是这个体量的常见取舍，论文自己也承认没有隔离实验。但理解归理解，该提的还是要提：</p>
+<ol>
+<li>
+<p><strong>无对照消融的因果归因缺失</strong>：论文承认&quot;没有单独隔离记忆/技能/验证/路由的匹配实验&quot;——SWE-Bench 纵向收益无法归因到具体机制（需要 frozen vs accumulated state 重放）</p>
+</li>
+<li>
+<p><strong>成本不便宜</strong>：SWE-Bench Pro 1.41× token、路由任务 2.75× token 1.80× 时间——<strong>验证与多角色的开销是真实成本</strong>，论文对&quot;何时值得&quot;的成本-收益模型不完整</p>
+</li>
+<li>
+<p><strong>骨干锚定在 GPT-5.5</strong>：核心结果都依赖 GPT-5.5（xhigh）——runtime 与最强闭源模型的耦合；GLM-5.2 是唯一异构验证且无匹配基线</p>
+</li>
+<li>
+<p><strong>&quot;角色门控&quot;依赖提示工程</strong>：Manager/Reviewer 的裁决质量说到底是 LLM 判断——<strong>&quot;独立评审&quot;是上下文级而非模型级独立</strong>（与 LongHorizon-Harness 同病）；Reviewer 与 Engineer 同骨干时仍有系统性偏差风险</p>
+</li>
+<li>
+<p><strong>基准的代表性</strong>：SWE-Bench Pro/MLE-Bench 是已知基准（有数据泄漏风险），AARRI-Bench 等较新；&quot;论文生产&quot;案例是自我报告轨迹，无外部审计</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>机制级消融</strong>：frozen vs accumulated runtime state 的匹配实验，把纵向收益归因到记忆/技能/验证/路由</p>
+</li>
+<li>
+<p><strong>验证成本模型</strong>：何时值得独立 Reviewer/多角色？——基于任务风险与历史收益的自适应门控</p>
+</li>
+<li>
+<p><strong>模型级独立评审</strong>：异构模型 Reviewer（不同骨干审计执行）——测试&quot;评审独立性&quot;的下限</p>
+</li>
+<li>
+<p><strong>从运行时学习到模型训练闭环</strong>：Argus 轨迹 → SFT/RL 数据 → 内化验证与规划模式（论文已提出，未实现闭环）</p>
+</li>
+<li>
+<p><strong>开源与可复现性</strong>：代码库公开（<a target="_blank" rel="noopener" href="http://github.com/lbx154/Argus%EF%BC%89%EF%BC%8C%E4%BD%86">github.com/lbx154/Argus），但</a> 20+ 作者 × GPT-5.5 算力的完整复现成本极高</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LongHorizon-Harness（2608.01964）</strong></td>
+<td>同为&quot;harness 决定长时程能力&quot;</td>
+<td>LHH 用 MEA 循环管理任务状态；Argus 增加&quot;验证门控转向&quot;与&quot;运行时自进化&quot;——更强调目标可修订性与累积进化</td>
+</tr>
+<tr>
+<td><strong>MemHarness（2607.28272）</strong></td>
+<td>记忆利用范式</td>
+<td>MemHarness 重构经验记忆；Argus 的持久状态包含记忆+技能+被拒路线——&quot;被拒分支作为资产&quot;是 Argus 独有</td>
+</tr>
+<tr>
+<td><strong>ReAct / SWE-agent / OpenHands</strong></td>
+<td>论文明确批评的对象</td>
+<td>它们&quot;固定目标优化执行&quot;；Argus 认为长时程研究需要&quot;受约束的目标修订&quot;</td>
+</tr>
+<tr>
+<td><strong>HarnessX (Darwin Agent Team)</strong></td>
+<td>进化 harness 配置</td>
+<td>HarnessX 用进化引擎搜索 harness 参数；Argus 的自进化是&quot;验证门控的运行时状态累积&quot;——机制不同（演化 vs 准入累积）</td>
+</tr>
+<tr>
+<td><strong>Claude Code / Copilot / Codex</strong></td>
+<td>执行后端</td>
+<td>Argus 把它们当执行面（backends），自己提供控制/记录平面——&quot;包&quot;而非&quot;替换&quot;现有 agent</td>
+</tr>
+<tr>
+<td><strong>AlphaProof Nexus / Leanstral</strong></td>
+<td>验证驱动路线</td>
+<td>它们是&quot;模型产出 + 形式化验证器&quot;；Argus 把&quot;验证门控&quot;泛化到任意任务原生评估器</td>
+</tr>
+<tr>
+<td><strong>METR longtasks</strong></td>
+<td>长时程趋势数据</td>
+<td>Argus 是&quot;如何让 agent 扛住跨日研究任务&quot;的运行时答案</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>Argus 是&quot;长时程 agent&quot;主题下野心最大的系统论文之一：它不只是管理任务状态（LHH）或重构记忆（MemHarness），而是<strong>重新定义了目标本身的可变性</strong>——“stand intent 稳定、operational objective 可精化、但每次材料变更都要证据+角色门控+记录”。它用四角色分离（Manager 承诺/Planner 分解/Engineer 执行/Reviewer 裁决）和验证门控的自进化（被拒分支也是资产），在七个任务原生基准上证明<span class="mark-strong">同一 harness 跨域有效</span>（SWE ~78%、AARRI 76.8%、nanoGPT 快过人类），并拿出了真实外部产出（FLA 合并、Kaggle 奖牌）。短板也摆在那儿：无机制级消融、成本高（1.41× token）、评审独立性是上下文级、骨干锚定 GPT-5.5。它的深层贡献是把&quot;受约束的目标修订&quot;从提示工程提升为<strong>可审计的运行时机制</strong>——对任何做自主研究/长程 agent 系统的人，这是必读的架构参考。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>验证门控的转向</strong>：“无限制转向 = 合理化失败”——意图稳定、目标可精化，但每次材料变更必须证据 + 角色门控 + 记录。</p>
+</li>
+<li>
+<p><strong>自进化在运行时</strong>：模型权重不变，进化发生在持久状态与控制策略——被拒分支保留为&quot;已验证排除项&quot;，SWE-Bench 成熟 Wave 省 21% token、15% 时间。</p>
+</li>
+<li>
+<p><strong>同一 harness 横扫七域</strong>：SWE-Bench Pro ~78%（vs Direct 59%）、AARRI-Bench 76.8%、nanoGPT 训练快过人类、RWKV6 内核被上游合并——跨骨干（GPT-5.5→GLM-5.2）无重装迁移。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</div>
+      <div>https://yyhchen.github.io/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/10/paper-u-opsd-on-policy-self-distillation-without-any-supervision/" title="Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision">
+                        <span class="hidden-mobile">Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

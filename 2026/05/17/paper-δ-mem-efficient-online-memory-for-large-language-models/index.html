@@ -1,0 +1,1161 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="δ-mem 用一个 8×8 的在线记忆状态（固定大小、delta-rule 更新），通过低秩校正直接干预 frozen backbone 的注意力计算，以 0.12% 的参数量达到 1.10× 基线和 1.15× 最佳非 δ-mem 记忆方法的平均得分。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models">
+<meta property="og:url" content="https://yyhchen.github.io/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="δ-mem 用一个 8×8 的在线记忆状态（固定大小、delta-rule 更新），通过低秩校正直接干预 frozen backbone 的注意力计算，以 0.12% 的参数量达到 1.10× 基线和 1.15× 最佳非 δ-mem 记忆方法的平均得分。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_bd2b7341d746af813199736af50c5ec7cc94655bbb83e9b0287ce9eae2359c0d.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_3cac141619001ff693f2b9864a654e945ee10a4c1760ca9b322c464dad15f2e1.png">
+<meta property="article:published_time" content="2026-05-17T09:39:53.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_bd2b7341d746af813199736af50c5ec7cc94655bbb83e9b0287ce9eae2359c0d.png">
+  
+  
+  
+  <title>Paper精读｜δ-mem: Efficient Online Memory for Large Language Models - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-17 17:39" pubdate>
+          2026-05-17 17:39:53
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="模型架构与推理效率"
+        id="heading-2b414557444ce743ae890d15692b8e1e" role="tab" data-toggle="collapse" href="#collapse-2b414557444ce743ae890d15692b8e1e"
+        aria-expanded="true"
+      >
+        模型架构与推理效率
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2b414557444ce743ae890d15692b8e1e"
+           role="tabpanel" aria-labelledby="heading-2b414557444ce743ae890d15692b8e1e">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-mixture-of-loops-transformer/" title="Paper精读｜Mixture-of-Loops Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mixture-of-Loops Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/" title="Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/02/paper-normalized-low-rank-adaptation/" title="Paper精读｜Normalized Low-Rank Adaptation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Normalized Low-Rank Adaptation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/29/paper-prefix-sliding-for-efficient-test-time-scaling/" title="Paper精读｜Prefix Sliding for efficient test-time scaling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prefix Sliding for efficient test-time scaling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/21/paper-recirculation/" title="Paper精读｜Recirculation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recirculation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-mooncake-a-kvcache-centric-disaggregated-architecture-for-llm-serving/" title="Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-kimi-k3-open-frontier-intelligence/" title="Paper精读｜Kimi K3: Open Frontier Intelligence"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-minimax-sparse-attention/" title="Paper精读｜MiniMax Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MiniMax Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/" title="Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/" title="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF/" title="Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;architecture">模型架构与推理效率</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读δ-mem-efficient-online-memory-for-large-language-models"><a class="markdownIt-Anchor" href="#paper精读δ-mem-efficient-online-memory-for-large-language-models"></a> Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>δ-mem 用一个 8×8 的在线记忆状态（<span class="mark-entity">固定大小、delta-rule 更新</span>），通过低秩校正直接干预 frozen backbone 的注意力计算，以 0.12% 的参数量达到 1.10× 基线和 1.15× 最佳非 δ-mem 记忆方法的平均得分。</strong></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：** δ-mem: Efficient Online Memory for Large Language Models</li>
+<li><strong>arXiv</strong>：** 2605.12357</li>
+<li><strong>链接</strong>：** <a target="_blank" rel="noopener" href="https://www.alphaxiv.org/abs/2605.12357">https://www.alphaxiv.org/abs/2605.12357</a></li>
+<li><strong>GitHub</strong>：** <a target="_blank" rel="noopener" href="https://github.com/declare-lab/delta-Mem">https://github.com/declare-lab/delta-Mem</a></li>
+<li><strong>作者</strong>：** Jingdi Lei, Di Zhang, Junxian Li, Weida Wang, Kaixuan Fan, Xiang Liu, Qihan Liu, Xiaoteng Ma, Baian Chen, Soujanya Poria (NTU, Fudan, Mind Lab, SJTU, CUHK, HKUST(GZ))</li>
+<li><strong>日期</strong>：** 2026-05-13</li>
+<li><strong>机构</strong>：** Nanyang Technological University, Fudan University, Mind Lab 等</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>LLM 在长期助手和 agent 场景中需要积累和复用历史信息。现有方案有三大类，各有硬伤：</p>
+<ol>
+<li>
+<p><strong>文本记忆（TMM）</strong>：把记忆写成文本塞回 context——受窗口大小限制、检索噪声大、压缩丢失严重</p>
+</li>
+<li>
+<p><strong>外通道记忆（OMM）</strong>：记忆存在外部模块，通过检索/编码桥接——集成复杂、表示对齐难</p>
+</li>
+<li>
+<p><strong>参数化记忆（PMM）</strong>：记忆编码进 adapter/prefix 参数——静态写入，无法动态演化</p>
+</li>
+</ol>
+<p>核心矛盾是：<strong>记忆需要紧凑、动态演化；记忆回读需要与 backbone 的注意力计算紧密耦合。</strong> 现有方法没有一个能同时满足这两点。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+<p>δ-mem 的两个关键设计选择：</p>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>用在线关联记忆状态（Online State of Associative Memory, OSAM）代替 token 级存储</strong>——记忆不存成文本，而是一个固定大小的矩阵。新的信息通过 <strong>delta-rule 学习</strong>写入：<span class="mark-strong">只写预测误差（residual）</span>，已记住的内容不会重复写入，保证状态高效利用。</p>
+</li>
+<li>
+<p><span class="mark-strong"><strong>记忆直接干预注意力计算，不走检索/拼接路径</strong></span>——读出的信号生成低秩校正项，直接加到 backbone 的 query 和 output 上。这不是检索文本再拼回 context，而是让记忆信号成为注意力计算的组成部分。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="三步流程每步一个位置"><a class="markdownIt-Anchor" href="#三步流程每步一个位置"></a> 三步流程（每步一个位置）</h3>
+<p><img src="/img/paper-reading/img_bd2b7341d746af813199736af50c5ec7cc94655bbb83e9b0287ce9eae2359c0d.png" srcset="/img/loading.gif" lazyload alt="图 1｜δ-mem 的查询、检索与记忆更新" /></p>
+<p><em>图 1｜δ-mem 的查询、检索与记忆更新。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2605.12357v1/#S3.F1">来源</a></em></p>
+<p><strong>① Read</strong>：上一时刻的状态 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">S_{t-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.891661em;vertical-align:-0.208331em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span> 被当前输入的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>q</mi><mi>t</mi><mi>m</mi></msubsup></mrow><annotation encoding="application/x-tex">q^m_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.911392em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-2.4530000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">m</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span></span></span></span> 查询 → 读出向量 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><msubsup><mi>q</mi><mi>t</mi><mi>m</mi></msubsup></mrow><annotation encoding="application/x-tex">r_t = S_{t-1}q^m_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.93033em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-2.4530000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">m</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p><strong>② Steer</strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">r_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 经过两个小线性映射，生成 query 侧校正 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>q</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\Delta q_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和 output 侧校正 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\Delta o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：</p>
+<ul>
+<li>
+<p>ilde{q}_t = q^0_t + lpha r_t \Delta q_t（校正后的 query）</p>
+</li>
+<li>
+<p>ilde{y}_t = a_t + lpha r_t \Delta o_t（校正后的 output）</p>
+</li>
+</ul>
+<p><strong>③ Write</strong>：当前 key/value 对经 delta-rule 写入状态：</p>
+<ul>
+<li>
+<p>S_t = \lambda_t S_{t-1} + eta_t (v^m_t - S_{t-1}k^m_t)(k^m_t)^ op</p>
+</li>
+<li>
+<p>三项含义：保留旧状态 → 擦除旧预测方向 → 写入新值</p>
+</li>
+<li>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>λ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>（遗忘门）和 eta_t（写入强度）都是逐维度的，不同记忆维度可独立控制</p>
+</li>
+</ul>
+<h3 id="三种写入粒度"><a class="markdownIt-Anchor" href="#三种写入粒度"></a> 三种写入粒度</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>策略</strong></th>
+<th><strong>缩写</strong></th>
+<th><strong>粒度</strong></th>
+<th><strong>特点</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token-State Write</td>
+<td>TSW</td>
+<td>每 token</td>
+<td>最细粒度，适合局部变化，但易受噪声干扰</td>
+</tr>
+<tr>
+<td>Sequence-State Write</td>
+<td>SSW</td>
+<td>每消息段</td>
+<td>减少冗余写入，状态演化更平滑</td>
+</tr>
+<tr>
+<td>Multi-State Write</td>
+<td>MSW</td>
+<td>多子状态并行</td>
+<td>不同子状态存放不同类型信息，减少互相干扰</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="训练"><a class="markdownIt-Anchor" href="#训练"></a> 训练</h3>
+<p>标准 SFT loss，frozen backbone 只看到 query + response，context token 的写入发生在在线状态中，不重复喂入 backbone。</p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="主表table-1"><a class="markdownIt-Anchor" href="#主表table-1"></a> 主表（Table 1）</h3>
+<p>Qwen3-4B-Instruct backbone 上对比：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方法</strong></th>
+<th><strong>Avg</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基线（无记忆）</td>
+<td>46.79</td>
+</tr>
+<tr>
+<td>BM25 RAG</td>
+<td>44.56</td>
+</tr>
+<tr>
+<td>LLMLingua-2</td>
+<td>42.96</td>
+</tr>
+<tr>
+<td>MemoryBank</td>
+<td>43.88</td>
+</tr>
+<tr>
+<td>Context2LoRA</td>
+<td>44.90</td>
+</tr>
+<tr>
+<td>MemGen</td>
+<td>30.66</td>
+</tr>
+<tr>
+<td>MLP Memory</td>
+<td>22.85</td>
+</tr>
+<tr>
+<td><strong>δ-mem (TSW)</strong></td>
+<td><strong>51.66</strong></td>
+</tr>
+<tr>
+<td><strong>δ-mem (SSW)</strong></td>
+<td>51.44</td>
+</tr>
+<tr>
+<td><strong>δ-mem (MSW)</strong></td>
+<td>50.74</td>
+</tr>
+</tbody>
+</table></div>
+<p>三种写入粒度全都压过表里所有基线。这张表里最扎眼的反倒是基线那半边：MemGen 和 MLP Memory 掉到 30.66/22.85，比什么都不记的 46.79 还差一大截——记忆模块做不好是负资产。TSW 在 HotpotQA 上 EM/F1 <span class="mark-number">从 42.35/56.00 → 49.41/63.66</span>；MemoryAgentBench 上 MSW 平均分从 29.54 → 38.85，LoCoMo 的 Multi/Temporal/Open 三个子集也是 MSW 表现最佳。</p>
+<h3 id="跨-backbone-泛化table-2"><a class="markdownIt-Anchor" href="#跨-backbone-泛化table-2"></a> 跨 backbone 泛化（Table 2）</h3>
+<p>在 Qwen3-8B 和 SmolLM3-3B 上也一致提升，SmolLM3-3B 的平均分从 26.08 拉到 36.96（<span class="mark-number">+10.88</span>）——换 backbone 不掉链子，方法不挑模型这一点，至少在 3B-8B 这个规模上立住了。</p>
+<h3 id="context-recovery-实验figure-2"><a class="markdownIt-Anchor" href="#context-recovery-实验figure-2"></a> Context Recovery 实验（Figure 2）</h3>
+<p><img src="/img/paper-reading/img_3cac141619001ff693f2b9864a654e945ee10a4c1760ca9b322c464dad15f2e1.png" srcset="/img/loading.gif" lazyload alt="图 2｜HotpotQA 与 LoCoMo 的上下文恢复结果" /></p>
+<p><em>图 2｜HotpotQA 与 LoCoMo 的上下文恢复结果。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2605.12357v1/#S5.F2">来源</a></em></p>
+<p>严格测试：<strong>去掉原始 context，只靠压缩的记忆状态推理。</strong> HotpotQA Overall EM 从 0.08% → 6.48%（+6.40），Bridge subset EM 从 0.08% → 3.97%。这是很强的证据——说明 8×8 矩阵确实压缩了有用信息。</p>
+<h3 id="head-ablationtable-3"><a class="markdownIt-Anchor" href="#head-ablationtable-3"></a> Head Ablation（Table 3）</h3>
+<p>测试 query(Q)、key(K)、value(V)、output(O) 各种组合。<strong>q+o 组合最优</strong>（Avg 47.97），说明 query 侧校正 + output 侧校正配合最好。全加 (q+k+v+o) 反而略降？可能 k 和 v 侧的校正引入了冗余信息。</p>
+<h3 id="插入层数table-4"><a class="markdownIt-Anchor" href="#插入层数table-4"></a> 插入层数（Table 4）</h3>
+<p><strong>All Layers 最优</strong>（Avg 47.97），Middle 12 层其次（46.66）。前面层表示太局部、后面层深度不够传播。</p>
+<hr />
+<h2 id="理论贡献-机制解释"><a class="markdownIt-Anchor" href="#理论贡献-机制解释"></a> 理论贡献 / 机制解释</h2>
+<ol>
+<li>
+<p><strong>delta-rule 记忆更新</strong>——继承了线性注意力（Linear Attention / DeltaNet）的在线学习视角，但把它包装成一个轻量记忆模块而非 backbone 替代。</p>
+</li>
+<li>
+<p><strong>低秩注意力校正</strong>——LoRA 是静态的（训练后固定），δ-mem 的校正项来自动态在线状态，同一个投影矩阵在不同历史下产生不同效果——相当于把 LoRA 动态化了。</p>
+</li>
+<li>
+<p><span class="mark-strong"><strong>记忆即计算，而非记忆即检索</strong></span>——最核心的设计哲学。记忆不返回文本片段，而是直接作为偏置项参与注意力计算。这让记忆和推理在同一表示空间中完成。</p>
+</li>
+</ol>
+<hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ol>
+<li>
+<p><strong>状态容量有限</strong>——8×8=64 个标量。虽然实验证明有效，但在极长交互或海量事实场景下可能不够。MSW 通过多状态并行缓解了这个问题。</p>
+</li>
+<li>
+<p><strong>依赖 backbone 质量</strong>——训练用的 context 要写进状态，但 backbone 对写的内容是盲的（看不到 context token）。如果 backbone 本身推理能力弱，记忆校正效果也会受限。</p>
+</li>
+<li>
+<p><strong>解码速度略降</strong>——每步多一次读和写操作，吞吐低于 Vanilla 和 Context2LoRA。</p>
+</li>
+<li>
+<p><strong>仅验证到 4B-8B 规模</strong>——未在 70B+ 上验证，虽然方法本身与规模无关。</p>
+</li>
+</ol>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>δ-mem 是我读过的记忆方案里做得最克制的一个：<span class="mark-entity">δ-mem</span> 不假设 backbone 结构、不搭检索系统、不往 context 里拼 token，就靠 64 个标量的状态 + 低秩校正把记忆做出来了。它赢在把记忆放进注意力计算本身——检索噪声、表示对齐这些别家的硬伤，在它这儿压根不出现。代价也摆在明面上：状态只有 64 个标量，解码还慢一拍，要记的东西有多大、交互有多长，决定了这套状态够不够用。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+<ul>
+<li>
+<p>δ-mem = 8×8 在线记忆状态 + delta-rule 更新 + 低秩注意力校正</p>
+</li>
+<li>
+<p>记忆直接干预注意力计算，不走检索/拼接路线</p>
+</li>
+<li>
+<p>4.87M 参数量（0.12% backbone），比所有基线都好</p>
+</li>
+</ul>
+
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/" class="category-chain-item">模型架构与推理效率</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</div>
+      <div>https://yyhchen.github.io/2026/05/17/paper-δ-mem-efficient-online-memory-for-large-language-models/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/20/paper-self-distilled-agentic-reinforcement-learning-sdar/" title="Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/13/paper-evolving-rl-%E7%AB%AF%E5%88%B0%E7%AB%AFrl%E4%BC%98%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96%E8%83%BD%E5%8A%9B/" title="Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力">
+                        <span class="hidden-mobile">Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

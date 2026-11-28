@@ -1,0 +1,1340 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这篇论文干的第一件事是把问题造干净：将“模型连续学习 100 个任务后还能记住多少”单独定义成 long-horizon memorization，再系统组合三类抗遗忘机制（数据、函数、权重 anchor）与两种 LoRA 状态分配方式。最佳组合把 100 个任务后的平均保留率从朴素顺序微调的 1.2% 提高到 34.9%——但这不是胜利宣言：旧记忆最终仍在衰减，对新问题的泛化也没有被证明。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization">
+<meta property="og:url" content="https://yyhchen.github.io/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="这篇论文干的第一件事是把问题造干净：将“模型连续学习 100 个任务后还能记住多少”单独定义成 long-horizon memorization，再系统组合三类抗遗忘机制（数据、函数、权重 anchor）与两种 LoRA 状态分配方式。最佳组合把 100 个任务后的平均保留率从朴素顺序微调的 1.2% 提高到 34.9%——但这不是胜利宣言：旧记忆最终仍在衰减，对新问题的泛化也没有被证明。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9c80bcc1785cac497a6973c90ea1dc7be602df1b3b98dd5332b0d4cfa4b57a42.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_d8b9ee1a235c03fd86ec709891909ae5ff77798d962d90347165dc3f22dd64fe.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_5b03576af10e623cc023775221dea8ec722a14a0e82f97a09b9b57bbf366fc9f.png">
+<meta property="article:published_time" content="2026-09-09T06:52:13.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_9c80bcc1785cac497a6973c90ea1dc7be602df1b3b98dd5332b0d4cfa4b57a42.png">
+  
+  
+  
+  <title>Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-09-09 14:52" pubdate>
+          2026-09-09 14:52:13
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          33 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读continual-learning-mechanisms-compose-for-long-horizon-memorization"><a class="markdownIt-Anchor" href="#paper精读continual-learning-mechanisms-compose-for-long-horizon-memorization"></a> Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>这篇论文干的第一件事是把问题造干净：将“模型连续学习 100 个任务后还能记住多少”单独定义成 <strong>long-horizon memorization</strong>，再系统组合三类抗遗忘机制（数据、函数、权重 anchor）与两种 LoRA 状态分配方式。最佳组合把 100 个任务后的平均保留率从朴素顺序微调的 <strong><span class="mark-number">1.2% 提高到 34.9%</span></strong>——但这不是胜利宣言：旧记忆最终仍在衰减，对新问题的泛化也没有被证明。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Continual Learning Mechanisms Compose for Long-Horizon Memorization</li>
+<li><strong>alphaXiv</strong>：<a target="_blank" rel="noopener" href="https://www.alphaxiv.org/abs/2609.compose-cl">https://www.alphaxiv.org/abs/2609.compose-cl</a></li>
+<li><strong>论文主页</strong>：<a target="_blank" rel="noopener" href="https://compose-cl.github.io">https://compose-cl.github.io</a></li>
+<li><strong>arXiv</strong>：页面未提供 arXiv 编号</li>
+<li><strong>作者</strong>：Zheyuan Zhang, Alvin Zhang, Daniel Khashabi, Tianmin Shu</li>
+<li><strong>机构</strong>：Johns Hopkins University</li>
+<li><strong>日期</strong>：2026-09-06</li>
+<li><strong>研究类型</strong>：持续学习 / 语言模型参数记忆 / 方法组合与实验分析</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>大模型如果不断接收新知识并更新参数，理想状态是参数本身成为长期记忆。但顺序微调会让新任务的梯度覆盖旧任务形成的参数结构，产生 catastrophic forgetting。现有持续学习研究往往使用较短任务序列，或者测量迁移、下游任务表现；模型编辑则常常关注少量定向事实修改。作者想隔离出一个更直接的问题：模型依次学会 100 组问答后，最后还能从参数中回忆多少之前学过的关联？</p>
+<p>先把问题钉在参数层面：第 t 个任务的数据记作 D_t，模型参数从 Θ_{t−1} 更新为 Θ_t。顺序微调的病灶就在这一步——当前任务的监督微调损失只顾眼前：</p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>L</mi><mi>t</mi><mrow><mi>S</mi><mi>F</mi><mi>T</mi></mrow></msubsup><mo stretchy="false">(</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo><mo>∼</mo><msub><mi>D</mi><mi>t</mi></msub></mrow></msub><mo stretchy="false">[</mo><mi>log</mi><mo>⁡</mo><msub><mi>p</mi><mi mathvariant="normal">Θ</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">L_t^{SFT}(\Theta)=-\mathbb{E}_{(x,y)\sim D_t}[\log p_\Theta(x,y)]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0913309999999998em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">F</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">Θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.1052em;vertical-align:-0.3551999999999999em;"></span><span class="mord">−</span><span class="mord"><span class="mord"><span class="mord mathbb">E</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathdefault mtight">x</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span><span class="mclose mtight">)</span><span class="mrel mtight">∼</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.29634285714285713em;"><span style="top:-2.357em;margin-left:-0.02778em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">Θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mclose">]</span></span></span></span>。</p>
+<p>作者的补救不是发明一个新算法，而是往这个损失后面挂上三个保持项：</p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="normal">Θ</mi><mi>t</mi></msub><mo>=</mo><mi>arg</mi><mo>⁡</mo><msub><mo><mi>min</mi><mo>⁡</mo></mo><mi mathvariant="normal">Θ</mi></msub><msubsup><mi>L</mi><mi>t</mi><mrow><mi>S</mi><mi>F</mi><mi>T</mi></mrow></msubsup><mo stretchy="false">(</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">)</mo><mo>+</mo><msubsup><mi>R</mi><mi>D</mi><mi>t</mi></msubsup><mo stretchy="false">(</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">)</mo><mo>+</mo><msubsup><mi>R</mi><mi>F</mi><mi>t</mi></msubsup><mo stretchy="false">(</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">)</mo><mo>+</mo><msubsup><mi>R</mi><mi>W</mi><mi>t</mi></msubsup><mo stretchy="false">(</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Theta_t=\arg\min_\Theta L_t^{SFT}(\Theta)+R_D^t(\Theta)+R_F^t(\Theta)+R_W^t(\Theta)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord">Θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.0913309999999998em;vertical-align:-0.25em;"></span><span class="mop">ar<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop"><span class="mop">min</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">Θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">F</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">Θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.068887em;vertical-align:-0.275331em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.424669em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">D</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.275331em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">Θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.068887em;vertical-align:-0.275331em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.424669em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">F</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.275331em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">Θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.068887em;vertical-align:-0.275331em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.424669em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">W</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.275331em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">Θ</span><span class="mclose">)</span></span></span></span>。</p>
+<p>这三个项分别回答“要保留什么证据”：旧数据的行为样本、旧模型在当前输入上的输出函数、以及旧任务重要的参数；LoRA allocation 则回答“新信息存在哪里、旧更新如何保留下来”。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>抗遗忘机制解决的是不同层面的破坏</strong>：数据 replay 保留样本层面的证据，self-distillation 保持函数输出，SI/EWC 保持参数重要性。单个机制只覆盖一个遗忘来源，组合才有机会互补。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">Merged LoRA 是关键的容量管理方式</span></strong>：每个任务训练一个新 LoRA，训练结束后把更新合并进 dense weights，再为下一个任务重新初始化 LoRA。这样累计更新可以逐渐获得高于固定 rank 的有效容量，同时持久状态大小仍保持常数级。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">组合改变的是遗忘时间尺度，不是消灭遗忘</span></strong>：最佳组合把 memory half-life 推到 19/32/32 个任务，但 100 个任务后仍只有约三分之一的关联被保留，曲线仍持续下降。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">Replay × merged LoRA 有超加性协同</span></strong>：二者单独增加的保留率之和，明显低于二者同时启用后的增益。这是论文比“把几个技巧堆在一起”更有价值的地方：它用 factorial design 测量了交互项。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件-1三种-anchors"><a class="markdownIt-Anchor" href="#组件-1三种-anchors"></a> 组件 1：三种 anchors</h3>
+<ul>
+<li>
+<p><strong>Data anchor</strong>：使用上一任务结束时冻结的模型生成伪序列。每个新任务前生成 300 条序列，当前任务 minibatch 与 replay minibatch 配对训练；不把旧原始样本或 replay 样本继续带到下一任务。它对应 generative replay。</p>
+</li>
+<li>
+<p><strong>Function anchor</strong>：在当前任务输入上，让新模型匹配上一任务冻结模型的输出分布，采用 self-distillation / Learning without Forgetting 思路。与 data anchor 不同，它不是在生成的旧数据上蒸馏，而是在当前输入上约束函数行为。</p>
+</li>
+<li>
+<p><strong>Weight anchor</strong>：走的是最老的一条路——不管数据、不管函数，直接按重要性给参数上锁，对重要参数施加二次惩罚：</p>
+</li>
+</ul>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>R</mi><mi>W</mi><mi>t</mi></msubsup><mo stretchy="false">(</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mo stretchy="false">(</mo><mi>ϑ</mi><mo>−</mo><msubsup><mi>ϑ</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow><mo>⋆</mo></msubsup><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><msub><mi>H</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">(</mo><mi>ϑ</mi><mo>−</mo><msubsup><mi>ϑ</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow><mo>⋆</mo></msubsup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R_W^t(\Theta)=\frac12(\vartheta-\vartheta^\star_{t-1})^\top H_{t-1}(\vartheta-\vartheta^\star_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.068887em;vertical-align:-0.275331em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.424669em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">W</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.275331em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">Θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.190108em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mopen">(</span><span class="mord mathdefault">ϑ</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.1555469999999999em;vertical-align:-0.30643899999999996em;"></span><span class="mord"><span class="mord mathdefault">ϑ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.688696em;"><span style="top:-2.451892em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">⋆</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.30643899999999996em;"><span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.849108em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">⊤</span></span></span></span></span></span></span></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:-0.08125em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault">ϑ</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.056439em;vertical-align:-0.30643899999999996em;"></span><span class="mord"><span class="mord mathdefault">ϑ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.688696em;"><span style="top:-2.451892em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">⋆</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.30643899999999996em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</p>
+<p>H 是累计重要性估计，实验使用 Synaptic Intelligence（SI）或 online EWC。</p>
+<h3 id="组件-2shared-lora-与-merged-lora"><a class="markdownIt-Anchor" href="#组件-2shared-lora-与-merged-lora"></a> 组件 2：Shared LoRA 与 merged LoRA</h3>
+<p>LoRA 将权重更新写成 ρBA，其中 A、B 是低秩矩阵。</p>
+<ul>
+<li>
+<p><strong>Shared LoRA</strong>：所有任务继续更新同一对 A/B；参数空间共享，容易出现后续任务覆盖旧方向。</p>
+</li>
+<li>
+<p><strong>Merged LoRA</strong>：每个任务使用新的 A/B，完成任务后把 ρB⋆A⋆ 合并到当前 dense weight，再初始化下一对 A/B。它类似把多个低秩小更新累积成更高秩的实际参数变化。</p>
+</li>
+</ul>
+<p>二者都只保留一个 dense model 和一对当前 LoRA，因此持久状态随任务数保持常数；对照的 O-LoRA 和 sequential OSRM 则需要随任务增长的状态。</p>
+<p><img src="/img/paper-reading/img_9c80bcc1785cac497a6973c90ea1dc7be602df1b3b98dd5332b0d4cfa4b57a42.png" srcset="/img/loading.gif" lazyload alt="Anchors and low-rank allocation" /></p>
+<p><em>图：三种 anchor 约束“保留什么”，shared/merged LoRA 规定“新更新如何分配与持久化”。</em></p>
+<h3 id="组件-3三个数据集"><a class="markdownIt-Anchor" href="#组件-3三个数据集"></a> 组件 3：三个数据集</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>数据集</strong></th>
+<th><strong>构成</strong></th>
+<th><strong>规模</strong></th>
+<th><strong>意义</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Symbol-QA</td>
+<td>随机 key-value 关联</td>
+<td>10,000 对，100 任务，每任务 100 例</td>
+<td>测最纯粹的参数记忆，几乎没有语义结构可利用</td>
+</tr>
+<tr>
+<td>LLM-QA</td>
+<td>LLM 生成的虚构事实</td>
+<td>10,000 对，100 任务，每任务 100 例</td>
+<td>有自然语言和主题结构，但答案仍受控</td>
+</tr>
+<tr>
+<td>Real-QA</td>
+<td>十个公开 QA 数据集筛选</td>
+<td>5,000 对，100 任务，每任务 50 例</td>
+<td>语义最自然，但不等于真正开放域泛化</td>
+</tr>
+</tbody>
+</table></div>
+<p>每个任务学完后都在此前所有任务上评估。作者研究的是 memorization 而非 generalization，所以测试用训练时见过的 query-answer 对；模型在改写问题上的表现另行讨论，但不作为主指标。</p>
+<h3 id="组件-4task-level-successive-halving"><a class="markdownIt-Anchor" href="#组件-4task-level-successive-halving"></a> 组件 4：Task-level Successive Halving</h3>
+<p>组合空间为：3 种权重 anchor 选项 × 3 种 self-distillation 选项 × 5 种 replay 选项 × 2 种 LoRA allocation，共 <strong>90 个配置</strong>。作者不是让 90 个配置全部跑满 100 个任务，而是按任务地平线逐轮淘汰：</p>
+<ul>
+<li>
+<p>10 个任务后保留前 45 个；</p>
+</li>
+<li>
+<p>20 个任务后保留前 23 个；</p>
+</li>
+<li>
+<p>50 个任务后保留前 10 个；</p>
+</li>
+<li>
+<p>只有最后 10 个跑到 100 个任务。</p>
+</li>
+</ul>
+<p>这是计算预算与长时程目标的折中，但它也埋下一个隐患：早期 retention 排名未必能预测 100-task 最优；作者报告搜索阶段和最终排名有较强一致性，但仍不是无偏穷举。</p>
+<p><em>（原图未能本地化：Task-level successive halving；IMA 媒体接口没有可用媒体编号）</em></p>
+<p><em>图：90 个配置在 10/20/50/100 任务地平线逐步筛选；能走到 100 任务的配置都包含 data anchor 与 merged LoRA。</em></p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="指标"><a class="markdownIt-Anchor" href="#指标"></a> 指标</h3>
+<p>令 M_{i,j} 表示学完前 i 个任务后，在第 j 个任务上的准确率。三个主要指标是：</p>
+<ul>
+<li>
+<p><strong>Final retention</strong>：最后学完 100 个任务后，所有任务的平均准确率；</p>
+</li>
+<li>
+<p><strong>Immediate acquisition（Diag）</strong>：每个任务刚学完时的准确率平均值；</p>
+</li>
+<li>
+<p><strong>Forget</strong>：一个任务历史最好准确率到最终准确率的下降。</p>
+</li>
+</ul>
+<p>作者还按 memory age a=i−j 汇总 R(a)，定义 memory half-life 为保留率降到初始值一半时经历的任务数。</p>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>结果</strong></th>
+<th><strong>Symbol-QA</strong></th>
+<th><strong>LLM-QA</strong></th>
+<th><strong>Real-QA</strong></th>
+<th><strong>解读</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>朴素顺序微调最终保留率</td>
+<td>约 0.x%</td>
+<td>约 0.x%</td>
+<td>约 0.x%</td>
+<td>平均为 1.2%，100 任务后几乎全忘</td>
+</tr>
+<tr>
+<td>最强单机制</td>
+<td>4.2%</td>
+<td>7.5%</td>
+<td>12.5%</td>
+<td>单一抗遗忘信号作用有限</td>
+</tr>
+<tr>
+<td>最强组合</td>
+<td>23.2%</td>
+<td>41.8%</td>
+<td>54.8%</td>
+<td>组合显著改善，但仍有大量遗忘</td>
+</tr>
+<tr>
+<td>论文统一推荐组合（SI+SD+Replay+merged LoRA）</td>
+<td>约 23%</td>
+<td>约 42%</td>
+<td>约 39%</td>
+<td>三数据集都进入 Top 3，跨数据集更稳健</td>
+</tr>
+<tr>
+<td>half-life：朴素微调</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>遗忘几乎发生在下一任务</td>
+</tr>
+<tr>
+<td>half-life：最强单机制</td>
+<td>4</td>
+<td>6</td>
+<td>11</td>
+<td>有改善但很快衰减</td>
+</tr>
+<tr>
+<td>half-life：最强组合</td>
+<td>19</td>
+<td>32</td>
+<td>44</td>
+<td>记忆寿命明显拉长</td>
+</tr>
+</tbody>
+</table></div>
+<p>论文 Figure 3 的全 factorial 最佳均值分别为 <strong>23.2%、41.8%、54.8%</strong>。作者强调的统一最佳方法是三 anchor + merged LoRA：平均最终保留率 <strong><span class="mark-number">34.9%</span></strong>，相对朴素顺序微调的 1.2% 是约 <strong><span class="mark-number">28 倍</span></strong>。两组数字不能混为一谈：前者是各数据集各自最优组合，后者是一个跨三个数据集都稳定进入 Top 3 的统一组合。</p>
+<p><img src="/img/paper-reading/img_d8b9ee1a235c03fd86ec709891909ae5ff77798d962d90347165dc3f22dd64fe.png" srcset="/img/loading.gif" lazyload alt="Final retention factorial" /></p>
+<p><em>图：16 种 anchor/merged-LoRA 组合在三个数据集上的最终保留率；组合通常远高于单机制，且数据集最优结构并不完全相同。</em></p>
+<h3 id="交互效应真正有价值的结果"><a class="markdownIt-Anchor" href="#交互效应真正有价值的结果"></a> 交互效应：真正有价值的结果</h3>
+<p>factorial analysis 显示 replay 与 merged LoRA 是四个因素中最大的主效应：</p>
+<ul>
+<li>
+<p>replay 主效应：提升约 9.5–19.3 个百分点；</p>
+</li>
+<li>
+<p>merged LoRA 主效应：提升约 5.9–20.5 个百分点；</p>
+</li>
+<li>
+<p>replay × merged LoRA 在三个数据集上都为正且显著。</p>
+</li>
+</ul>
+<p>举例：不启用 SI/SD 时，replay 与 merged LoRA 单独增益之和在三个数据集约为 3.9、7.7、13.9 个百分点，但联合使用相对于朴素微调的增益达到 15.6、31.0、46.9 个百分点。拆开看很清楚——merged LoRA 提供可持续的“新工作区”，replay 提供旧信息的训练信号；一个解决存储/容量，一个解决恢复/监督，二者在机制上正好互补。</p>
+<p>SI 和 self-distillation 的作用更依赖数据集及组合。尤其 SI 与 merged LoRA 在 Symbol-QA 上出现负交互，可能因为 SI 保存的参数重要性与旧 LoRA 因子绑定，但 merged LoRA 每轮会初始化新坐标；随机符号映射又缺少可复用结构，使错位约束成本更高。这个解释是论文的合理分析，不等于已被单独因果验证。</p>
+<p><img src="/img/paper-reading/img_5b03576af10e623cc023775221dea8ec722a14a0e82f97a09b9b57bbf366fc9f.png" srcset="/img/loading.gif" lazyload alt="Memory survival curves" /></p>
+<p><em>图：组合方法让记忆衰减更慢；但所有曲线最终仍下降，所以这是延缓遗忘而非永久记忆。</em></p>
+<h3 id="泛化与通用能力"><a class="markdownIt-Anchor" href="#泛化与通用能力"></a> 泛化与通用能力</h3>
+<p>作者专门评估 GSM8K、MATH、MGSM、MMLU-Redux 等 held-out benchmark，结论并不乐观：改善记忆不等于保留通用能力，所有方法在这些 benchmark 上都出现 catastrophic forgetting。O-LoRA 在 LLM-QA 和 Real-QA 上保留更多通用能力，但其最终记忆保留率只小幅高于 merged LoRA，而且需要随任务增长的状态。</p>
+<p>这篇论文优化的目标其实很窄：它有效改善“记住训练过的关联”，但没有解决“学新东西同时保持原有推理、知识和泛化能力”。对真实 Agent 来说，后者可能比单纯记住 100 批训练样本更重要。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>问题定义清楚且可量化</strong>：100 个任务、无任务 ID、旧样本不保留，把长期参数记忆与普通多任务学习区分开。</p>
+</li>
+<li>
+<p><strong>组合空间被系统拆解</strong>：不是只展示一个“我们组合了三个技巧”的结果，而是用 successive halving 和 2⁴ factorial 估计主效应及交互效应。</p>
+</li>
+<li>
+<p><strong>结果具有机制解释</strong>：replay 与 merged LoRA 的超加性不是单纯榜单数字，而能对应“旧信息监督”与“可持续新工作区”两类互补瓶颈。</p>
+</li>
+<li>
+<p><strong>诚实披露关键边界</strong>：论文明确说主实验是 memorization，训练 query 与测试 query 相同；也报告通用能力仍然遗忘，没有把 28 倍提升包装成通用持续学习解决方案。</p>
+</li>
+<li>
+<p><strong>对 Agent/Harness 有直接启发</strong>：长期运行 Agent 的记忆机制可按“保留证据的层次”和“更新容量如何分配”两个轴设计，而不是只选一个 replay 或正则化技巧。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：90 个配置 × 100 任务的全量穷举算不起，successive halving 是省预算的妥协，我理解这个选择。但理解归理解，下面几条还是要摆出来：</p>
+<ol>
+<li>
+<p><strong>主指标是训练集回忆，不是泛化</strong>：不测 paraphrase、相关新问题或真实时间变化下的知识迁移，不能证明模型学会了可泛化知识。</p>
+</li>
+<li>
+<p><strong>100 个任务仍是受控实验</strong>：每任务 50/100 条样本，数据流有固定任务顺序；虽然有多 seed，但搜索阶段明确使用固定开发任务顺序，任务顺序敏感性仍需更充分评估。</p>
+</li>
+<li>
+<p><strong>replay 并非真正零信息记忆</strong>：旧原始样本不保存，但每个任务前要用冻结模型生成 300 条伪序列；这把信息压缩进模型生成分布，可能受生成质量、温度和伪样本偏差影响。</p>
+</li>
+<li>
+<p><strong>最佳方法不一定统一最优</strong>：三个数据集的最强组合不同；“三 anchor + merged LoRA”是跨数据集稳定的折中，不是每个数据集的绝对冠军。</p>
+</li>
+<li>
+<p><strong>计算预算与选择偏差</strong>：successive halving 用早期表现淘汰配置，可能错过晚期反超的方法；TSH 的价值是省预算，不是严格无偏搜索。</p>
+</li>
+<li>
+<p><strong>真实模型规模与任务形态仍有限</strong>：论文聚焦连续 SFT 的 QA 关联记忆，和持续预训练、工具使用、代码 Agent 的状态记忆并不等价。</p>
+</li>
+<li>
+<p><strong>通用能力仍明显退化</strong>：这是应用上的最大风险。对于 Agent，记住新事实但失去数学、知识或工具调用能力，不能算完整的 continual learning 成功。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方向</strong></th>
+<th><strong>代表方法</strong></th>
+<th><strong>本文关系</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>参数重要性正则化</td>
+<td>EWC、SI</td>
+<td>作为 weight anchor 纳入组合空间，但不是单独依赖它</td>
+</tr>
+<tr>
+<td>生成式 replay</td>
+<td>LAMOL、Deep Generative Replay</td>
+<td>本文使用冻结模型生成伪序列，并将其与 LoRA allocation 做 factorial 对比</td>
+</tr>
+<tr>
+<td>函数保持</td>
+<td>Learning without Forgetting</td>
+<td>作为 function anchor，与 data anchor 的“在哪些输入上蒸馏”区分开</td>
+</tr>
+<tr>
+<td>LoRA 累积更新</td>
+<td>ReLoRA</td>
+<td>借用 merge + reinitialize 逻辑，并将其用于持续任务记忆</td>
+</tr>
+<tr>
+<td>任务隔离低秩空间</td>
+<td>O-LoRA、OSRM</td>
+<td>作为随任务增长状态的对照，结果没有显示其普遍优于 merged LoRA</td>
+</tr>
+<tr>
+<td>Agent 长期记忆</td>
+<td>AgentOdyssey 等</td>
+<td>本文提供的是参数内记忆的受控基准，不是 Agent 交互环境或外部记忆系统</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇论文最重要的贡献不是提出一个神奇的抗遗忘算法，而是把长期参数记忆拆成两个设计问题：用什么 anchor 保存旧信息，以及如何给连续更新分配低秩容量。实验说服我的一点是：data replay 与 merged LoRA 的组合比单独使用任何一项都更有效，并且存在跨数据集的超加性互动。</p>
+<p>但最终保留率 34.9% 也在提醒：组合机制只是把遗忘推迟，并没有实现真正的终身记忆；held-out 通用能力照样会遗忘。对 Agent 来说，它更像一个“参数记忆层”的设计基准，而不是完整的长期记忆/Harness 解决方案。下一步该做的是把任务改写、工具反馈、真实持续数据流、任务顺序变化和通用能力保持纳入同一个评估闭环。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>三 anchor + merged LoRA</strong> 把 100 任务后的平均保留率从 1.2% 提高到 34.9%，但不是永久记忆。</p>
+</li>
+<li>
+<p>最大的协同来自 <strong>replay × merged LoRA</strong>：一个保留旧信息训练信号，一个提供可持续更新空间。</p>
+</li>
+<li>
+<p>论文证明的是“训练过的关联记得更久”，不是“模型获得了长期泛化记忆”；通用能力仍会退化。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</div>
+      <div>https://yyhchen.github.io/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年9月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/09/09/paper-finite-time-blowup-for-navier-stokes/" title="Paper精读｜Finite time blowup for Navier–Stokes">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Finite time blowup for Navier–Stokes</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement">
+                        <span class="hidden-mobile">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

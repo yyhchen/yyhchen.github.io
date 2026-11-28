@@ -1,0 +1,1097 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="论文声称：对任意正粘性系数 ν，构造一个三维不可压 Navier–Stokes 解，初始速度为零，外力在时空中光滑且紧支撑；解在 t&#x3D;1 前每个时刻都光滑、动能保持有界，但当 t→1 时 L∞ 速度发散。作者据此声称建立 Clay 千禧年问题在 R³ 上的 breakdown alternative (C)，并由紧支撑构造推出周期三维环面上的 alternative (D)。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Finite time blowup for Navier–Stokes">
+<meta property="og:url" content="https://yyhchen.github.io/2026/09/09/paper-finite-time-blowup-for-navier-stokes/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="论文声称：对任意正粘性系数 ν，构造一个三维不可压 Navier–Stokes 解，初始速度为零，外力在时空中光滑且紧支撑；解在 t&#x3D;1 前每个时刻都光滑、动能保持有界，但当 t→1 时 L∞ 速度发散。作者据此声称建立 Clay 千禧年问题在 R³ 上的 breakdown alternative (C)，并由紧支撑构造推出周期三维环面上的 alternative (D)。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_7f392b23d988c8f8ef1b667e6e5fe633d794a792d0611983356cba2d89d62232.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_f48c1d70f4c285c25c442d62c40899588223795e17862107740420676dc634e7.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_78661bd9a9e7cf53489cc45ae2598edbcb52f2ba4314f83deb6774a72c89ba3e.png">
+<meta property="article:published_time" content="2026-09-09T07:19:43.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_7f392b23d988c8f8ef1b667e6e5fe633d794a792d0611983356cba2d89d62232.png">
+  
+  
+  
+  <title>Paper精读｜Finite time blowup for Navier–Stokes - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Finite time blowup for Navier–Stokes</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-09-09 15:19" pubdate>
+          2026-09-09 15:19:43
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="理论与数学推理"
+        id="heading-3308ff0d80699a15d8a87f89795d0b74" role="tab" data-toggle="collapse" href="#collapse-3308ff0d80699a15d8a87f89795d0b74"
+        aria-expanded="true"
+      >
+        理论与数学推理
+        <span class="list-group-count">(9)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-3308ff0d80699a15d8a87f89795d0b74"
+           role="tabpanel" aria-labelledby="heading-3308ff0d80699a15d8a87f89795d0b74">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(9)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/28/paper-an-algebraic-quantization-of-gravity-from-the-null-cone/" title="Paper精读｜An algebraic quantization of gravity from the null cone"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜An algebraic quantization of gravity from the null cone</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-counterfactual-world-models-jepas-that-reason-about-what-if/" title="Paper精读｜Counterfactual World Models: JEPAs That Reason About &#34;What If&#34;"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Counterfactual World Models: JEPAs That Reason About &#34;What If&#34;</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-finite-time-blowup-for-navier-stokes/" title="Paper精读｜Finite time blowup for Navier–Stokes"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Finite time blowup for Navier–Stokes</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-leanstral/" title="Paper精读｜Leanstral"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Leanstral</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-ten-advances-in-mathematics-and-theoretical-computer-science/" title="Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-expanding-flow-maps/" title="Paper精读｜Expanding Flow Maps"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Expanding Flow Maps</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/26/paper-hilbert-operator-for-progressive-encoding-hope-a-mathematical-framework-for-deconstructing-learned-representations/" title="Paper精读｜Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-latent-reasoning-with-normalizing-flows/" title="Paper精读｜Latent Reasoning with Normalizing Flows"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Latent Reasoning with Normalizing Flows</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/22/paper-generative-recursive-reasoning-gram-%E9%80%92%E5%BD%92%E6%8E%A8%E7%90%86%E7%9A%84%E6%A6%82%E7%8E%87%E5%8C%96/" title="Paper精读｜Generative Recursive Reasoning (GRAM) — 递归推理的概率化"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Generative Recursive Reasoning (GRAM) — 递归推理的概率化</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Finite time blowup for Navier–Stokes</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;theory">理论与数学推理</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读finite-time-blowup-for-navierstokes"><a class="markdownIt-Anchor" href="#paper精读finite-time-blowup-for-navierstokes"></a> Paper精读｜Finite time blowup for Navier–Stokes</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>论文声称：对任意正粘性系数 ν，构造一个三维不可压 Navier–Stokes 解，初始速度为零，外力在时空中光滑且紧支撑；解在 t=1 前每个时刻都光滑、动能保持有界，但<span class="mark-strong">当 t→1 时 L∞ 速度发散</span>。作者据此声称建立 Clay 千禧年问题在 R³ 上的 breakdown alternative ©，并由紧支撑构造推出周期三维环面上的 alternative (D)。<br />
+这不是无外力问题的&quot;任意解都会爆炸&quot;，也不是数值模拟发现，而是一项高度定制的存在性构造：先设计会集中和放大的背景流，再用振荡脉冲产生的平均二次动量通量抵消背景流的奇异残差，最后把所有误差修正到外力在 t=1 仍然光滑。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>来源页面</strong>：<a target="_blank" rel="noopener" href="https://www.alphaxiv.org/abs/2609.navier-stokes-solution">https://www.alphaxiv.org/abs/2609.navier-stokes-solution</a></li>
+<li><strong>原始论文 PDF</strong>：<a target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf</a></li>
+<li><strong>配套 Lean 仓库</strong>：<a target="_blank" rel="noopener" href="https://github.com/openai/NavierStokesAndEuler">https://github.com/openai/NavierStokesAndEuler</a></li>
+<li><strong>页面标注</strong>：OpenAI，提交日期 <span class="mark-number">2026-09-08</span>；本文没有 arXiv 编号，来源是 OpenAI PDF/项目页面而非 arXiv 版本。</li>
+</ul>
+</div></details><hr />
+<h2 id="1-论文究竟证明了什么"><a class="markdownIt-Anchor" href="#1-论文究竟证明了什么"></a> 1. 论文究竟证明了什么</h2>
+<p>论文的 Theorem 1.1 给出：对每个 ν&gt;0，存在</p>
+<ul>
+<li>
+<p>f ∈ C∞_c(R³×(0,∞);R³)；</p>
+</li>
+<li>
+<p>紧集 K；</p>
+</li>
+<li>
+<p>R³×[0,1) 上光滑的速度 u 和压力 p；</p>
+</li>
+</ul>
+<p>满足</p>
+<p>∂t u +(u·∇)u −νΔu+∇p=f，  div u=0， u(·,0)=0。</p>
+<p>并且：</p>
+<ul>
+<li>
+<p>对每个 t&lt;1，u、p 的空间支撑位于同一个固定紧集 K；</p>
+</li>
+<li>
+<p>sup_{0≤t&lt;1} ||u(t)||₂ &lt;∞；</p>
+</li>
+<li>
+<p>limsup_{t↑1} ||u(t)||∞ =∞。</p>
+</li>
+</ul>
+<p>因此同一初值和同一外力不可能存在一个在所有 t≥0 都光滑、且动能统一有界的全局解：如果存在，它在 t&lt;1 的局部区间上要和构造出的解一致，继而继承 t=1 附近的速度无界性，产生矛盾。</p>
+<p>这里的逻辑重点是&quot;<span class="mark-strong">存在一个特殊外力，使得不存在满足全局光滑+统一能量界的解</span>&quot;，而不是&quot;证明三维无外力 Navier–Stokes 的所有光滑解都会有限时爆炸&quot;。</p>
+<hr />
+<h2 id="2-核心机制细长塌缩涡-振荡脉冲"><a class="markdownIt-Anchor" href="#2-核心机制细长塌缩涡-振荡脉冲"></a> 2. 核心机制：细长塌缩涡 + 振荡脉冲</h2>
+<p>令 τ=1−t，作者引入小参数 h∈(0,1/100)，设计一个轴对称、自相似收缩的核心：</p>
+<ul>
+<li>
+<p>径向尺度 ℓr ≍ τ^(1/2)；</p>
+</li>
+<li>
+<p>轴向尺度 ℓz ≍ τ^(1/2−h)；</p>
+</li>
+<li>
+<p>因为 h&gt;0，ℓr/ℓz ≍ τ^h→0，核心越来越像细长柱体；</p>
+</li>
+<li>
+<p>方位角和轴向速度典型大小 ≍ τ^(−1/2−h)；</p>
+</li>
+<li>
+<p>径向速度只有 O(τ^(−1/2))。</p>
+</li>
+</ul>
+<p>核心体积约为 τ^(3/2−h)，所以尽管速度发散，动能仍可趋于 0（论文给出的核心动能量级为 τ^(1/2−3h)，在 h&lt;1/100 时仍趋于 0）。这是&quot;<span class="mark-strong">L∞ 发散而 L² 有界</span>&quot;的关键尺度分离。</p>
+<p>物理图像是：径向流把角动量带向更小半径，导致旋转加速；轴向流把不可压缩条件要求的流体输送出去；轴向和方位角剪切共同放大扰动。外部采用一个纯方位角、满足径向热方程的 heat exterior，使核心之外不需要奇异外力。</p>
+<p><img src="/img/paper-reading/img_7f392b23d988c8f8ef1b667e6e5fe633d794a792d0611983356cba2d89d62232.png" srcset="/img/loading.gif" lazyload alt="Theorem page - finite time blowup for Navier-Stokes" /></p>
+<p><em>图：定理页主要声明有限时间 L∞ 速度发散但动能有界，并说明这对应 Millennium problem breakdown alternative ©/(D)。</em></p>
+<hr />
+<h2 id="3-为什么不能只用背景流"><a class="markdownIt-Anchor" href="#3-为什么不能只用背景流"></a> 3. 为什么不能只用背景流</h2>
+<p>单独的塌缩背景流虽然可以产生速度发散，但它与 Navier–Stokes 方程之间的残差在核心外侧的过渡环带中会发散。若直接把残差定义为外力，外力就会在 t=1 处奇异，不符合定理要求的光滑紧支撑外力。</p>
+<p>作者因此把问题改写成一个&quot;奇异项精确抵消&quot;问题：</p>
+<ol>
+<li>
+<p>先构造背景 (uB,pB)，使残差等于环带应力的负散度，加上对奇异时刻 flat 的误差；</p>
+</li>
+<li>
+<p>在环带放置两族局部化、空间振荡的脉冲；</p>
+</li>
+<li>
+<p>利用脉冲的二次项 ∇·(w⊗w) 产生预设的平均动量通量；</p>
+</li>
+<li>
+<p>让两族脉冲的协方差正组合恰好抵消背景应力；</p>
+</li>
+<li>
+<p>对剩余谐波、均值项和径向矩继续迭代修正。</p>
+</li>
+</ol>
+<p><span class="mark-strong">关键不是振荡速度本身的平均值，而是其平方乘积的平均值</span>。例如径向速度和方位角速度都可以零均值，但它们的乘积具有非零平均，从而产生净的角动量通量。</p>
+<hr />
+<h2 id="4-应力锥与两族脉冲"><a class="markdownIt-Anchor" href="#4-应力锥与两族脉冲"></a> 4. 应力锥与两族脉冲</h2>
+<p>背景流在环带留下二维目标应力 T=(Trθ,Trz)。作者构造两族脉冲，其单位振幅协方差方向为 v1、v2，并要求</p>
+<p>T=c1v1+c2v2， c1&gt;0， c2&gt;0。</p>
+<p>也就是 T 位于两个脉冲协方差方向生成的正锥内部。正系数很重要：它允许把应力解释为两族脉冲的平方振幅，而不是靠不合法的负平方根或破坏实值性的系数。</p>
+<p>论文用径向 profile 的构造、五个累计径向积分的匹配，以及在环带插入 N log X 型高频微扰来实现这一点。微扰振幅只有 O(N⁻¹)，但 X∂X 会把导数改变到 O(1)——剪切方向因此能拿到 O(1) 量级的调整，而 profile 值和径向矩只挪动小量；再用局部修正把五个矩精确恢复。</p>
+<hr />
+<h2 id="5-脉冲的放大粘性衰减过程"><a class="markdownIt-Anchor" href="#5-脉冲的放大粘性衰减过程"></a> 5. 脉冲的放大—粘性衰减过程</h2>
+<p>论文设计脉冲先从背景剪切中吸收能量并放大，随后由于剪切改变波形、径向波长缩短，粘性阻尼最终占优，脉冲在时间槽末尾衰减。尺度上，论文给出典型波振幅和波长：</p>
+<ul>
+<li>
+<p>Awave ≍ q^(−1/2−h/2)；</p>
+</li>
+<li>
+<p>ℓwave ≍ q^(1/2+h/2)；</p>
+</li>
+<li>
+<p>Awave² ≍ q^(−1−h)，正好达到所需应力尺度。</p>
+</li>
+</ul>
+<p>脉冲用向量势取 curl 构造，因此速度增量自动无散。作者额外引入辅助二维环面变量 Y：不同标签的脉冲在 Y 上拥有不相交支持，从而让它们的交叉乘积在点态上消失，同时保留同一标签内部的必要相互作用。这是一个高度技术化的&quot;管理大量振荡脉冲交互&quot;的装置。</p>
+<p><img src="/img/paper-reading/img_f48c1d70f4c285c25c442d62c40899588223795e17862107740420676dc634e7.png" srcset="/img/loading.gif" lazyload alt="图 5｜背景流到第一轮振荡校正的构造步骤" /></p>
+<p><em>图 5｜背景流到第一轮振荡校正的构造步骤。 <a target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf#page=13">来源</a></em></p>
+<p><em>图：proof outline 页面展示了背景构造、脉冲修正与最终外力延拓的整体证明结构。</em></p>
+<hr />
+<h2 id="6-误差修正与最终外力"><a class="markdownIt-Anchor" href="#6-误差修正与最终外力"></a> 6. 误差修正与最终外力</h2>
+<p>构造不是一次性完成，而是四步循环：</p>
+<ol>
+<li>
+<p>解非齐次振幅方程，消除有限个支撑谐波；</p>
+</li>
+<li>
+<p>调整波振幅，修正辅助平均后的切向残差；</p>
+</li>
+<li>
+<p>对辅助变量零均值部分使用 temporal mean inverse；</p>
+</li>
+<li>
+<p>用五方程修正径向矩缺陷，并重新恢复压力。</p>
+</li>
+</ol>
+<p>论文的 Proposition 9.6 声称<span class="mark-strong">每循环一次，残差衰减指数提高 1/10</span>。通过有限阶段比较、逐阶段估计、局部化和端点延拓，最终得到一个速度和压力在 t&lt;1 光滑、但残差可以延拓穿过 t=1 的构造。这个延拓后的残差就是光滑外力 f。</p>
+<p>作者的谨慎藏在一个细节里：不是直接把&quot;无限多 flat 残差&quot;粗暴相加，而是先在固定有限阶段比较，再利用每阶估计和端点定理完成实现——绕开无限级数在 t=1 的直接求和问题。</p>
+<hr />
+<h2 id="7-周期环面结果"><a class="markdownIt-Anchor" href="#7-周期环面结果"></a> 7. 周期环面结果</h2>
+<p>论文主定理是 R³。论文声称由于最终速度、压力和外力具有紧支撑，可以把整个构造放入足够大的周期盒中，从而得到 T³=R³/Z³ 上的对应 breakdown 结果（Corollary 10.6）。配套仓库 README 也把 Navier–Stokes 部分分成：</p>
+<ul>
+<li>
+<p>whole space R³：没有全局光滑且统一动能有界的解；</p>
+</li>
+<li>
+<p>periodic torus：不存在全局光滑解。</p>
+</li>
+</ul>
+<p>这两个表述并不完全相同：R³结果保留了&quot;统一动能有界&quot;的条件，周期环面结果的全局光滑性表述更直接。</p>
+<hr />
+<h2 id="8-lean-仓库核对"><a class="markdownIt-Anchor" href="#8-lean-仓库核对"></a> 8. Lean 仓库核对</h2>
+<p>仓库为：<a target="_blank" rel="noopener" href="https://github.com/openai/NavierStokesAndEuler%E3%80%82">https://github.com/openai/NavierStokesAndEuler。</a></p>
+<p>README 声称使用 Lean 4.34.0-rc2、Mathlib 和 Lake，并提供 Comparator 独立检查说明。</p>
+<p>从源码结构看，NavierStokes.lean 导入 NavierStokes.ComparatorSolution；后者把两个结果暴露为：</p>
+<ul>
+<li>
+<p>navier_stokes_breakdown_R3；</p>
+</li>
+<li>
+<p>navier_stokes_breakdown_periodic。</p>
+</li>
+</ul>
+<p>源码中的证明桥接到 ComparatorBridge，再由 ActualCandidateAssembly.selected_candidate 提供候选构造。也就是说，仓库不是只有一个&quot;定理声明&quot;文件，而是有大量 ActualCandidateConstruction、StageEstimates、SignedWaveData、MeanExterior 等模块，尝试把构造的各个阶段接成 Lean 定理链。</p>
+<p>但本次环境中 git clone 整个仓库未完成，因此我没有在本机执行 lake build，不能把&quot;源码中存在证明链&quot;升级成&quot;我已独立编译验证&quot;。仓库 README 的&quot;可独立检查&quot;主张仍应以实际的 clean checkout + lake build/Comparator 检查和外部复核为准。</p>
+<p><img src="/img/paper-reading/img_78661bd9a9e7cf53489cc45ae2598edbcb52f2ba4314f83deb6774a72c89ba3e.png" srcset="/img/loading.gif" lazyload alt="图 3｜集中几何和参照脉冲的径向剖面与衰减" /></p>
+<p><em>图 3｜集中几何和参照脉冲的径向剖面与衰减。 <a target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf#page=9">来源</a></em></p>
+<p><em>图： concentrating geometry 页面展示了核心收缩、环带位置和脉冲位置关系。</em></p>
+<hr />
+<h2 id="9-论文没有做什么"><a class="markdownIt-Anchor" href="#9-论文没有做什么"></a> 9. 论文没有做什么</h2>
+<ul>
+<li>
+<p>没有数值实验；这是解析构造，不是 simulation paper。</p>
+</li>
+<li>
+<p>没有给出一个简单可运行的显式速度公式；核心对象由 profile、脉冲、校正和极限拼接构成。</p>
+</li>
+<li>
+<p>没有证明无外力 Navier–Stokes 的一般解必然爆炸。</p>
+</li>
+<li>
+<p>没有证明普通物理边界条件或自然初值会产生这种奇异性。</p>
+</li>
+<li>
+<p>&quot;动能有界&quot;是对构造解的统一上界，不是说所有可能解都满足该性质。</p>
+</li>
+<li>
+<p>论文尚未被我核验为 Clay Institute 已接受的正式解决方案；应区分&quot;作者声称建立 alternative ©/(D)“与&quot;数学界完成同行评审并承认解决”。</p>
+</li>
+</ul>
+<hr />
+<h2 id="10-我的判断"><a class="markdownIt-Anchor" href="#10-我的判断"></a> 10. 我的判断</h2>
+<p>如果构造中的 profile 存在性、无穷阶残差修正、t=1 端点延拓、外力光滑性以及周期化步骤都没有隐藏缺口，那么这是直接击中三维 Navier–Stokes 千禧年问题 breakdown 分支的结果，而且机制很漂亮：用不改变平均速度的高频脉冲，通过二次通量给塌缩背景提供内部动量输运。</p>
+<p>但它的可信度门槛极高。最需要外部专家逐条检查的是：</p>
+<ol>
+<li>
+<p>脉冲平均应力与真实物理二次项之间是否完全一致；</p>
+</li>
+<li>
+<p>辅助环面上的&quot;交叉项点态消失&quot;在代入物理相位图后是否仍覆盖所有导数项；</p>
+</li>
+<li>
+<p>四步修正循环是否真的保持无散、支撑和五个径向矩；</p>
+</li>
+<li>
+<p>残差对所有笛卡尔时空导数是否在 t=1 一致延拓；</p>
+</li>
+<li>
+<p>用统一有界动能的局部唯一性/一致性推出无全局解的逻辑是否严格符合 Clay 版本的量词；</p>
+</li>
+<li>
+<p>Lean 形式化是否依赖未经证明的公理或 Comparator challenge 中的假设，及其与论文构造的对应关系。</p>
+</li>
+</ol>
+<p>因此最准确的评价是：这是一篇声称用极其复杂的解析构造解决 Navier–Stokes breakdown 分支的论文，论证目标和机制都非常明确；在没有完成同行评审、独立编译和逐项数学审查前，不能简单说&quot;<span class="mark-strong">千禧年问题已经被正式解决</span>&quot;。</p>
+
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%90%86%E8%AE%BA%E4%B8%8E%E6%95%B0%E5%AD%A6%E6%8E%A8%E7%90%86/" class="category-chain-item">理论与数学推理</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%90%86%E8%AE%BA%E4%B8%8E%E6%95%B0%E5%AD%A6%E6%8E%A8%E7%90%86/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Finite time blowup for Navier–Stokes</div>
+      <div>https://yyhchen.github.io/2026/09/09/paper-finite-time-blowup-for-navier-stokes/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年9月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization">
+                        <span class="hidden-mobile">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

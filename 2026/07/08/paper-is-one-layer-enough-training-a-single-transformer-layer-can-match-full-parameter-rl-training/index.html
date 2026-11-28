@@ -1,0 +1,1286 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="RL 微调的增益高度集中在少数中间层——只训一个 Transformer 层就能恢复甚至超过全参数 RL 训练，而且这个模式跨模型家族、数据集、RL 算法、任务领域全都成立。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/08/paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="RL 微调的增益高度集中在少数中间层——只训一个 Transformer 层就能恢复甚至超过全参数 RL 训练，而且这个模式跨模型家族、数据集、RL 算法、任务领域全都成立。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_5e634e350913faff0f6125afa5408668fda565827001cd975e2ddd2f2147ff4d.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_49f30612f5e137e7ace01243d2b472d2427c0afcdc09d8e960819085f81bb621.svg">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_bcf26e016f6cebb25d07fc349831d1c3c92ec30ac1b02b8a1ad0fc866c4bf867.svg">
+<meta property="article:published_time" content="2026-07-07T16:13:49.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_5e634e350913faff0f6125afa5408668fda565827001cd975e2ddd2f2147ff4d.png">
+  
+  
+  
+  <title>Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-08 00:13" pubdate>
+          2026-07-08 00:13:49
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          16 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="强化学习与后训练"
+        id="heading-29da1621cfec405f671ce94f3f329a14" role="tab" data-toggle="collapse" href="#collapse-29da1621cfec405f671ce94f3f329a14"
+        aria-expanded="true"
+      >
+        强化学习与后训练
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-29da1621cfec405f671ce94f3f329a14"
+           role="tabpanel" aria-labelledby="heading-29da1621cfec405f671ce94f3f329a14">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/25/Paper%E7%B2%BE%E8%AF%BB-Verifiable-On-Policy-Distillation/" title="Paper精读｜Verifiable On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Verifiable On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/" title="Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/31/paper-ttpo-test-time-policy-optimization/" title="Paper精读｜TTPO: Test-Time Policy Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜TTPO: Test-Time Policy Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-u-opsd-on-policy-self-distillation-without-any-supervision/" title="Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/08/paper-agentopsd-recursive-self-distillation-for-agentic-reinforcement-learning/" title="Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-weak-to-strong-on-policy-distillation/" title="Paper精读｜Weak-to-Strong On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Weak-to-Strong On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-single-rollout-asynchronous-optimization-for-agentic-reinforcement-learning/" title="Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-compactionrl-reinforcement-learning-with-context-compaction-for-long-horizon-agents/" title="Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training/" title="Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-breaking-entropy-bounds-accelerating-rl-training-via-mtp-with-rejection-sampling/" title="Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/26/paper-vector-policy-optimization-training-for-diversity-improves-test-time-search/" title="Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/20/paper-self-distilled-agentic-reinforcement-learning-sdar/" title="Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-evolving-rl-%E7%AB%AF%E5%88%B0%E7%AB%AFrl%E4%BC%98%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96%E8%83%BD%E5%8A%9B/" title="Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/12/paper-flow-opd-on-policy-distillation-for-flow-matching-models/" title="Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/11/paper-skill1-unified-evolution-of-skill-augmented-agents-via-reinforcement-learning/" title="Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/07/paper-on-policy-distillation-uni-opd/" title="Paper精读｜On-Policy Distillation (Uni-OPD)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜On-Policy Distillation (Uni-OPD)</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;reinforcement-learning">强化学习与后训练</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training"><a class="markdownIt-Anchor" href="#paper精读is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training"></a> Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong><span class="mark-strong">RL 微调的增益高度集中在少数中间层</span></strong>——只训一个 Transformer 层就能恢复甚至超过全参数 RL 训练，而且这个模式跨模型家族、数据集、RL 算法、任务领域全都成立。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</li>
+<li><strong>arXiv</strong>：2607.01232</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2607.01232">https://arxiv.org/abs/2607.01232</a></li>
+<li><strong>作者</strong>：Zijian Zhang, Rizhen Hu, Athanasios Glentis, Dawei Li, Chung-Yiu Yau, Hongzhou Lin, Mingyi Hong</li>
+<li><strong>机构</strong>：University of Minnesota / Peking University / Amazon（独立工作）</li>
+<li><strong>日期</strong>：2026-07</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>RLVR 现在是 LLM 后训练的标配，数学推理、代码生成、Agent 决策的提升都有它一份。但默认做法是对所有层做<strong>均匀的全参数更新</strong>——这里头藏着个没人检查过的假设：每层对 RL 增益的贡献差不多。</p>
+<p>论文把这个问题翻了开来：<strong>RL 增益在网络里到底是怎么按层分布的？</strong> 要是贡献高度不均匀，这个结构本身就能拿来设计更省的训练策略。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">三条核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong><span class="mark-strong">单层训练即可匹配全参数 RL</span></strong>：Qwen3-1.7B 上最佳单层（Layer 10）的 layer contribution 达到 1.14——<span class="mark-number">只训这一层，拿到的提升是全参数 RL 的 114%</span>。28 层里有 5 层贡献超过 1.0。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">贡献呈「中间高、两端低」的稳定结构</span></strong>：高贡献层一致落在堆栈中间（约 40%-60% 深度），靠近输入和输出的层贡献低一大截。7 个模型、3 种 RL 算法、多个任务，形状都一样。</p>
+</li>
+<li>
+<p><strong>高贡献层之间互补</strong>：<span class="mark-number">top-7 高贡献层的 Jaccard 相似度只有 34.1%</span>——它们各自解决的是不同的问题子集。把 7 个层训练模型拉来做多数投票（majority voting），效果超过最佳单层，也超过全参数基线。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_5e634e350913faff0f6125afa5408668fda565827001cd975e2ddd2f2147ff4d.png" srcset="/img/loading.gif" lazyload alt="Figure 1: Layer contribution across all seven models" /></p>
+<p><em>Figure 1 — 7 个模型的 layer contribution 按归一化深度画在一起，每个点是一层，颜色区分模型。中间层贡献最高、两端急剧下降的形状跨模型一致地出现。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1layer-contribution-定义"><a class="markdownIt-Anchor" href="#组件1layer-contribution-定义"></a> 组件1：Layer Contribution 定义</h3>
+<p>要回答「增益怎么分布」，先得有把尺。论文造了个直接的度量 <strong>Layer Contribution 𝒞(k)</strong>：</p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">C</mi><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mtext>Score</mtext><mo stretchy="false">(</mo><mtext>train layer </mtext><mi>k</mi><mo stretchy="false">)</mo><mo>−</mo><mtext>Score</mtext><mo stretchy="false">(</mo><mtext>base</mtext><mo stretchy="false">)</mo></mrow><mrow><mtext>Score</mtext><mo stretchy="false">(</mo><mtext>full-parameter</mtext><mo stretchy="false">)</mo><mo>−</mo><mtext>Score</mtext><mo stretchy="false">(</mo><mtext>base</mtext><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\mathcal{C}(k) = \frac{\text{Score}(\text{train layer } k) - \text{Score}(\text{base})}{\text{Score}(\text{full-parameter}) - \text{Score}(\text{base})}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.05834em;">C</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.53em;vertical-align:-0.52em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">Score</span></span><span class="mopen mtight">(</span><span class="mord text mtight"><span class="mord mtight">full-parameter</span></span><span class="mclose mtight">)</span><span class="mbin mtight">−</span><span class="mord text mtight"><span class="mord mtight">Score</span></span><span class="mopen mtight">(</span><span class="mord text mtight"><span class="mord mtight">base</span></span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">Score</span></span><span class="mopen mtight">(</span><span class="mord text mtight"><span class="mord mtight">train layer </span></span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mclose mtight">)</span><span class="mbin mtight">−</span><span class="mord text mtight"><span class="mord mtight">Score</span></span><span class="mopen mtight">(</span><span class="mord text mtight"><span class="mord mtight">base</span></span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
+<p>分母是全参数 RL 的总提升，分子是只训第 k 层拿到的提升。𝒞(k) &gt; 1.0，就是单层干过了全参数。</p>
+<h3 id="组件2逐层独立训练协议"><a class="markdownIt-Anchor" href="#组件2逐层独立训练协议"></a> 组件2：逐层独立训练协议</h3>
+<ul>
+<li>
+<p>对每个模型，逐层冻结其他参数，只用 GRPO 训这一层</p>
+</li>
+<li>
+<p>训练数据统一用 NuminaMath-CoT（去污后 50K 问题）</p>
+</li>
+<li>
+<p>其余所有层、embedding、LM head 全部冻结</p>
+</li>
+<li>
+<p>全参数 GRPO 基线用完全相同的超参数做对照</p>
+</li>
+</ul>
+<h3 id="组件3layer-aware-训练策略3-种"><a class="markdownIt-Anchor" href="#组件3layer-aware-训练策略3-种"></a> 组件3：Layer-Aware 训练策略（3 种）</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>策略</strong></th>
+<th><strong>做法</strong></th>
+<th><strong>效果</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Boost Bk</strong></td>
+<td>对 top-k 层使用更高学习率（1e-5 vs 5e-6）</td>
+<td>Qwen3-1.7B: +2.88（占总增益 43%）</td>
+</tr>
+<tr>
+<td><strong>Only Bk</strong></td>
+<td>仅训练 top-k 层，其余冻结</td>
+<td>Only B5 即超越全参数基线</td>
+</tr>
+<tr>
+<td><strong>Middle Heuristic</strong></td>
+<td>直接选中间 5 层（无需 profiling）</td>
+<td>效果接近 contribution-guided 选择</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p>不用 per-dataset profiling：层排序跨数据集高度一致（Pearson r &gt; 0.9）</p>
+</li>
+<li>
+<p>省算力：选择性训练大幅压缩可训练参数量</p>
+</li>
+<li>
+<p>即插即用：直接塞进现有 RLVR 流程就行</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>参数量</strong></th>
+<th><strong>层数</strong></th>
+<th><strong>RL算法</strong></th>
+<th><strong>任务/数据</strong></th>
+<th><strong>扫描方式</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen3-1.7B-Base</td>
+<td>1.7B</td>
+<td>28</td>
+<td>GRPO</td>
+<td>Math / NuminaMath-CoT</td>
+<td>Full</td>
+</tr>
+<tr>
+<td>Qwen3-4B-Base</td>
+<td>4B</td>
+<td>36</td>
+<td>GRPO</td>
+<td>Math / NuminaMath-CoT</td>
+<td>Full</td>
+</tr>
+<tr>
+<td>Qwen3-8B-Base</td>
+<td>8B</td>
+<td>36</td>
+<td>GRPO</td>
+<td>Math / NuminaMath-CoT</td>
+<td>Full</td>
+</tr>
+<tr>
+<td>Qwen2.5-Math-1.5B</td>
+<td>1.5B</td>
+<td>28</td>
+<td>Dr. GRPO</td>
+<td>Math / MATH</td>
+<td>Full</td>
+</tr>
+<tr>
+<td>Qwen2.5-1.5B-Instruct</td>
+<td>1.5B</td>
+<td>28</td>
+<td>GiGPO</td>
+<td>Agentic / ALFWorld</td>
+<td>Partial</td>
+</tr>
+<tr>
+<td>Qwen2.5-3B-Instruct</td>
+<td>3B</td>
+<td>36</td>
+<td>GiGPO</td>
+<td>Agentic / ALFWorld</td>
+<td>Partial</td>
+</tr>
+<tr>
+<td>DeepSeek-Distilled-Qwen-7B</td>
+<td>7B</td>
+<td>28</td>
+<td>GRPO</td>
+<td>Math / Skywork</td>
+<td>Partial</td>
+</tr>
+</tbody>
+</table></div>
+<p>评估覆盖 12 个 benchmark：Math（MATH500, GSM8K, OlympiadBench, AMC）、Code（HumanEval+, MBPP, LiveCodeBench）、Reasoning（GPQA-Diamond, MMLU-Pro）、Language（C-Eval, IFEval, MGSM）。</p>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>指标</strong></th>
+<th><strong>基线</strong></th>
+<th><strong>本文方法</strong></th>
+<th><strong>提升</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen3-1.7B 最佳单层 𝒞(k)</td>
+<td>1.0（全参数）</td>
+<td><strong>1.14</strong> (Layer 10)</td>
+<td>+14%</td>
+</tr>
+<tr>
+<td>Qwen3-1.7B 平均层贡献</td>
+<td>—</td>
+<td>0.62</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Qwen3-1.7B: Only B5 vs Full</td>
+<td>50.82</td>
+<td><strong>51.53</strong></td>
+<td>+0.71</td>
+</tr>
+<tr>
+<td>Qwen3-1.7B: Boost B10 vs Full</td>
+<td>50.82</td>
+<td><strong>53.70</strong></td>
+<td>+2.88</td>
+</tr>
+<tr>
+<td>Qwen3-4B: Only B5 vs Full</td>
+<td>62.97</td>
+<td><strong>65.87</strong></td>
+<td>+2.90</td>
+</tr>
+<tr>
+<td>Qwen3-8B: Boost B10 vs Full</td>
+<td>66.43</td>
+<td><strong>67.42</strong></td>
+<td>+0.99</td>
+</tr>
+<tr>
+<td>7-layer 投票 vs 全参数 (OlympiadBench)</td>
+<td>~28%</td>
+<td><strong>&gt;30%</strong></td>
+<td>超越</td>
+</tr>
+</tbody>
+</table></div>
+<p><img src="/img/paper-reading/img_49f30612f5e137e7ace01243d2b472d2427c0afcdc09d8e960819085f81bb621.svg" srcset="/img/loading.gif" lazyload alt="Figure 7: Layer contribution-guided training strategies" /></p>
+<p><em>Figure 7 — 三种 layer-aware 训练策略对比。蓝色（Boost Bk）和绿色（Only Bk）一致压过灰色全参数基线；红色（提升低贡献层）反而往下掉；紫色（中间层启发式）贴着 contribution-guided 的效果走。</em></p>
+<p><img src="/img/paper-reading/img_bcf26e016f6cebb25d07fc349831d1c3c92ec30ac1b02b8a1ad0fc866c4bf867.svg" srcset="/img/loading.gif" lazyload alt="Figure 8: Majority voting across 7 layer-trained models" /></p>
+<p><em>Figure 8 — 7 个高贡献层训练模型的多数投票。投票不止超过最佳单层和全参数基线，连同一全参数模型的 7 样本 self-consistency 投票也一并超过——层间互补是真的在起作用。</em></p>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<ul>
+<li>
+<p>优化器：AdamW</p>
+</li>
+<li>
+<p>基础学习率：5×10⁻⁶（Boost 策略中 top-k 层用 1×10⁻⁵）</p>
+</li>
+<li>
+<p>训练数据：NuminaMath-CoT 降采样至 50K（去污后）</p>
+</li>
+<li>
+<p>每个实验报告 3 次独立运行的 mean ± std</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>发现够硬</strong>：RL 增益在层间高度不均匀、「中间高两端低」，而且是头一回被系统摆上台面——7 个模型上反复出现，不是单模型的巧合</p>
+</li>
+<li>
+<p><strong>覆盖面撑得住结论</strong>：7 个模型 × 2 个家族 × 3 种 RL 算法 × 数学+Agent 任务，结论全部同向</p>
+</li>
+<li>
+<p><strong>方案拿来就能用</strong>：Boost、Only、Middle Heuristic 三种策略都简单，不带额外计算开销</p>
+</li>
+<li>
+<p><strong>分析不止一层</strong>：互补性（Jaccard）、权重变化幅度（Figure 9）、跨数据集一致性都验过了</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：逐层扫描的实验成本本来就高，guided training 先只做数学我理解。但该提的还是得提：</p>
+<ol>
+<li>
+<p><strong>引导策略只在数学推理上验过</strong>：coding 和 agentic 任务的 guided training 留作未来工作</p>
+</li>
+<li>
+<p><strong>为什么偏偏是中间层，没有理论答案</strong>：论文自己承认这是开放问题</p>
+</li>
+<li>
+<p><strong>Layer Contribution 的数值依赖训练配置</strong>：换超参数、换数据，排序可能跟着变</p>
+</li>
+<li>
+<p><strong>没跟 LoRA/QLoRA 这类 PEFT 方法比</strong>：选择性层训练和低秩适配谁更值，论文没碰</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p>把 layer-aware 策略扩到 coding 和 agentic 任务</p>
+</li>
+<li>
+<p>给中间层的高贡献性找理论解释（可能与特征抽象层级有关）</p>
+</li>
+<li>
+<p>layer selection 和 LoRA/QLoRA 组合，做更极致的参数高效训练</p>
+</li>
+<li>
+<p>预训练阶段能不能提前预测哪些层会成为 RL 高贡献层</p>
+</li>
+<li>
+<p>动态 layer selection：训练过程中贡献排序会不会漂移</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>读完最确定的一件事：<strong>RL 后训练的增益不是均匀撒在网络里的，而是高度集中在少数中间层</strong>——这个结构性现象以前没人系统摆出来过，它给「RL 怎么重塑预训练模型」提供了一个可测的切面，也直接改得出更省的训练策略。而全文最实用的结论可能是最不讲究的那条：不做任何 profiling、直接训中间 5 层，就能追上甚至超过全参数 RL——免诊断的启发式，在工业级 RL 部署里最容易落地。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>RL 增益高度集中</strong>：只训一个 Transformer 层就能恢复甚至超过全参数 RL，最佳层贡献 114%。</p>
+</li>
+<li>
+<p><strong>中间层是 RL 的关键区</strong>：高贡献层稳定落在 Transformer 40%-60% 深度，跨模型、算法、任务都成立。</p>
+</li>
+<li>
+<p><strong>Layer-aware 训练稳定优于均匀训练</strong>：Boost top-k 或只训 top-k 都超过全参数基线，免 profiling 的「中间层启发式」就能贴近最优。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/" class="category-chain-item">强化学习与后训练</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</div>
+      <div>https://yyhchen.github.io/2026/07/08/paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Harness Engineering for Self-Improvement</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation">
+                        <span class="hidden-mobile">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,1402 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Lilian Weng 这篇综述论证的事很直接：harness engineering——围着 LLM 搭的那层系统，管规划编排、工具调用、记忆管理、结果评估——才是递归自我改进（RSI）眼下走得通的路。与其等模型学会直接改写自身权重，不如先把「代码层」的 harness 变成可以自动搜索的优化对象。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Harness Engineering for Self-Improvement">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/08/paper-harness-engineering-for-self-improvement/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="Lilian Weng 这篇综述论证的事很直接：harness engineering——围着 LLM 搭的那层系统，管规划编排、工具调用、记忆管理、结果评估——才是递归自我改进（RSI）眼下走得通的路。与其等模型学会直接改写自身权重，不如先把「代码层」的 harness 变成可以自动搜索的优化对象。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_0fbdfaa639c75b6898fd98547efd8170e5e928bd06a6815af0feb9cb71cdb4d0.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_b029e8a00415e024ca5ea9fcfe9bb6663c9b0b93860a70a4bfcf356c66dc2a63.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9aff606707805732b0a8d1d9cc610f7d1608604c9dd76687b5cd5d2ebacc380e.png">
+<meta property="article:published_time" content="2026-07-08T06:30:02.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_0fbdfaa639c75b6898fd98547efd8170e5e928bd06a6815af0feb9cb71cdb4d0.png">
+  
+  
+  
+  <title>Paper精读｜Harness Engineering for Self-Improvement - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Harness Engineering for Self-Improvement</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-08 14:30" pubdate>
+          2026-07-08 14:30:02
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          29 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Harness Engineering for Self-Improvement</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读harness-engineering-for-self-improvement"><a class="markdownIt-Anchor" href="#paper精读harness-engineering-for-self-improvement"></a> Paper精读｜Harness Engineering for Self-Improvement</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>Lilian Weng 这篇综述论证的事很直接：<strong>harness engineering</strong>——围着 LLM 搭的那层系统，管规划编排、工具调用、记忆管理、结果评估——才是<span class="mark-strong"><strong>递归自我改进（RSI）眼下走得通的路</strong></span>。与其等模型学会直接改写自身权重，不如先把「代码层」的 harness 变成可以自动搜索的优化对象。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Harness Engineering for Self-Improvement</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://lilianweng.github.io/posts/2026-07-04-harness/">https://lilianweng.github.io/posts/2026-07-04-harness/</a></li>
+<li><strong>作者</strong>：Lilian Weng</li>
+<li><strong>机构</strong>：Lil’Log（个人博客）</li>
+<li><strong>日期</strong>：2026-07-04</li>
+<li><strong>来源</strong>：alphaXiv / Lil’Log（28 min read）</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p><strong>递归自我改进（RSI）</strong> 的概念可追溯到 I. J. Good（1965）的&quot;超智能机器&quot;定义——一个能在所有智力活动上超越人类、并设计更优机器来改进自身的系统。Yudkowsky（2008）把它拧成一个反馈回路：AI 用当前的智能，去改进产生智能的那个认知机制本身。</p>
+<p>在当代 AI 语境下，RSI 可以是模型直接改写自身权重，也可以更宽泛地理解为模型改进训练流水线和部署系统，催生出一批在经济价值任务上更强的继任模型。Anthropic、OpenAI 这些前沿实验室的研发速度已经明显加快。</p>
+<p>但<span class="mark-strong">pretraining evals 之外的那一层——harness——同样关键</span>。Claude Code、Codex 这些编码 agent 产品的成功已经说明：harness 是 AI 部署的核心组件。所以问题来了：<strong>harness engineering 如何贡献于 RSI？我们能不能把 harness 本身当优化目标，用自动化搜索找到更优的设计？</strong></p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong"><strong>Harness 是模型与外部世界之间的操作系统层</strong></span>：它编排执行流程，决定模型怎么思考、规划、调用工具、感知上下文、存储产物、评估结果。类比操作系统——封装复杂逻辑，保持接口简单。</p>
+</li>
+<li>
+<p><span class="mark-strong">优化对象的演进路径</span>：instruction prompts → structured context → workflow → harness code → optimizer code。模型越强，优化目标就越从手工启发式走向通用自动化。</p>
+</li>
+<li>
+<p><span class="mark-strong">代码是通用语言</span>：LLM 能优化执行 agent 的代码，就等于拿到了比手写 prompt 大得多的设计空间。✨Code✨ 是定义程序和系统的通用语言。</p>
+</li>
+<li>
+<p><span class="mark-strong">递归改进挑基模型</span>：STOP 实验摆在那儿——GPT-4 上递归结构涨点，GPT-3.5 和 Mixtral 上反而掉。<span class="mark-strong"><strong>Harness 改进能把模型能力用得更足，但智能本身还是硬通货</strong></span>。</p>
+</li>
+<li>
+<p><span class="mark-strong">评估器必须在循环之外</span>：奖励黑客、多样性坍塌、过拟合这些坑，逼着<span class="mark-strong">评估系统和权限控制必须站在进化循环外面</span>，配上 held-out 测试和人工审核。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1harness-设计模式"><a class="markdownIt-Anchor" href="#组件1harness-设计模式"></a> 组件1：Harness 设计模式</h3>
+<p>相比早期 “agent = LLM + memory + tools + planning + action” 的框架，现代 harness 工程要多管四件事：</p>
+<ul>
+<li>
+<p><span class="mark-strong">工作流设计</span>（循环工程）：定义模型可操作、测试、迭代的流程</p>
+</li>
+<li>
+<p><span class="mark-strong">评估系统</span>：自动化验证任务完成质量</p>
+</li>
+<li>
+<p><span class="mark-strong">权限控制</span>：安全边界和权限管理</p>
+</li>
+<li>
+<p><span class="mark-strong">持久状态管理</span>：文件系统作为持久记忆</p>
+</li>
+</ul>
+<p>设计原则是刻意简洁通用以支持泛化——参考软件工程实践，跟操作系统封装复杂逻辑一个思路。</p>
+<h3 id="组件2context-engineering"><a class="markdownIt-Anchor" href="#组件2context-engineering"></a> 组件2：Context Engineering</h3>
+<p>把所有工具响应和模型生成一股脑追加进上下文，很快就会失控。Context Engineering 要做的就是给 LLM 一个更结构、更省的上下文。</p>
+<p><strong>Agentic Context Engineering (ACE; Zhang et al. 2025)</strong> 把上下文当成可进化的 playbook：</p>
+<ul>
+<li>
+<p><span class="mark-strong">Generator</span>：生成任务轨迹，参考已有的 bullet points</p>
+</li>
+<li>
+<p><span class="mark-strong">Reflector</span>：从成功和失败轨迹中提炼洞察</p>
+</li>
+<li>
+<p><span class="mark-strong">Curator</span>：以增量、条目的方式更新结构化上下文</p>
+</li>
+</ul>
+<p>关键设计选择：curator 不重写完整 prompt blob，而是输出结构化的 (identifier, description) 条目，用确定性逻辑合并进上下文日志——上下文坍塌和简洁性偏差都被这步挡住。</p>
+<p><img src="/img/paper-reading/img_0fbdfaa639c75b6898fd98547efd8170e5e928bd06a6815af0feb9cb71cdb4d0.png" srcset="/img/loading.gif" lazyload alt="Figure 1: ACE 框架" /></p>
+<p><em>图片说明：Agentic Context Engineering (ACE) 框架。Generator 生成轨迹，Reflector 提炼洞察，Curator 以结构化 bullet 形式更新上下文 playbook，避免完整重写。</em></p>
+<p><strong>Meta Context Engineering (MCE; Ye et al. 2026)</strong> 把机制（怎么管上下文）和内容（上下文里有什么）拆开：</p>
+<ul>
+<li>
+<p>内层优化：给定 skill，在训练数据上找到最优上下文</p>
+</li>
+<li>
+<p>外层优化：在验证集上找到最优 skill</p>
+</li>
+<li>
+<p>Meta-level agent 执行 crossover 操作，基于历史 skills 创建新 skill</p>
+</li>
+</ul>
+<p>MCE 不强制启发式规则，用自由格式 skills 存任务最重要的知识，skill 和 skill-conditioned context 一起迭代进化。</p>
+<p><img src="/img/paper-reading/img_b029e8a00415e024ca5ea9fcfe9bb6663c9b0b93860a70a4bfcf356c66dc2a63.png" srcset="/img/loading.gif" lazyload alt="Figure 2: MCE 框架" /></p>
+<p><em>图片说明：Meta Context Engineering (MCE) 双层优化框架。Meta-level 搜索上下文管理机制（skill），base-level 优化任务上下文。Skill 数据库追踪历史，meta-agent 执行 crossover 创建新 skill。</em></p>
+<h3 id="组件3meta-harness"><a class="markdownIt-Anchor" href="#组件3meta-harness"></a> 组件3：Meta-Harness</h3>
+<p>Meta-Harness (Lee et al. 2026) 把优化目标再往下沉一层——优化<span class="mark-strong">决定信息存储、检索和呈现方式的代码</span>。“Meta-” 的意思就是：一个用来优化 harness 的 harness。</p>
+<ul>
+<li>
+<p>创建新 harness 的 proposer 本身就是一个 coding agent</p>
+</li>
+<li>
+<p>最终输出是 Pareto 前沿上的 harness 候选集合</p>
+</li>
+<li>
+<p>整个执行历史通过文件系统访问，coding agent 用 grep/cat 这些命令翻</p>
+</li>
+<li>
+<p>提出的 harness 是文件系统里的字典，装着源代码、分数、rollout 轨迹和状态更新</p>
+</li>
+</ul>
+<h3 id="组件4workflow-design"><a class="markdownIt-Anchor" href="#组件4workflow-design"></a> 组件4：Workflow Design</h3>
+<p>工作流设计可以由领域专家手工搭（AI Scientist 的 idea → code → experiment → paper → review 流水线就是），也可以当成搜索问题自动发现：</p>
+<p><strong>Automated Design of Agentic Systems (ADAS; Hu et al. 2025)</strong>：</p>
+<ul>
+<li>
+<p>初始化 agentic workflow archive（从 CoT、self-refine 这些简单 agent 起步）</p>
+</li>
+<li>
+<p>Meta-agent 受 archive 启发编程新 agent（先生成高层描述，再实现代码）</p>
+</li>
+<li>
+<p>两步 self-refine 检查新颖性</p>
+</li>
+<li>
+<p>评估新候选，成功的加入 archive</p>
+</li>
+</ul>
+<p><strong>AFlow (Zhang et al. 2025)</strong>：</p>
+<ul>
+<li>
+<p>把 agentic workflow 表示为图（节点=LLM 调用，边=代码逻辑操作）</p>
+</li>
+<li>
+<p>基于 MCTS 优化 workflow：选择节点 → LLM 扩展 → 评估 → 回加</p>
+</li>
+<li>
+<p>在 QA、code、math 任务上超越手工方法和 ADAS</p>
+</li>
+</ul>
+<h3 id="组件5self-improving-harness"><a class="markdownIt-Anchor" href="#组件5self-improving-harness"></a> 组件5：Self-Improving Harness</h3>
+<p><strong>Self-Taught Optimizer (STOP; Zelikman et al. 2023)</strong>：</p>
+<ul>
+<li>
+<p>种子 improver 接收初始解决方案、效用函数和黑盒 LLM，返回改进方案</p>
+</li>
+<li>
+<p>元效用 = improver 在下游任务集合上的平均效用</p>
+</li>
+<li>
+<p>递归更新：基于 I_{t-1} 的元效用表现改进 improver 本身</p>
+</li>
+<li>
+<p>实验里 improver 自己摸出了遗传算法、分解改进、多臂 bandit、模拟退火这些策略</p>
+</li>
+<li>
+<p>⚠️ 关键发现：GPT-4 上 STOP 涨点，GPT-3.5/Mixtral 上反而退化</p>
+</li>
+</ul>
+<p><strong>Self-Harness (Zhang et al. 2026)</strong>：</p>
+<ul>
+<li>
+<p>弱点挖掘：把失败聚类成 verifier-grounded 的失败模式</p>
+</li>
+<li>
+<p>Harness 提案：基于失败模式提出有界的 harness 编辑</p>
+</li>
+<li>
+<p>验证：在 held-in（测试弱点解决）和 held-out（测试是否引入新问题）上评估</p>
+</li>
+<li>
+<p>只接受在两个 split 上都不回归的候选</p>
+</li>
+</ul>
+<p><em>（原图未能本地化：Figure 3: Self-Harness 框架；IMA 媒体接口没有可用媒体编号）</em></p>
+<p><em>图片说明：Self-Harness 的 propose-evaluate-accept 循环。弱点挖掘从执行轨迹中提取失败模式；harness 提案基于失败模式提出有界编辑；验证阶段仅在 held-in 和 held-out 上均无回归时才接受编辑。</em></p>
+<h3 id="组件6evolutionary-search"><a class="markdownIt-Anchor" href="#组件6evolutionary-search"></a> 组件6：Evolutionary Search</h3>
+<p>进化搜索在 harness 优化里用得很广：</p>
+<p><strong>AlphaEvolve (Novikov et al. 2025)</strong>：</p>
+<ul>
+<li>
+<p>维护候选程序池，prompt 冻结的 LLM 生成改进 diff</p>
+</li>
+<li>
+<p>关键设计：代码区域用 <code># EVOLVE-BLOCK-START/END</code> 标记；meta-prompt 与指令共同进化</p>
+</li>
+<li>
+<p>在矩阵乘法、GPU 内核优化、算法竞赛这些领域找到过更优解</p>
+</li>
+</ul>
+<p><strong>Darwin Gödel Machine (DGM; Zhang et al. 2025)</strong>：</p>
+<ul>
+<li>
+<p>直接对着可编辑 harness-code 仓库做进化</p>
+</li>
+<li>
+<p>每个 agent 能改自己的 harness，靠 bash + editor 工具</p>
+</li>
+<li>
+<p>在 SWE-bench Verified 上从 <span class="mark-number">20% 提升到 50%</span></p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_9aff606707805732b0a8d1d9cc610f7d1608604c9dd76687b5cd5d2ebacc380e.png" srcset="/img/loading.gif" lazyload alt="Figure 4: AlphaEvolve 框架" /></p>
+<p><em>图片说明：AlphaEvolve 的进化搜索流程。维护候选程序池，LLM 生成 diff 改进，评估后保留成功候选，逐步发现更优解。Meta-prompt 与解决方案程序共同进化。</em></p>
+<h3 id="组件7joint-optimization-with-model-weights"><a class="markdownIt-Anchor" href="#组件7joint-optimization-with-model-weights"></a> 组件7：Joint Optimization with Model Weights</h3>
+<p><strong>SIA (Hebbar et al. 2026)</strong> 试着把 harness 改进和模型参数更新塞进同一个循环：</p>
+<ul>
+<li>
+<p>Meta-Agent：提出初始 harness</p>
+</li>
+<li>
+<p>Task-Specific Agent：执行任务</p>
+</li>
+<li>
+<p>Feedback-Agent：基于轨迹决定这轮改 harness 还是改模型权重</p>
+</li>
+</ul>
+<p>⚠️ 这个实验有混淆因素（task agent 远弱于 meta agent），证据我只能暂定为 provisional。</p>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p>harness 设计被形式化成可执行的搜索空间，strong coding agent 从此能用人类工程师用的那套设计空间</p>
+</li>
+<li>
+<p>代码作为优化目标，比 prompt 通用得多、可扩展得多</p>
+</li>
+<li>
+<p>进化搜索在可自动评估、适应度可量化的任务上效果扎实</p>
+</li>
+<li>
+<p>双层优化（MCE）把机制与内容分开，上下文管理因此更灵活</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<p>survey 论文，没有统一实验，各方法的结果摆在一起看：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方法</strong></th>
+<th><strong>基线模型</strong></th>
+<th><strong>基准</strong></th>
+<th><strong>关键结果</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Meta-Harness</td>
+<td>强 coding agent</td>
+<td>TerminalBench-2</td>
+<td>从 Terminus-KIRA/Terminus-2 初始化，性能显著提升</td>
+</tr>
+<tr>
+<td>Self-Harness</td>
+<td>MiniMax M2.5, Qwen3.5, GLM-5</td>
+<td>Terminal-Bench-2</td>
+<td>学习模型特定的 harness 指令，提升 held-out pass rate</td>
+</tr>
+<tr>
+<td>DGM</td>
+<td>Claude 3.5 Sonnet</td>
+<td>SWE-bench Verified</td>
+<td>20% → 50%</td>
+</tr>
+<tr>
+<td>DGM</td>
+<td>Claude 3.5 Sonnet</td>
+<td>Polyglot</td>
+<td>14.2% → 30.7%</td>
+</tr>
+<tr>
+<td>AFlow</td>
+<td>多种 LLM</td>
+<td>QA, Code, Math</td>
+<td>超越手工方法和 ADAS</td>
+</tr>
+<tr>
+<td>STOP</td>
+<td>GPT-4</td>
+<td>多下游任务</td>
+<td>平均性能提升（GPT-3.5/Mixtral 退化）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<p><em>（原图未能本地化：Figure 5: Meta-Harness 性能；IMA 媒体接口没有可用媒体编号）</em></p>
+<p><em>图片说明：Meta-Harness 在文本分类（左）和 TerminalBench-2（右）上的性能曲线。搜索从强 harness 初始化，迭代优化后性能持续提升。</em></p>
+<p><strong>关键发现：</strong></p>
+<ol>
+<li>
+<p>harness 设计一旦变成可执行搜索空间，strong coding agent 就能直接用人类工程师的那套设计空间干活</p>
+</li>
+<li>
+<p>进化搜索在可自动评估的任务上效果扎实（SWE-bench、算法竞赛这些）</p>
+</li>
+<li>
+<p>递归改进挑基模型——GPT-4 上有效，弱模型上反而退化</p>
+</li>
+<li>
+<p>Self-Harness 学出来的指令是模型特定的，对着各家的弱点下药</p>
+</li>
+</ol>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<ul>
+<li>
+<p>MCE 使用标准工具集 T = {Read, Write, Edit, Bash, Glob, Grep, TodoWrite}</p>
+</li>
+<li>
+<p>Self-Harness 需要 verifier 提供 ground-truth 评估</p>
+</li>
+<li>
+<p>DGM 使用 bash + editor 两种基本工具进行代码编辑</p>
+</li>
+<li>
+<p>AlphaEvolve 使用 EVOLVE-BLOCK 标记限定代码改进区域</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">地图画全了</span>：auto-research、self-improving agents、evolutionary search 里散落的线头被收进 harness engineering 一个框，分类和组织都清楚</p>
+</li>
+<li>
+<p><span class="mark-strong">「优化对象演进路径」是全文最值钱的一条线索</span>：prompt → context → workflow → code → optimizer，优化对象从手工启发式一路走向通用自动化，RSI 的层次化路径被串成了一条线</p>
+</li>
+<li>
+<p><span class="mark-strong">立场务实</span>：harness 是近期可落地的 RSI 路径——不等模型学会改自己权重，先把身边这层代码优化起来</p>
+</li>
+<li>
+<p><span class="mark-strong">挑战列得全</span>：评估、记忆、负结果、多样性坍塌、奖励黑客、长期成功、人类角色，7 个未来挑战一个不落</p>
+</li>
+<li>
+<p><span class="mark-strong">两个类比挑得准</span>：harness 之于模型像操作系统之于硬件；prompt engineering 被 instruction tuning 内部化，是现成的历史前例</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">非原创研究</span>：survey/position paper，没有新方法新实验，价值在组织不在发明</p>
+</li>
+<li>
+<p><span class="mark-strong">横向比较做不了</span>：各方法实验设置互不统一，数字放一张表里也说明不了谁强</p>
+</li>
+<li>
+<p><span class="mark-strong">对 RSI 的语气偏乐观</span>：时间线和可行性都往乐观方向讲，安全风险着墨太少</p>
+</li>
+<li>
+<p><span class="mark-strong">SIA 那段证据要打折</span>：作者自己承认实验有混淆因素，读的时候心里留个折扣</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><span class="mark-strong">评估器质量</span>：当前自我改进循环仅在评估指标可测量、客观的任务上有效（类似 RL）；研究品味、新颖性、长期科学价值难以量化</p>
+</li>
+<li>
+<p><span class="mark-strong">上下文与记忆生命周期</span>：记忆随 agent 自主性增长而膨胀，需要管理上下文以弥补长文本生成的限制</p>
+</li>
+<li>
+<p><span class="mark-strong">负结果缺失</span>：文献偏向成功发表，LLM 难以决定何时放弃假设、报告负结果</p>
+</li>
+<li>
+<p><span class="mark-strong">多样性坍塌</span>：进化和 RL 循环倾向于利用已知高奖励模式，需要机制防止种群坍塌为同一解的变体</p>
+</li>
+<li>
+<p><span class="mark-strong">奖励黑客</span>：agent 可能过拟合 unit tests、利用 judge model 的偏见、或利用 benchmark artifacts</p>
+</li>
+<li>
+<p><span class="mark-strong">长期成功</span>：编码 agent 提升日常生产力，但短期优化目标常忽略可维护性、所有权边界、迁移成本、向后兼容性</p>
+</li>
+<li>
+<p><span class="mark-strong">人类角色</span>：人类应上移栈层而非被移除，系统设计需考虑何时以及如何设置人工监督节点</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇 survey 的价值在地图，不在单个景点：STOP、Self-Harness、AlphaEvolve、DGM、Meta-Harness 这些散在各处的工作，被「优化对象从 prompt 一路升级到 optimizer code」这条线串了起来，harness 是 RSI 近期实用路径这个论点因此立住了。但 Weng 自己也把天花板画出来了——递归改进挑基模型，GPT-4 上行、GPT-3.5 和 Mixtral 上反而退化；进化搜索只在能自动评估的任务上灵。全文真正留下的两个硬问题是：**评估器能不能强到撑起开放领域的自我改进？人类在循环里怎么保持有意义的监督？**这两个问题不解决，harness engineering 就只能停在「可评估任务上的自我改进」。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">Harness 是 RSI 的近期路径</span>：优化围着 LLM 的系统层（代码）比等模型直接改写权重更现实，优化对象从 prompt 演进到 code 再到 optimizer</p>
+</li>
+<li>
+<p><span class="mark-strong">代码是通用语言</span>：harness 设计变成可执行搜索空间后，strong coding agent 能用人类工程师的同一设计空间，进化搜索在可评估任务上效果扎实</p>
+</li>
+<li>
+<p><span class="mark-strong">评估是核心瓶颈</span>：奖励黑客、多样性坍塌、负结果缺失、长期目标对齐这些挑战全都指向同一件事——评估器必须位于进化循环之外，人类监督不可移除</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Harness Engineering for Self-Improvement</div>
+      <div>https://yyhchen.github.io/2026/07/08/paper-harness-engineering-for-self-improvement/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/10/paper-compactionrl-reinforcement-learning-with-context-compaction-for-long-horizon-agents/" title="Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/08/paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training/" title="Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training">
+                        <span class="hidden-mobile">Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

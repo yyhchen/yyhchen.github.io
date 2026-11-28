@@ -1,0 +1,1534 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="把具身操纵的数据生态摆成一座五层数据金字塔（real-robot → UMI-style → egocentric&#x2F;exocentric → simulation → general），两个轴一拉——scalability 与 robot alignment——每层数据的斤两立刻有了坐标：越往塔底越好收，也越难直接用到机器人身上。三类具身基础模型（Embodied Brain, VLA, WAM）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Data Pyramid for Embodied Manipulation">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/29/paper-data-pyramid-for-embodied-manipulation/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="把具身操纵的数据生态摆成一座五层数据金字塔（real-robot → UMI-style → egocentric&#x2F;exocentric → simulation → general），两个轴一拉——scalability 与 robot alignment——每层数据的斤两立刻有了坐标：越往塔底越好收，也越难直接用到机器人身上。三类具身基础模型（Embodied Brain, VLA, WAM）">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_350ae85fa332bbf037e618dfb45c0558736efe02ba118f8385ea78add47b4d85.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_ebfbfa0b0a7c90912a0bf46fb4c1ace3b1ceb0286428889c6938b2d942bf6cdf.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_ac9b93b68e8bde766554ee0e86d30d8f59cc67e45cf314ddc389e8ea27cf9ead.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_4fee05a7d7b1f7193a48580341a635110fda57d91b2a4b35c5d968c3c25e1480.png">
+<meta property="article:published_time" content="2026-07-29T05:11:13.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_350ae85fa332bbf037e618dfb45c0558736efe02ba118f8385ea78add47b4d85.png">
+  
+  
+  
+  <title>Paper精读｜Data Pyramid for Embodied Manipulation - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Data Pyramid for Embodied Manipulation</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-29 13:11" pubdate>
+          2026-07-29 13:11:13
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          21 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="多模态与具身智能"
+        id="heading-c45b252d6962ccf4d335660bbc5ad714" role="tab" data-toggle="collapse" href="#collapse-c45b252d6962ccf4d335660bbc5ad714"
+        aria-expanded="true"
+      >
+        多模态与具身智能
+        <span class="list-group-count">(5)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-c45b252d6962ccf4d335660bbc5ad714"
+           role="tabpanel" aria-labelledby="heading-c45b252d6962ccf4d335660bbc5ad714">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(5)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/07/29/paper-data-pyramid-for-embodied-manipulation/" title="Paper精读｜Data Pyramid for Embodied Manipulation"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Data Pyramid for Embodied Manipulation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/16/paper-inkling-our-open-weights-model/" title="Paper精读｜Inkling: Our Open-Weights Model"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Inkling: Our Open-Weights Model</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-mamoda2-5-enhancing-unified-multimodal-model-with-dit-moe/" title="Paper精读｜Mamoda2.5: Enhancing Unified Multimodal Model with DiT-MoE"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mamoda2.5: Enhancing Unified Multimodal Model with DiT-MoE</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-let-vit-speak-generative-language-image-pre-training/" title="Paper精读｜Let ViT Speak: Generative Language-Image Pre-training"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Let ViT Speak: Generative Language-Image Pre-training</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-thinking-with-visual-primitives/" title="Paper精读｜Thinking with Visual Primitives"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Thinking with Visual Primitives</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Data Pyramid for Embodied Manipulation</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;multimodal">多模态与具身智能</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读data-pyramid-for-embodied-manipulation"><a class="markdownIt-Anchor" href="#paper精读data-pyramid-for-embodied-manipulation"></a> Paper精读｜Data Pyramid for Embodied Manipulation</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>把具身操纵的数据生态摆成一座<span class="mark-entity">五层数据金字塔</span>（real-robot → UMI-style → egocentric/exocentric → simulation → general），两个轴一拉——<span class="mark-entity">scalability 与 robot alignment</span>——每层数据的斤两立刻有了坐标：越往塔底越好收，也越难直接用到机器人身上。三类具身基础模型（Embodied Brain, VLA, WAM）各吃哪几层、怎么吃，六大开放挑战就是这张地图上还没填的空格。</strong><br />
+<img src="/img/paper-reading/img_350ae85fa332bbf037e618dfb45c0558736efe02ba118f8385ea78add47b4d85.png" srcset="/img/loading.gif" lazyload alt="Figure 1: 论文总览" /><br />
+<em>图注：论文总览。五个数据类别沿 scalability 和 robot alignment 两个维度组织，辅以 quality, diversity, reusability, physical fidelity 四个补充维度。</em></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Data Pyramid for Embodied Manipulation</li>
+<li><strong>arXiv</strong>：2607.24744</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2607.24744">https://arxiv.org/abs/2607.24744</a></li>
+<li><strong>作者</strong>：Yifan Ye*, Yankai Fu*, Yaoxu Lv*, Bohan Hou*, Jun Cen*, Lingdong Kong*, 等 28 位作者</li>
+<li><strong>机构</strong>：PKU, NTU, HKUST, NUS, CUHK, HKU, Duke, UCB, GBU, NJU, SJTU</li>
+<li><strong>日期</strong>：2026-07-27</li>
+<li><strong>项目页</strong>：<a target="_blank" rel="noopener" href="https://embodied-data-pyramid.github.io/">Embodied Data Pyramid</a> | GitHub: <a target="_blank" rel="noopener" href="https://github.com/embodied-ai/Awesome-Embodied-Data-Pyramid">Awesome Embodied Data Pyramid</a></li>
+</ul>
+</div></details><hr />
+<h2 id="核心框架数据金字塔"><a class="markdownIt-Anchor" href="#核心框架数据金字塔"></a> 核心框架：数据金字塔</h2>
+<p><img src="/img/paper-reading/img_ebfbfa0b0a7c90912a0bf46fb4c1ace3b1ceb0286428889c6938b2d942bf6cdf.png" srcset="/img/loading.gif" lazyload alt="Figure 2: 数据金字塔组织" /></p>
+<p><em>图注：五层数据金字塔组织，从塔顶到塔底依次为 real-robot, UMI-style, egocentric/exocentric, simulation, general data。</em></p>
+<h3 id="两大核心维度"><a class="markdownIt-Anchor" href="#两大核心维度"></a> 两大核心维度</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>趋势</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>数据源扩展的效率（硬件依赖、人力、环境重置、安全监督、边际成本）</td>
+<td>从塔顶到塔底递增</td>
+</tr>
+<tr>
+<td><strong>Robot Alignment</strong></td>
+<td>数据支持物理机器人学习和执行的程度</td>
+<td>从塔顶到底递减</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="四个补充维度"><a class="markdownIt-Anchor" href="#四个补充维度"></a> 四个补充维度</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Quality</strong></td>
+<td>数据的有效性、一致性、信息性和任务相关性</td>
+</tr>
+<tr>
+<td><strong>Diversity</strong></td>
+<td>任务、物体、场景、视点、指令、embodiment、行为、结果的覆盖度</td>
+</tr>
+<tr>
+<td><strong>Reusability</strong></td>
+<td>数据跨任务、环境、embodiment、传感系统、模型家族的可迁移性</td>
+</tr>
+<tr>
+<td><strong>Physical Fidelity</strong></td>
+<td>数据捕捉真实交互动态的保真度（接触、摩擦、顺应性、传感噪声、执行延迟）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="五层数据分类"><a class="markdownIt-Anchor" href="#五层数据分类"></a> 五层数据分类</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>层级</strong></th>
+<th><strong>数据类别</strong></th>
+<th><strong>Scalability</strong></th>
+<th><strong>Robot Alignment</strong></th>
+<th><strong>核心优势</strong></th>
+<th><strong>核心局限</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1 (塔顶)</strong></td>
+<td>Real-Robot Data</td>
+<td>★★★★★</td>
+<td>★★★★★</td>
+<td>直接可执行、高物理保真</td>
+<td>高成本、难扩展</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>UMI-Style Data</td>
+<td>★★★★</td>
+<td>★★★★</td>
+<td>便携、无机器人、显式 end-effector</td>
+<td>缺少关节本体感受、需 retargeting</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Egocentric / Exocentric Data</td>
+<td>★★★</td>
+<td>★★★</td>
+<td>自然人类演示、手部细节丰富</td>
+<td>人类-机器人形态差距</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>Simulation Data</td>
+<td>★★★</td>
+<td>★★★★</td>
+<td>可扩展、可控、特权标签</td>
+<td>Sim-to-Real Gap</td>
+</tr>
+<tr>
+<td><strong>5 (塔底)</strong></td>
+<td>General Data</td>
+<td>★★★★★</td>
+<td>★</td>
+<td>海量、多样性、推理先验</td>
+<td>弱动作/接触监督</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="各层数据深度解析"><a class="markdownIt-Anchor" href="#各层数据深度解析"></a> 各层数据深度解析</h2>
+<h3 id="第1层real-robot-data"><a class="markdownIt-Anchor" href="#第1层real-robot-data"></a> 第1层：Real-Robot Data</h3>
+<p><strong>数据获取范式</strong>：</p>
+<ol>
+<li><strong>Scripted Collection</strong>：无连续人类控制，人工设计任务逻辑和执行条件</li>
+</ol>
+<ul>
+<li>
+<p><strong>Rule-Based Execution</strong>：有限状态机 + 逆运动学 + 运动规划</p>
+</li>
+<li>
+<p><strong>Trajectory Playback</strong>：重放已有轨迹（可加扰动增加多样性）</p>
+</li>
+<li>
+<p><strong>Autonomous Policy Rollouts</strong>：RL/imitation learning 策略自主生成</p>
+</li>
+</ul>
+<ol start="2">
+<li><strong>Teleoperation</strong>：人类连续控制机器人</li>
+</ol>
+<ul>
+<li>
+<p><strong>Kinesthetic Teaching</strong>：直接物理引导（适合固定基座）</p>
+</li>
+<li>
+<p><strong>Leader-Follower Teleoperation</strong>：主从臂映射（适合双臂，如 ALOHA）</p>
+</li>
+<li>
+<p><strong>Integrated Leader-Follower</strong>：同一机构（如 ARX AC-One）</p>
+</li>
+<li>
+<p><strong>Device-Mediated</strong>：VR/XR控制器、SpaceMouse、智能手机</p>
+</li>
+<li>
+<p><strong>Vision-Based</strong>：视觉估计人体/手部运动后 retargeting</p>
+</li>
+<li>
+<p><strong>Wearable / Motion-Capture</strong>：IMU套装、光学动捕、数据手套</p>
+</li>
+</ul>
+<ol start="3">
+<li><strong>Human-in-the-Loop Enhancement</strong>：DAgger 范式，人类在关键状态介入纠正</li>
+</ol>
+<p><strong>数据规模演变</strong>：从 <span class="mark-number">2015 年 ~50K trajectories</span> 到 <span class="mark-number">2026 年 2M+ trajectories</span>（Open X-Embodiment 聚合）</p>
+<p><strong>关键数据集</strong>：</p>
+<ul>
+<li>
+<p>Open X-Embodiment (2023): 2.4M trajectories, 527 tasks, 22 embodiments</p>
+</li>
+<li>
+<p>RoboMIND 2.0 (2026): 310K trajectories, 739 tasks, 1000+ hours</p>
+</li>
+<li>
+<p>AgiBot World Beta (2025): 1M trajectories, ~3000 hours</p>
+</li>
+</ul>
+<p><strong>关键趋势</strong>：从单臂→双臂→移动操作→灵巧手；从 RGB→RGB-D + Force/Torque + Tactile + Audio + IMU</p>
+<h3 id="第2层umi-style-data"><a class="markdownIt-Anchor" href="#第2层umi-style-data"></a> 第2层：UMI-Style Data</h3>
+<p><strong>核心思想</strong>：Universal Manipulation Interface（UMI）——一套便携式、全程不需要机器人的采集接口，专门用来收真实世界操纵演示。</p>
+<p><strong>硬件演进</strong>：</p>
+<ul>
+<li>
+<p>原始 UMI：手持夹腕 + 腕部相机 + IMU + 视觉惯性 SLAM</p>
+</li>
+<li>
+<p>FastUMI：简化硬件</p>
+</li>
+<li>
+<p>LEGATO：跨平台的统一抓取接口</p>
+</li>
+<li>
+<p>FreeTacMan：手指穿戴式接口</p>
+</li>
+<li>
+<p>现代变体：触觉/力感知（ViTaMIn, exUMI, ManipForce）、多视角（MV-UMI）、3D 传感（UMI-3D）</p>
+</li>
+</ul>
+<p><strong>相对轨迹表示</strong>：用当前 end-effector 姿态的相对 6-DoF 轨迹作为 embodiment-agnostic 动作空间。</p>
+<p><strong>规模演进</strong>：从 UMI 原始 2.5K → FastUMI-100K 100K → RealOmni 789.8K</p>
+<h3 id="第3层egocentricexocentric-data"><a class="markdownIt-Anchor" href="#第3层egocentricexocentric-data"></a> 第3层：Egocentric/Exocentric Data</h3>
+<p><strong>捕获基础设施</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>传感类型</strong></th>
+<th><strong>具体设备</strong></th>
+<th><strong>特性</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Wearable 相机</strong></td>
+<td>单目 RGB</td>
+<td>轻量、长时、无深度</td>
+</tr>
+<tr>
+<td></td>
+<td>立体 RGB</td>
+<td>可估深度、需标定</td>
+</tr>
+<tr>
+<td></td>
+<td>RGB-D</td>
+<td>直接深度、受环境光影响</td>
+</tr>
+<tr>
+<td><strong>Exocentric 相机</strong></td>
+<td>多视角固定相机</td>
+<td>补充 wearable 视野</td>
+</tr>
+<tr>
+<td><strong>Motion Tracking</strong></td>
+<td>IMU</td>
+<td>不受遮挡、漂移</td>
+</tr>
+<tr>
+<td></td>
+<td>光学动捕</td>
+<td>高精度、受控环境</td>
+</tr>
+<tr>
+<td></td>
+<td>头显追踪 (Quest/Vision Pro)</td>
+<td>便携、专有管线</td>
+</tr>
+<tr>
+<td><strong>Auxiliary</strong></td>
+<td>眼动仪</td>
+<td>注意力线索</td>
+</tr>
+<tr>
+<td></td>
+<td>麦克风阵列</td>
+<td>语音+声学事件</td>
+</tr>
+<tr>
+<td></td>
+<td>EMG</td>
+<td>肌肉激活信号</td>
+</tr>
+<tr>
+<td></td>
+<td>触觉传感器</td>
+<td>接触分布、滑移</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>监督构建方式</strong>：</p>
+<ul>
+<li>
+<p><strong>Semantic Supervision</strong>：动作/语言标注、程序性标注</p>
+</li>
+<li>
+<p><strong>Geometric Supervision</strong>：相机/场景几何、手/身体姿态、物体/交互几何</p>
+</li>
+<li>
+<p><strong>Multimodal Supervision</strong>：眼动+音频、惯性+生理、力+触觉</p>
+</li>
+<li>
+<p><strong>Robot-Oriented Supervision</strong>：robot-compatible actions、human-robot alignment</p>
+</li>
+</ul>
+<p><strong>关键数据集</strong>：Ego4D (3670h), Ego-Exo4D (1286h), Assembly101 (513h), EgoDex (829h), Egocentric-100K (100K h), HumanNet (967K h), Xperience-10M (10K h)</p>
+<h3 id="第4层simulation-data"><a class="markdownIt-Anchor" href="#第4层simulation-data"></a> 第4层：Simulation Data</h3>
+<p><strong>仿真器后端对比</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>后端</strong></th>
+<th><strong>特点</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MuJoCo</td>
+<td>高效刚体动力学、稳定接触建模</td>
+</tr>
+<tr>
+<td>Isaac Sim/Lab</td>
+<td>GPU 并行、照片级渲染、传感器建模</td>
+</tr>
+<tr>
+<td>SAPIEN</td>
+<td>铰接物体交互、PhysX</td>
+</tr>
+<tr>
+<td>PyBullet</td>
+<td>轻量原型</td>
+</tr>
+<tr>
+<td>Brax</td>
+<td>JAX-native、加速器友好</td>
+</tr>
+<tr>
+<td>Genesis</td>
+<td>统一多物理场</td>
+</tr>
+<tr>
+<td>Newton</td>
+<td>可微物理仿真</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>数据生成方式</strong>：</p>
+<ol>
+<li>
+<p><strong>Human-Executed Demonstrations</strong>：遥操作、VR控制、动捕重定向</p>
+</li>
+<li>
+<p><strong>Rule-Based Execution</strong>：程序化专家 + 运动规划</p>
+</li>
+<li>
+<p><strong>Trajectory Playback &amp; Expansion</strong>：MimicGen 式物体中心增强</p>
+</li>
+<li>
+<p><strong>Autonomous Policy &amp; Generative Rollouts</strong>：RL 策略 + LLM/VLM 辅助任务合成</p>
+</li>
+</ol>
+<p><strong>World Models as Simulators</strong>：DayDreamer, UniSim, GAIA-1, Genie 等学习型仿真器，用于策略训练、评估和合成数据生成。</p>
+<p><strong>Sim-to-Real Gap</strong>：</p>
+<ul>
+<li>
+<p><strong>Observation mismatch</strong>：纹理、光照、材质、深度噪声</p>
+</li>
+<li>
+<p><strong>Interaction mismatch</strong>：</p>
+<ul>
+<li>
+<p>Kinematic gaps：形态、关节限制、坐标帧</p>
+</li>
+<li>
+<p>Dynamic gaps：执行器延迟、顺应性、扭矩饱和、反向间隙</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="第5层general-data"><a class="markdownIt-Anchor" href="#第5层general-data"></a> 第5层：General Data</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>数据类别</strong></th>
+<th><strong>代表数据集</strong></th>
+<th><strong>规模</strong></th>
+<th><strong>监督目标</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vision-Language</td>
+<td>LLaVA-OneVision-SI</td>
+<td>3.2M</td>
+<td>Caption, VQA, OCR, Knowledge</td>
+</tr>
+<tr>
+<td>Segmentation/Loc.</td>
+<td>SA-1B, Objects365</td>
+<td>1.1B masks / 10M boxes</td>
+<td>语义/实例分割、目标检测</td>
+</tr>
+<tr>
+<td>3D Spatial</td>
+<td>ScanNet, MMScan</td>
+<td>1.5K scenes / 1.4M captions</td>
+<td>3D 问答、空间关系</td>
+</tr>
+<tr>
+<td>Planning</td>
+<td>ALFRED, EgoPlan-IT</td>
+<td>25K / 50K</td>
+<td>子目标、下一步动作</td>
+</tr>
+<tr>
+<td>Video Temporal</td>
+<td>Moment-10M, COIN</td>
+<td>10M moments / 11.8K videos</td>
+<td>时间定位、步骤分割</td>
+</tr>
+<tr>
+<td>Physics/Failure</td>
+<td>CLEVRER, RoboFail</td>
+<td>20K / 130</td>
+<td>物理推理、失败诊断</td>
+</tr>
+<tr>
+<td>Grasping</td>
+<td>GraspNet-1B, DexGraspNet 2.0</td>
+<td>1.1B / 427M grasps</td>
+<td>2D/6-DoF 抓取</td>
+</tr>
+<tr>
+<td>Robot Video</td>
+<td>RoboVQA, RoVid-X</td>
+<td>238h / 10K+ h</td>
+<td>机器人视频理解</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="数据在具身基础模型中的应用"><a class="markdownIt-Anchor" href="#数据在具身基础模型中的应用"></a> 数据在具身基础模型中的应用</h2>
+<p><img src="/img/paper-reading/img_ac9b93b68e8bde766554ee0e86d30d8f59cc67e45cf314ddc389e8ea27cf9ead.png" srcset="/img/loading.gif" lazyload alt="Figure 3: 数据使用演进" /></p>
+<p><em>图注：具身基础模型的数据使用演进。早期系统主要依赖 real-robot trajectories，近期系统越来越把 real-robot, egocentric, simulation, general, UMI-style 数据混在一起喂。</em></p>
+<h3 id="三类模型家族的数据使用"><a class="markdownIt-Anchor" href="#三类模型家族的数据使用"></a> 三类模型家族的数据使用</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型家族</strong></th>
+<th><strong>核心能力</strong></th>
+<th><strong>主要数据</strong></th>
+<th><strong>数据使用方式</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Embodied Brain (VLM)</strong></td>
+<td>感知、推理、规划</td>
+<td>General + Egocentric + 少量 Robot</td>
+<td>Action-free: 视觉-语言预训练；Action-labeled: 基础级动作监督</td>
+</tr>
+<tr>
+<td><strong>Vision-Language-Action (VLA)</strong></td>
+<td>感知+推理→动作</td>
+<td>Real-Robot + Simulation + Egocentric</td>
+<td>Action-labeled: 离散/连续动作生成；Action-free: latent action learning, proxy learning</td>
+</tr>
+<tr>
+<td><strong>World Action Model (WAM)</strong></td>
+<td>世界动态+动作影响</td>
+<td>General Video + Robot + Simulation</td>
+<td>Action-free: 未来帧预测；Action-labeled: 动作条件生成</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="vla-动作空间表示"><a class="markdownIt-Anchor" href="#vla-动作空间表示"></a> VLA 动作空间表示</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>策略</strong></th>
+<th><strong>代表模型</strong></th>
+<th><strong>方式</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Embodiment-specific projection</td>
+<td>GR00T N1, Octo, SmolVLA</td>
+<td>每机器人独立 projector</td>
+</tr>
+<tr>
+<td>Fixed-dimensional zero-padded</td>
+<td>π0.5, Qwen-VLA, ABot-M0</td>
+<td>统一维度 + validity mask</td>
+</tr>
+<tr>
+<td>Semantic action slots</td>
+<td>Qwen-RobotManip, RDT-1B, Being-H0.5</td>
+<td>固定物理含义维度</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="几何动作表示"><a class="markdownIt-Anchor" href="#几何动作表示"></a> 几何动作表示</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>坐标系</strong></th>
+<th><strong>代表模型</strong></th>
+<th><strong>特点</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Robot-centric</td>
+<td>Open X-Embodiment</td>
+<td>直接控制器接口</td>
+</tr>
+<tr>
+<td>Camera-centric</td>
+<td>Qwen-RobotManip, OC-VLA</td>
+<td>视觉一致性</td>
+</tr>
+<tr>
+<td>Wrist-centric</td>
+<td>METIS, LDA-1B</td>
+<td>分离局部手指与全局手腕运动</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="数据规模演进"><a class="markdownIt-Anchor" href="#数据规模演进"></a> 数据规模演进</h2>
+<p><img src="/img/paper-reading/img_4fee05a7d7b1f7193a48580341a635110fda57d91b2a4b35c5d968c3c25e1480.png" srcset="/img/loading.gif" lazyload alt="Figure 4: 数据规模时间线" /></p>
+<p><em>图注：各类数据集随时间的规模增长。Simulation, UMI, robot datasets 按 demonstrations 计；ego datasets 按 hours 计；general datasets 按 QA pairs 计。</em></p>
+<hr />
+<h2 id="关键数据趋势"><a class="markdownIt-Anchor" href="#关键数据趋势"></a> 关键数据趋势</h2>
+<h3 id="趋势1数据配方从单一走向混合"><a class="markdownIt-Anchor" href="#趋势1数据配方从单一走向混合"></a> 趋势1：数据配方从单一走向混合</h3>
+<ul>
+<li>
+<p>早期：real-robot only（RT-1, OpenVLA）</p>
+</li>
+<li>
+<p>近期：real-robot + egocentric + simulation + general + UMI（LingbotVA 2.0, Qwen-RobotManip）</p>
+</li>
+</ul>
+<h3 id="趋势2预训练规模急剧扩大"><a class="markdownIt-Anchor" href="#趋势2预训练规模急剧扩大"></a> 趋势2：预训练规模急剧扩大</h3>
+<ul>
+<li>
+<p>2024: ~1K hours 级别</p>
+</li>
+<li>
+<p>2026: Qwen-RobotManip ~38,100 hours, Xiaomi-Robotics-1 ~100,000+ hours</p>
+</li>
+</ul>
+<h3 id="趋势3egocentric-数据日益重要"><a class="markdownIt-Anchor" href="#趋势3egocentric-数据日益重要"></a> 趋势3：Egocentric 数据日益重要</h3>
+<ul>
+<li>
+<p>EgoVLA, Being-H0, HumanScale 等以 egocentric 数据为主</p>
+</li>
+<li>
+<p>EgoScale 验证 1K→20K hours 持续改进</p>
+</li>
+</ul>
+<h3 id="趋势4对低质量数据更宽容"><a class="markdownIt-Anchor" href="#趋势4对低质量数据更宽容"></a> 趋势4：对低质量数据更宽容</h3>
+<ul>
+<li>π0.7 发现<span class="mark-strong">低质量轨迹+足够清晰的 prompt 仍可提供有用监督</span></li>
+</ul>
+<hr />
+<h2 id="六大开放挑战"><a class="markdownIt-Anchor" href="#六大开放挑战"></a> 六大开放挑战</h2>
+<h3 id="1-触觉数据"><a class="markdownIt-Anchor" href="#1-触觉数据"></a> 1. 触觉数据</h3>
+<ul>
+<li>
+<p>现有数据集仍以 RGB-D 为主，触觉尚未标准化</p>
+</li>
+<li>
+<p>视觉只能间接推断接触力、滑移、局部变形、摩擦、抓取稳定性</p>
+</li>
+<li>
+<p>近期 RoboMIND 2.0, Humanoid Everyday 开始纳入触觉</p>
+</li>
+</ul>
+<h3 id="2-失败数据与恢复"><a class="markdownIt-Anchor" href="#2-失败数据与恢复"></a> 2. 失败数据与恢复</h3>
+<ul>
+<li>
+<p>现有数据集严重偏向成功演示</p>
+</li>
+<li>
+<p>需要：失败前上下文、失败起始、失败类别/原因、恢复动作、恢复结果</p>
+</li>
+<li>
+<p>关键转变：<span class="mark-strong">将失败视为不可用轨迹 → 重要监督来源</span></p>
+</li>
+</ul>
+<h3 id="3-可扩展数据收集"><a class="markdownIt-Anchor" href="#3-可扩展数据收集"></a> 3. 可扩展数据收集</h3>
+<ul>
+<li>
+<p>从 first-person RGB → 多穿戴传感器（眼动、深度、IMU、触觉、EMG）</p>
+</li>
+<li>
+<p>挑战：设备成熟度、标定、同步、干扰自然操作</p>
+</li>
+<li>
+<p>方向：更轻、无线、模块化、自动标定</p>
+</li>
+</ul>
+<h3 id="4-跨-embodiment-状态-动作对齐"><a class="markdownIt-Anchor" href="#4-跨-embodiment-状态-动作对齐"></a> 4. 跨 Embodiment 状态-动作对齐</h3>
+<ul>
+<li>
+<p><span class="mark-strong">仅有共同数据格式不足以保证兼容监督</span></p>
+</li>
+<li>
+<p>需要一致的几何语义，而非仅共享存储模式</p>
+</li>
+<li>
+<p>方向：记录坐标约定、标定参数、控制模式作为一等元数据</p>
+</li>
+</ul>
+<h3 id="5-egocentric-先验用于灵巧手策略"><a class="markdownIt-Anchor" href="#5-egocentric-先验用于灵巧手策略"></a> 5. Egocentric 先验用于灵巧手策略</h3>
+<ul>
+<li>
+<p><span class="mark-strong">人-机器人差距不仅是视觉的，更是运动学、形态学和物理的</span></p>
+</li>
+<li>
+<p>方向：将 egocentric 数据视为结构化交互先验（任务意图、抓取选择、接触序列、工具使用策略），而非精确动作标签</p>
+</li>
+</ul>
+<h3 id="6-data-recipes数据配方"><a class="markdownIt-Anchor" href="#6-data-recipes数据配方"></a> 6. Data Recipes（数据配方）</h3>
+<ul>
+<li>
+<p>最佳数据组成仍是开放问题</p>
+</li>
+<li>
+<p>缺少精确的、计算匹配的消融实验</p>
+</li>
+<li>
+<p>方向：架构感知的、阶段依赖的数据配方；固定/课程/自适应混合策略的系统比较</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>论文</strong></th>
+<th><strong>关注点</strong></th>
+<th><strong>与本文的关系</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kimi K3</td>
+<td>架构创新 + scaling</td>
+<td>K3 的 RL 训练数据配方是什么？是否也遵循金字塔？</td>
+</tr>
+<tr>
+<td>AREX</td>
+<td>自递归改进 agent</td>
+<td>AREX 的 RL 数据属于金字塔哪一层？</td>
+</tr>
+<tr>
+<td>Language model harnesses</td>
+<td>Harness 组合泛化</td>
+<td>数据金字塔视角下，harness 如何影响数据使用？</td>
+</tr>
+<tr>
+<td>Measuring Reward-Seeking</td>
+<td>RL 制造 reward-seeker</td>
+<td>金字塔最顶层的 RL 数据是否也有此风险？</td>
+</tr>
+<tr>
+<td>HOPE</td>
+<td>模型压缩</td>
+<td>数据金字塔对模型压缩后训练有何启示？</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>五层数据金字塔</strong>：real-robot → UMI-style → egocentric/exocentric → simulation → general，沿 scalability 和 robot alignment 两大维度组织。</p>
+</li>
+<li>
+<p><strong>数据配方演进</strong>：从单一 real-robot → 五层混合，egocentric 数据日益重要，预训练规模从千小时走向十万小时。</p>
+</li>
+<li>
+<p><strong>六大开放挑战</strong>：触觉数据、失败恢复数据、可扩展收集、跨 embodiment 对齐、egocentric 灵巧手策略、最优 data recipe。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%8E%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/" class="category-chain-item">多模态与具身智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%8E%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Data Pyramid for Embodied Manipulation</div>
+      <div>https://yyhchen.github.io/2026/07/29/paper-data-pyramid-for-embodied-manipulation/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/04/paper-weak-to-strong-on-policy-distillation/" title="Paper精读｜Weak-to-Strong On-Policy Distillation">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Weak-to-Strong On-Policy Distillation</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/28/paper-kimi-k3-open-frontier-intelligence/" title="Paper精读｜Kimi K3: Open Frontier Intelligence">
+                        <span class="hidden-mobile">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

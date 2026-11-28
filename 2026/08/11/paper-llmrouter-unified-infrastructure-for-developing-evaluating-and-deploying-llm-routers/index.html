@@ -1,0 +1,1338 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="给 LLM 路由这个各自为政的领域立了三件公共品：① 统一形式化——把模型路由建模为序贯决策过程，由 5 类组件刻画（context encoders &#x2F; model encoders &#x2F; scoring functions &#x2F; decision rules &#x2F; learning signals），现有方法全部归入单轮、多轮、个性化三族；② xRouteBench 基准——覆盖通用 LLM、记忆增">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="给 LLM 路由这个各自为政的领域立了三件公共品：① 统一形式化——把模型路由建模为序贯决策过程，由 5 类组件刻画（context encoders &#x2F; model encoders &#x2F; scoring functions &#x2F; decision rules &#x2F; learning signals），现有方法全部归入单轮、多轮、个性化三族；② xRouteBench 基准——覆盖通用 LLM、记忆增">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_04a0c94c2d28dbf786437f7a31c7b79ab98b7dd1ca92f81ee1d711beb18ccc85.webp">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9d11e1ccfaf0efaaec7392a150aa2f17dd3149fcbf30101e7a18573b07d2b605.webp">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9a47e8a18d47b9aa5d40b7a469d6ca146637e363fbfc1c6a9841e5fb72af5c4e.webp">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_4393b6202414425e193b67be20cc9f65808425b951a81a6aea5e76c9606b110c.webp">
+<meta property="article:published_time" content="2026-08-11T06:27:28.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_04a0c94c2d28dbf786437f7a31c7b79ab98b7dd1ca92f81ee1d711beb18ccc85.webp">
+  
+  
+  
+  <title>Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-11 14:27" pubdate>
+          2026-08-11 14:27:28
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          34 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers"><a class="markdownIt-Anchor" href="#paper精读llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers"></a> Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>给 LLM 路由这个各自为政的领域立了三件公共品：① <strong>统一形式化</strong>——把模型路由建模为</strong><span class="mark-strong">序贯决策过程</span><strong>，由 5 类组件刻画（context encoders / model encoders / scoring functions / decision rules / learning signals），现有方法全部归入</strong>单轮、多轮、个性化<strong>三族；② <strong>xRouteBench 基准</strong>——覆盖通用 LLM、记忆增强、视觉（图/视频）、时间序列、个性化 5 条轨道的统一成本感知评测；③ <strong>LLMRouter 开源库</strong>——16+ 个代表性路由器的模块化实现，加新路由只需实现路由方法 + 损失函数。实验里最有分量的三个发现：学习式路由比最强固定模型基线</strong><span class="mark-strong">相对提升 <span class="mark-number">14.6%</span></span><strong>（MFRouter 76.48 vs Largest-LLM 71.48）；</strong><span class="mark-strong">紧成本约束下轻量路由器排名反转</span><strong>——&quot;最优路由器&quot;跟着预算走；用户条件路由带来一致个性化增益（真实用户反馈下 PersonalizedRouter 83.05%）。</strong></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</li>
+<li><strong>arXiv</strong>：2608.06867</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.06867">https://arxiv.org/abs/2608.06867</a></li>
+<li><strong>作者</strong>：Tao Feng, Fangxu Yu, Haozhen Zhang 等（Jiaxuan You 通讯组）</li>
+<li><strong>机构</strong>：UIUC / University of Maryland / NTU / Purdue / UIC</li>
+<li><strong>日期</strong>：2026-08-07</li>
+<li><strong>项目</strong>：xRouteBench + LLMRouter 库</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>LLM 生态现在的模样：从前沿闭源到廉价开源，模型在<strong>成本</strong>与<strong>任务特定能力</strong>上差异巨大，没有任何单一模型能在所有查询和预算约束下都最优。于是<strong>模型路由</strong>（每个 query 交给哪个模型）成了降本增效的枢纽，还得顺带做能力匹配（capability matching）和用户偏好适配（user preference）。</p>
+<p>但路由研究一片散沙：</p>
+<ul>
+<li>
+<p>二元路由器（弱/强仲裁）、成本感知级联、奖励引导集成、对比/图路由器、个性化路由器、agentic RL 路由器——<span class="mark-strong">形式化各异</span></p>
+</li>
+<li>
+<p>实现互不兼容，<span class="mark-strong">无标准化评测管线</span>——没法公平对比，扩展也费劲</p>
+</li>
+<li>
+<p>现有基准（RouterBench、RouterEval）只覆盖单轮文本；输入 token 成本主导、多模态、时序、个性化这些<span class="mark-strong">路由决策长得完全不一样的场景</span>一概没碰</p>
+</li>
+</ul>
+<p>论文的三个交付物各回答一个问题：<strong>怎么统一描述所有路由器？（形式化）→ 怎么公平评测？（xRouteBench）→ 怎么低成本复现与扩展？（LLMRouter 库）</strong></p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">所有路由器都是序贯决策过程</span>：状态 s_t=(q, u, h_t)（查询 + 可选用户上下文 + 交互历史），动作 a_t ∈ M∪{⊥}（派发给候选模型或终止聚合）。二元路由器、级联、图路由、agentic RL 路由器全是这个框架的特例——<span class="mark-strong">统一形式化让公平对比成为可能</span>。</p>
+</li>
+<li>
+<p><span class="mark-strong">5 组件分解是&quot;路由器的积木&quot;</span>：任何路由器的差异都归结为 5 个组件的选择（E_q 上下文编码 / E_m 模型编码 / g 打分 / d 决策规则 / L 学习信号）——有了这副积木，&quot;加新路由器 = 只实现路由方法与损失函数&quot;才真正成立，模块化复用靠的就是它。</p>
+</li>
+<li>
+<p><span class="mark-strong">决策逻辑根本不同的场景需要专属评测</span>：长上下文（输入 token 成本主导）、多模态（只有部分模型能处理）、时序（多模态编码）、个性化（用户特定偏好）——现有基准全都不覆盖，xRouteBench 把这块空白补上。</p>
+</li>
+<li>
+<p><span class="mark-strong">&quot;性能-成本联合评测&quot;是路由的独特需求</span>：统一协议同时评估响应质量与推理成本（α·perf − β·cost 加权，扫 5 个权重）——路由的成败天生就是 trade-off，单看质量或单看成本都会误导。</p>
+</li>
+<li>
+<p><span class="mark-strong">实证最有价值的发现是&quot;排名反转&quot;</span>：performance-first 下复杂/大型路由器领先，但随成本权重 β 增大，<span class="mark-strong">轻量路由器排名系统性上升</span>——&quot;最优路由器&quot;不是绝对的，取决于部署的预算约束。给实践者的信号很直接：<span class="mark-strong">别照搬别人的路由配置，按自己的成本约束选</span>。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_04a0c94c2d28dbf786437f7a31c7b79ab98b7dd1ca92f81ee1d711beb18ccc85.webp" srcset="/img/loading.gif" lazyload alt="Figure 1: LLM 路由统一形式化——三个需求（成本效率、能力匹配、用户偏好）→ 一个序贯决策过程（上下文编码器 + 模型编码器 + 打分 + 决策规则 + 学习信号）" /></p>
+<p><em>Figure 1（统一形式化）：左：路由的三个驱动需求——成本效率、能力匹配、用户偏好；右：统一形式化把它们全部化为一个决策过程——上下文编码器 E_q 表示路由状态，模型编码器 E_m 表示候选 LLM，打分函数 g 与决策规则 d 生成路由动作，学习信号 L 拟合最优策略。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1统一形式化路由即序贯决策2"><a class="markdownIt-Anchor" href="#组件1统一形式化路由即序贯决策2"></a> 组件1：统一形式化——路由即序贯决策（§2）</h3>
+<ul>
+<li>
+<p><span class="mark-strong">目标</span>：π* = argmax_π E[perf(y|q) − λ·c(τ)]——质量最大化、成本最小化，λ 控制权衡</p>
+</li>
+<li>
+<p><span class="mark-strong">5 组件</span>：</p>
+<ul>
+<li>
+<p><span class="mark-strong">Context encoder E_q</span>：Embedding-based（向量；rating 路由退化为常数、kNN 用现成句嵌入、判别式路由器训轻量编码器、个性化路由基于异构交互图）或 Text-based（级联把草稿响应+验证置信度附到查询）</p>
+</li>
+<li>
+<p><span class="mark-strong">Model encoder E_m</span>：编码每个候选模型（参数/能力/成本特征）</p>
+</li>
+<li>
+<p><span class="mark-strong">Scoring function g</span>：把上下文与模型表示转为分数</p>
+</li>
+<li>
+<p><span class="mark-strong">Decision rule d</span>：选 argmax 或阈值等</p>
+</li>
+<li>
+<p><span class="mark-strong">Learning signal L</span>：监督（偏好对）或强化（RL 路由）</p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="mark-strong">三族划分</span>：单轮（一次派发即终止）、多轮/agentic（可多次派发与终止）、个性化（状态含用户上下文 u）</p>
+</li>
+</ul>
+<h3 id="组件2xroutebench-基准3"><a class="markdownIt-Anchor" href="#组件2xroutebench-基准3"></a> 组件2：xRouteBench 基准（§3）</h3>
+<ul>
+<li>
+<p><span class="mark-strong">设计原则</span>：所有任务由 LLMRouter 数据引擎构造，共享查询 schema、监督格式、评测协议；非文本资产（图/视频/时序）经转换脚本变为<strong>自包含文本查询</strong>（可选指向源资产指针）——<span class="mark-strong">路由与感知分离</span>，纯文本与多模态候选收到相同文本输入</p>
+</li>
+<li>
+<p><span class="mark-strong">5 条轨道、4,767 实例</span>：Generic LLM Tasks、memory（LoCoMo/LongMemEval）、vision（Geometry3K/MathVista/Video）、time-series、personalized</p>
+</li>
+<li>
+<p><span class="mark-strong">统一协议</span>：每查询联合评估质量与成本，暴露&quot;输入 token 成本主导生成成本&quot;的场景；新应用只需转换脚本 + 注册指标</p>
+</li>
+<li>
+<p>填补的空白：RouterBench/RouterEval 只覆盖单轮文本；视觉路由基准限于图像 QA 无视频/长上下文；Chatbot Arena 缺持久用户上下文</p>
+</li>
+</ul>
+<h3 id="组件3llmrouter-库4"><a class="markdownIt-Anchor" href="#组件3llmrouter-库4"></a> 组件3：LLMRouter 库（§4）</h3>
+<ul>
+<li>
+<p><span class="mark-strong">六模块</span>：路由数据构建、路由器实现与训练、推理、评估、部署</p>
+</li>
+<li>
+<p><span class="mark-strong">16+ 内置路由器</span>：</p>
+<ul>
+<li>
+<p>单轮：kNNRouter、SVMRouter、MLPRouter、EloRouter、MFRouter、RouterDC、Hybrid LLM、AutoMix、GraphRouter、CausalLM、规则基线（Smallest/Largest-LLM）</p>
+</li>
+<li>
+<p>多轮：Router-R1（RL）、kNN/LLM 多轮变体</p>
+</li>
+<li>
+<p>个性化：GMTRouter、PersonalizedRouter</p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="mark-strong">扩展性</span>：加新路由器 = 实现路由方法 + 损失函数，其余（数据/评估/部署）复用</p>
+</li>
+</ul>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p><span class="mark-strong">统一形式化 → 公平对比</span>：5 组件分解让不同方法在同一坐标系下比较</p>
+</li>
+<li>
+<p><span class="mark-strong">模块化 → 低门槛扩展</span>：新路由器的接入成本降到最低</p>
+</li>
+<li>
+<p><span class="mark-strong">成本感知评测 → 贴近部署</span>：性能-成本联合评估 + 权重扫描，暴露&quot;哪种路由在哪种预算下最优&quot;</p>
+</li>
+<li>
+<p><span class="mark-strong">多场景覆盖</span>：长上下文/多模态/时序/个性化这些&quot;路由决策逻辑不同&quot;的场景首次统一评测</p>
+</li>
+<li>
+<p><span class="mark-strong">部署闭环</span>：Slack 接口收集真实用户偏好（234 条记录）、ComfyUI 可视化、OpenClaw 服务器部署</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<ul>
+<li>
+<p><span class="mark-strong">候选池</span>：18 个开源模型（7B-671B），两个供应商（Together API / NVIDIA NIM）：Gemma-2-9B、Mistral 系列、Qwen2.5-7B/Qwen3-Next-80B、Llama 系列、GPT-OSS-20B/120B、RNJ-1-15B、DeepSeek-V3.1、Cogito-v2</p>
+</li>
+<li>
+<p><span class="mark-strong">评测协议</span>：加权奖励 α·perf − β·cost，扫 5 档（质量唯一 (1.0,0.0) → 重成本 (0.2,0.8)）</p>
+</li>
+<li>
+<p><span class="mark-strong">个性化轨道</span>：persona 条件化 LLM 裁判（DeepSeek-V3.1）判 win/tie/loss；裁判成本不计入</p>
+</li>
+<li>
+<p>多轮/RL 路由器无法优化该加权目标，单配置跑一次</p>
+</li>
+</ul>
+<h3 id="核心发现"><a class="markdownIt-Anchor" href="#核心发现"></a> 核心发现</h3>
+<p><strong>发现 1：学习式路由 &gt; 最强固定模型（质量优先，Table 2）</strong></p>
+<ul>
+<li>
+<p>MFRouter 平均 76.48 vs Largest-LLM 71.48——<strong><span class="mark-number">相对提升 ~7%（绝对 5 点）</span></strong>；论文摘要里的 14.6% 相对提升是跨轨道/设置的综合数字</p>
+</li>
+<li>
+<p>查询感知路由（kNN/SVM/MLP/MF）普遍超过&quot;永远选最大/最小模型&quot;的规则基线——<span class="mark-strong">路由确实在做能力匹配</span></p>
+</li>
+</ul>
+<p><strong>发现 2：紧成本约束下轻量路由器排名反转（Figure 5/6）</strong></p>
+<ul>
+<li>
+<p>随成本权重 β 增大，路由器排名系统性变化——<span class="mark-strong">重路由器（依赖大模型特征/多轮调用）让位给轻量路由器</span></p>
+</li>
+<li>
+<p>Figure 5 的排名矩阵直接把这个反转画了出来；Figure 6 的性能-成本前沿显示不同路由器占据不同 trade-off 区间</p>
+</li>
+<li>
+<p><strong>实践含义：路由器的&quot;最优性&quot;依赖部署预算约束，必须按自己的成本权重选择</strong></p>
+</li>
+</ul>
+<p><strong>发现 3：用户条件路由一致提升个性化（Table 3/4）</strong></p>
+<ul>
+<li>
+<p>模拟（persona 裁判）下 GMTRouter 领先；<strong>真实用户反馈（15 用户 40 会话 234 条偏好）下 PersonalizedRouter 83.05% 领先，GMTRouter 跌到第六</strong>——模拟排名不完全迁移，<strong><span class="mark-strong">必须用真实反馈验证个性化路由器</span></strong></p>
+</li>
+<li>
+<p>用户条件路由（用 user features + session）比无用户上下文路由一致性更好</p>
+</li>
+</ul>
+<p><strong>额外：多智能体系统内逐节点路由（Table 5）</strong></p>
+<ul>
+<li>把每个功能节点（规划/执行/验证 prompt 差异巨大）独立路由：6/7 个学习式路由器超过&quot;永远选最大模型&quot;（MFRouter 76.48 vs 71.48）——<span class="mark-strong">路由在 MAS 内部也有效</span>，且泛化到训练时未见过的节点 prompt</li>
+</ul>
+<p><img src="/img/paper-reading/img_9d11e1ccfaf0efaaec7392a150aa2f17dd3149fcbf30101e7a18573b07d2b605.webp" srcset="/img/loading.gif" lazyload alt="Figure 2: xRouteBench 任务构成——通用 LLM、记忆、视觉、时序、个性化五条轨道及各自占比" /></p>
+<p><em>Figure 2（基准构成）：xRouteBench 覆盖通用 LLM 任务、记忆、视觉（图/视频）、时序、个性化五类路由场景，百分比表示各数据集贡献的测试查询比例——路由决策逻辑不同的场景首次统一评测。</em></p>
+<p><img src="/img/paper-reading/img_9a47e8a18d47b9aa5d40b7a469d6ca146637e363fbfc1c6a9841e5fb72af5c4e.webp" srcset="/img/loading.gif" lazyload alt="Figure 3: LLMRouter 架构——六模块支持数据构建、路由器实现与训练、推理、评估、部署" /></p>
+<p><em>Figure 3（系统架构）：LLMRouter 的六模块系统支持路由数据构建、路由器实现与训练、推理、评估与部署——加新路由器只需实现路由方法与损失函数。</em></p>
+<p><img src="/img/paper-reading/img_4393b6202414425e193b67be20cc9f65808425b951a81a6aea5e76c9606b110c.webp" srcset="/img/loading.gif" lazyload alt="Figure 5: 路由器排名随成本权重 β 增加而变化——每个单元格是路由器在加权性能-成本目标下的排名，成本约束越紧轻量路由器越占优" /></p>
+<p><em>Figure 5（成本排名反转）：随成本权重 β 增加，路由器排名系统性变化——性能优先时复杂/大型路由器领先，紧成本约束下轻量路由器排名上升。这是&quot;最优路由取决于预算约束&quot;的直接可视化证据。</em></p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">基础设施类贡献的标杆</span>：统一形式化 + 统一基准 + 模块化库三件套齐备——路由领域最缺的就是这种&quot;公共品&quot;，后续研究从此有坐标系可依</p>
+</li>
+<li>
+<p><span class="mark-strong">5 组件分解的洞察力</span>：把看似不兼容的方法（二元仲裁/级联/图路由/agentic RL）统一到同一形式化——不是简单分类，是找到了共同的抽象层，模块化复用直接受益</p>
+</li>
+<li>
+<p><span class="mark-strong">成本感知评测的设计</span>：α·perf − β·cost 加权 + 权重扫描是路由评测的正确姿势——单看质量或单看成本都会误导，&quot;排名反转&quot;这个发现就是从这个设计里长出来的</p>
+</li>
+<li>
+<p><span class="mark-strong">真实用户验证</span>：Slack 收集真实偏好反馈（234 条），发现模拟排名不迁移（GMTRouter 模拟第一 → 真实第六）——给&quot;用 persona 裁判代替真实用户&quot;的做法敲了记警钟</p>
+</li>
+<li>
+<p><span class="mark-strong">与 W2S-OPD 作者的呼应</span>：Fangxu Yu（W2S-OPD 一作）参与——模型选择（路由）与模型蒸馏（W2S-OPD）是&quot;部署成本优化&quot;的两条互补路线，同一研究者同时耕耘两个方向，信号意义不小</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：候选池全开源有成本可控、可复现的好处，闭源 API 的调用量价我理解为什么没碰；但理解归理解，该提的还是要提：</p>
+<ol>
+<li>
+<p><span class="mark-strong">候选池全开源</span>：18 个开源模型——真实部署最常见的&quot;开源+闭源混合池&quot;（如 GPT/Claude 与小模型级联）未覆盖，路由对闭源 API 的适用性未知</p>
+</li>
+<li>
+<p><span class="mark-strong">个性化评估的裁判问题</span>：persona 裁判（DeepSeek-V3.1）与真实用户反馈的排名不一致（GMTRouter 案例）——<span class="mark-strong">基准的个性化轨道本身的可信度存疑</span>，论文用真实数据点出了问题，但没回答&quot;如何廉价获得可靠个性化监督&quot;</p>
+</li>
+<li>
+<p><span class="mark-strong">路由器的成本假设简化</span>：成本按 per-token 定价计算，未考虑真实部署的额外开销（路由推理本身、延迟、并发）；λ 与 (α,β) 的换算关系不明确</p>
+</li>
+<li>
+<p><span class="mark-strong">多轮/RL 路由器的评测不公平</span>：它们&quot;无法优化加权目标，单配置跑一次&quot;——与可扫权重的单轮路由器不在同一比较面上</p>
+</li>
+<li>
+<p><span class="mark-strong">MAS 实验的基线局限</span>：只对比&quot;永远选最大模型&quot;，未对比&quot;统一小模型&quot;等更实际的 MAS 成本基线</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><span class="mark-strong">混合候选池</span>：开源+闭源混合路由（真实部署形态），评估闭源 API 的成本/延迟约束</p>
+</li>
+<li>
+<p><span class="mark-strong">路由器的真实部署成本</span>：把路由推理开销、延迟、并发纳入统一评测</p>
+</li>
+<li>
+<p><span class="mark-strong">个性化监督的规模化</span>：如何用更少真实反馈训练可靠个性化路由器（主动学习、迁移）</p>
+</li>
+<li>
+<p><span class="mark-strong">路由与蒸馏的联合</span>：路由选模型 vs 蒸馏压模型——何时路由优于蒸馏、何时反之、可否联合优化（呼应 W2S-OPD）</p>
+</li>
+<li>
+<p><span class="mark-strong">跨库互操作</span>：LLMRouter 与主流 serving 框架（vLLM、SGLang）的对接</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RouterBench / RouterEval</strong></td>
+<td>现有路由基准</td>
+<td>只覆盖单轮文本、质量独立于成本；xRouteBench 统一成本感知 + 五场景</td>
+</tr>
+<tr>
+<td><strong>Hybrid LLM / AutoMix / RouterDC</strong></td>
+<td>代表性单轮路由器</td>
+<td>全部被 LLMRouter 统一形式化并模块化实现（16+ 内置）</td>
+</tr>
+<tr>
+<td><strong>GraphRouter (Feng et al. 2024)</strong></td>
+<td>图路由器</td>
+<td>同一作者组的早期工作，纳入统一框架</td>
+</tr>
+<tr>
+<td><strong>Router-R1 / agentic routers</strong></td>
+<td>RL 路由</td>
+<td>归入&quot;多轮路由&quot;族；评测受&quot;单配置&quot;限制</td>
+</tr>
+<tr>
+<td><strong>W2S-OPD（2607.26246）</strong></td>
+<td>同作者（Fangxu Yu）</td>
+<td>W2S-OPD 蒸馏（把强模型压进弱模型）；LLMRouter 路由（按查询选模型）——部署成本优化的两条互补路线</td>
+</tr>
+<tr>
+<td><strong>Mooncake（FAST '25）</strong></td>
+<td>系统层优化</td>
+<td>Mooncake 优化 serving 内部资源（KVCache）；LLMRouter 优化模型选择层——不同层的成本优化</td>
+</tr>
+<tr>
+<td><strong>Chatbot Arena</strong></td>
+<td>偏好数据来源</td>
+<td>Arena 提供人群级信号但缺持久用户上下文；xRouteBench 个性化轨道补充用户条件路由</td>
+</tr>
+<tr>
+<td><strong>Semantica（今日 GitHub 第一）</strong></td>
+<td>可问责 AI 基础设施</td>
+<td>Semantica 管知识图与溯源；LLMRouter 管模型选择——&quot;AI 系统基础设施&quot;主题的不同切面</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>LLMRouter 没有提出新的路由算法，它干的是另一件事：给整个路由领域装上<strong>统一坐标系</strong>（序贯决策 5 组件形式化）、<strong>公平标尺</strong>（xRouteBench 成本感知评测）和<strong>可复用积木</strong>（16+ 路由器的模块化库）——基础设施型论文该有的三样它都齐了。实证里我认为最值钱的是<span class="mark-strong">成本权重的&quot;排名反转&quot;效应</span>：最优路由器不是绝对的，紧预算下轻量设计反超——这条直接指导实践，路由方案必须按自己的部署约束选，照搬论文配置要吃亏。它和笔记库里的 W2S-OPD（同作者、蒸馏 vs 路由互补）正好凑成&quot;模型经济性&quot;主题的一对。要挑毛病就三处：全开源候选池、个性化裁判的可信度存疑、多轮路由器评测不对称——都是下一轮该补的窟窿。对做 LLM 部署/推理优化或模型选型的人，这篇就是从&quot;拍脑袋选模型&quot;走向&quot;科学路由&quot;的那套地基。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">路由 = 序贯决策</span>：状态（查询+用户+历史）→ 动作（派发模型或终止），5 组件（上下文编码/模型编码/打分/决策规则/学习信号）统一所有路由器，归入单轮/多轮/个性化三族。</p>
+</li>
+<li>
+<p><span class="mark-strong">成本权重决定最优路由</span>：性能优先时大型路由器领先，紧成本约束下轻量路由器排名反转——MFRouter 76.48 vs Largest-LLM 71.48，但 β 增大后格局颠倒。</p>
+</li>
+<li>
+<p><span class="mark-strong">个性化必须用真实反馈验证</span>：persona 裁判下 GMTRouter 第一、真实用户下跌到第六（PersonalizedRouter 83.05% 领先）——模拟排名不可靠。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</div>
+      <div>https://yyhchen.github.io/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月11日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/11/paper-tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction/" title="Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning">
+                        <span class="hidden-mobile">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

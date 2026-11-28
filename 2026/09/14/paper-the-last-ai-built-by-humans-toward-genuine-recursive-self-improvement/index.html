@@ -1,0 +1,1353 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这篇论文把递归自我改进从一句宏大口号拆成一条可审计的路线：B0 只改当前输出，L1 执行固定改进流程，L2 自主选择改进策略，L3 自主决定获得什么学习经验，L4 从真实部署环境持续适应，L5 连“产生下一轮改进的方法”也能被继承和改进。目前较可靠的是 B0–L2，L3–L4 依赖场景，L5 主要还是有边界的原型；真正尚未解决的核心不是“模型会不会自改”，而是改动能否在独立验证、相同资源和安全约束">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement">
+<meta property="og:url" content="https://yyhchen.github.io/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="这篇论文把递归自我改进从一句宏大口号拆成一条可审计的路线：B0 只改当前输出，L1 执行固定改进流程，L2 自主选择改进策略，L3 自主决定获得什么学习经验，L4 从真实部署环境持续适应，L5 连“产生下一轮改进的方法”也能被继承和改进。目前较可靠的是 B0–L2，L3–L4 依赖场景，L5 主要还是有边界的原型；真正尚未解决的核心不是“模型会不会自改”，而是改动能否在独立验证、相同资源和安全约束">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_a7701553d06e2188610495f131ac48c9bdf912903b091d6becc3e9703092283e.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_9eea37a6432bb770f39b5c98ee88a18ae96457dc77b5764cf2cc48ffbeb6b81a.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_007ac1431f9a99993cc117ee4ea9b9231f9cd4dd80023c899d48a60020a05b69.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_b9fa9b6747279a64b58c7fd87f6e2e2d4b029ac1b48170b2d2a24af850f7fd93.png">
+<meta property="article:published_time" content="2026-09-14T08:03:44.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_a7701553d06e2188610495f131ac48c9bdf912903b091d6becc3e9703092283e.png">
+  
+  
+  
+  <title>Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-09-14 16:03" pubdate>
+          2026-09-14 16:03:44
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          36 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement"><a class="markdownIt-Anchor" href="#paper精读the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement"></a> Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>这篇论文把递归自我改进从一句宏大口号拆成一条可审计的路线：<strong>B0 只改当前输出，L1 执行固定改进流程，L2 自主选择改进策略，L3 自主决定获得什么学习经验，L4 从真实部署环境持续适应，L5 连“产生下一轮改进的方法”也能被继承和改进</strong>。目前较可靠的是 B0–L2，L3–L4 依赖场景，L5 主要还是有边界的原型；真正尚未解决的核心不是“模型会不会自改”，而是改动能否在独立验证、相同资源和安全约束下，<span class="mark-strong">稳定提升下一代系统的改进能力</span>。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</li>
+<li><strong>arXiv</strong>：2609.11873v1</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.11873">https://arxiv.org/abs/2609.11873</a></li>
+<li><strong>alphaXiv</strong>：<a target="_blank" rel="noopener" href="https://www.alphaxiv.org/abs/2609.11873">https://www.alphaxiv.org/abs/2609.11873</a></li>
+<li><strong>项目页</strong>：<a target="_blank" rel="noopener" href="https://theseus-labs-rsi.github.io/">https://theseus-labs-rsi.github.io/</a></li>
+<li><strong>作者</strong>：Yi Duan, Ying Liu, Zirui Tang, Haodong Chen, Jun Zhou, Yumou Liu, Bangrui Xu, Yukai Wu 等（共 40 余位作者）</li>
+<li><strong>机构</strong>：Shanghai Jiao Tong University / Theseus Labs / Tsinghua University / ByteDance / ModelBest / Xiaohongshu / Humanlaya / Agent-Native Research Lab / Shanghai AI Lab</li>
+<li><strong>日期</strong>：2026-09-10</li>
+</ul>
+</div></details><hr />
+<h2 id="论文分类标注"><a class="markdownIt-Anchor" href="#论文分类标注"></a> 论文分类标注</h2>
+<ul>
+<li>
+<p><strong>研究类型</strong>：综述 + 概念框架 + 产业实践盘点 + 初步实证，不是提出单一训练算法的实验论文。</p>
+</li>
+<li>
+<p><strong>领域归属</strong>：LLM Agent &gt; self-evolving agent &gt; recursive self-improvement &gt; AI for Science / 软件工程 / 具身智能。</p>
+</li>
+<li>
+<p><strong>方法学标签</strong>：autonomy taxonomy、闭环改进、经验获取、环境—数据—模型协同进化、元改进、长时程评测。</p>
+</li>
+<li>
+<p><strong>证据性质</strong>：学术论文、技术报告、公司工程文章、开源项目和作者团队内部/初步实验混合；不同证据强度不能等量齐观。</p>
+</li>
+<li>
+<p><strong>阅读提醒</strong>：文中“RSI”是按改进闭环的控制权和继承关系定义的，不等于“用了 RL”“能写自己的代码”或“自动跑了很多轮”。</p>
+</li>
+</ul>
+<hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>当前 AI 研发的瓶颈已从“模型能不能完成一次任务”扩展到“能否持续、低成本、可靠地改进模型和 Agent”。训练更大模型需要巨量算力；高质量训练信号需要专家标注、合成数据、执行环境和验证器；模型上线后还会遇到新文档、新工具、变化中的软件仓库和长链路错误，人工诊断、改 harness、重训和回归测试成为持续负担。</p>
+<p>论文把这些负担归纳为三类：基础模型训练的资源与协调成本；学习经验和可靠反馈难以规模化；部署后的适应需要反复人工诊断和发布。RSI 的目标不是单次自动化，而是把“发现问题—提出修改—验证—保留—进入下一轮”的闭环部分内化到系统中。</p>
+<p>关键边界是：<strong><span class="mark-strong">改进一个任务产物，不等于改进产生未来产物的系统</span></strong>。代码 Agent 在当前 issue 上反复修复属于 B0；如果把通过测试的规则保存到后续任务中，才跨入 L1；如果它还能改变之后选择什么修复策略、生成什么训练任务或如何评价候选改动，才逐步接近 L2–L5。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>RSI 的基本单位是改进闭环，不是算法名称。</strong> 论文用 AI system、system state、experience、target、improver、strategy、verifier、improvement、successor 九个组件描述闭环。判断一个系统时应问：循环在哪里闭合？什么状态被保留？下一轮是否继承？谁控制目标、策略、验证和停止？</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">自主性与效果必须分开</span>。</strong> AI 可以获得更大的改进权限，却仍然搜索低效、被错误奖励诱导、发生回归或无法迁移。L5 的“结构性成立”只要求修改后的 improver/evaluator/policy 在下一轮被继承并调用；“有效 L5”还要求它在匹配预算和独立评测下产生更好的 successor。</p>
+</li>
+<li>
+<p><strong>剩余能力缺口集中在交互式任务。</strong> 为了把不同能力域放进同一把尺子，论文设计了 Headroom-Closed Index（HCI），把 benchmark 归一化成&quot;关闭了多少相对缺口&quot;：</p>
+</li>
+</ol>
+</div></div><p><code>H_mbh = 100 × (s̄_mbh − F_b,0) / (100 − F_b,0)</code></p>
+<p>其中 <code>s̄</code> 是按来源可信度加权后的共识分数，<code>F_b,0</code> 是该 benchmark 首次进入数据集年份的模型分数第 90 百分位。HCI=0 表示达到入口年份 frontier，HCI=100 表示满分。跨 benchmark 聚合时再用 <code>sqrt(n_b,y)</code> 加权，避免覆盖模型最多的单个 benchmark 支配领域趋势。</p>
+<p>论文报告 2026 年 advanced mathematics HCI=86.4、graduate science=85.8、broad knowledge=77.2；但 software engineering=52.6、search/terminal=56.8、tool agents=39.9。它的解释是：<span class="mark-strong">封闭、易验证的能力进步快</span>，而长状态、工具依赖和错误传播的工作流更需要 L3–L4 的经验获取、持久状态和环境适应。</p>
+<blockquote>
+<p><strong>Figure 1 — 五级 RSI 自主性总览</strong>：横轴从 B0 Output 逐步走向 L1 Execution、L2 Strategy、L3 Experience、L4 Deployment、L5 Meta。每一级都扩大 AI 对改进闭环的控制范围：从只迭代输出，到执行固定流程、选择策略、决定未来学习经验、吸收部署反馈，最终改进 successor generation、candidate evaluation 或 research control。</p>
+</blockquote>
+<p><img src="/img/paper-reading/img_a7701553d06e2188610495f131ac48c9bdf912903b091d6becc3e9703092283e.png" srcset="/img/loading.gif" lazyload alt="Figure 1：五级 RSI 自主性框架" /></p>
+<ol>
+<li><strong>环境不是被动容器，而是学习信号的一部分。</strong> Theseus 的环境—数据—模型协同进化把循环拆为：重构环境 → 暴露真实能力缺口并生成训练数据 → 训练任务模型 → 用更强模型继续演化环境。初步 workspace 实验显示，固定模型和 harness 时，重构环境相对 bare workspace 让五种配置的 rubric 分数提高 <span class="mark-number">18.65–39.67 个百分点</span>；这说明部分“模型能力不足”其实是环境状态、上下文和可验证性不足。但这还只是环境改善的局部证据，不等于已经证明完整 RSI 闭环。</li>
+</ol>
+<p><img src="/img/paper-reading/img_9eea37a6432bb770f39b5c98ee88a18ae96457dc77b5764cf2cc48ffbeb6b81a.png" srcset="/img/loading.gif" lazyload alt="Figure 10：Theseus 环境—数据—模型协同进化" /></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件-1改进闭环的形式化拆解"><a class="markdownIt-Anchor" href="#组件-1改进闭环的形式化拆解"></a> 组件 1：改进闭环的形式化拆解</h3>
+<ul>
+<li>
+<p><strong>AI system</strong>：被追踪能力状态的完整计算实体，不只是一组权重，也包括 harness、工具、持久状态和修改逻辑。</p>
+</li>
+<li>
+<p><strong>Experience</strong>：只有当失败、测试结果或环境反馈影响之后的修改时，才算进入经验；单纯记录日志不算。</p>
+</li>
+<li>
+<p><strong>Target</strong>：当前直接被改的对象，例如代码函数、prompt、skill、模型权重、evaluator 或 research policy。</p>
+</li>
+<li>
+<p><strong>Improver</strong>：把当前状态和经验变成候选修改的机制。</p>
+</li>
+<li>
+<p><strong>Verifier</strong>：按 benchmark、unit test、环境结果、reward model、人类反馈或安全规则接受/拒绝候选。</p>
+</li>
+<li>
+<p><strong>Successor</strong>：继承已接受改动并进入下一轮的系统版本。</p>
+</li>
+</ul>
+<p>这个拆解的价值在于可以避免把“模型生成了一个好 patch”误判为 RSI：如果 patch 没有进入未来任务，属于 B0；如果进入未来任务但策略仍完全固定，通常是 L1；只有改进机制本身开始成为可继承对象，才有 L5 证据。</p>
+<h3 id="组件-2五级自主性阶梯"><a class="markdownIt-Anchor" href="#组件-2五级自主性阶梯"></a> 组件 2：五级自主性阶梯</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>层级</strong></th>
+<th><strong>AI 获得的责任</strong></th>
+<th><strong>持久化对象</strong></th>
+<th><strong>仍由外部固定的部分</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B0</td>
+<td>当前任务内反思、重试、筛选</td>
+<td>无跨任务状态</td>
+<td>流程、目标、验证器</td>
+</tr>
+<tr>
+<td>L1</td>
+<td>执行预先规定的改进流程</td>
+<td>规则、skill、参数或 patch</td>
+<td>目标、流程、验收标准</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>选择改进对象/策略/搜索路径</td>
+<td>搜索结果、策略或 harness 变体</td>
+<td>目标、预算、验证器</td>
+</tr>
+<tr>
+<td>L3</td>
+<td>决定未来获得什么经验</td>
+<td>任务、课程、轨迹、训练数据</td>
+<td>高层目标、有效性标准</td>
+</tr>
+<tr>
+<td>L4</td>
+<td>从部署和环境反馈适应</td>
+<td>记忆、工具、策略、模型或 harness</td>
+<td>安全边界、权限、发布门槛</td>
+</tr>
+<tr>
+<td>L5</td>
+<td>改进生成/评价/研究控制机制</td>
+<td>可继承的 improver、evaluator、policy</td>
+<td>mission、保护评测、最终接受、资源权限</td>
+</tr>
+</tbody>
+</table></div>
+<p>B0→L1 的分界是“持久性”；L1→L2 是“策略选择权”；L2→L3 是“学习议程/经验获取权”；L3→L4 是“真实部署反馈”；L4→L5 是“改进机制的递归继承”。</p>
+<blockquote>
+<p><strong>Figure 8 — L4 到 L5</strong>：左侧 L4 仍是在固定改进流程中吸收环境反馈；右侧 L5 会诊断改进瓶颈、修改流程、验证并继承该修改，让下一代 successor 使用新机制。图中明确保留 Human mission、Safety boundaries、Protected evaluation 和 Final acceptance 四条外部约束。</p>
+</blockquote>
+<p><img src="/img/paper-reading/img_007ac1431f9a99993cc117ee4ea9b9231f9cd4dd80023c899d48a60020a05b69.png" srcset="/img/loading.gif" lazyload alt="Figure 8：L4 到 L5 的递归元改进" /></p>
+<h3 id="组件-3l5-的三条路径"><a class="markdownIt-Anchor" href="#组件-3l5-的三条路径"></a> 组件 3：L5 的三条路径</h3>
+<ol>
+<li>
+<p><strong>改进搜索程序</strong>：STOP 让 improver 修改自己的搜索代码，并用下游任务评价 successor；Gödel Agent 让任务策略和递归更新逻辑共同进入下一轮；DGM 通过多个 Agent lineage 和 archive 搜索后代。问题是 parent selection、utility、base model、预算和执行权限往往仍由外部固定。</p>
+</li>
+<li>
+<p><strong>改进 successor evaluator</strong>：RQGM 在 epoch 内冻结 evaluator，在边界用独立 ground-truth anchor 评估 challenger，再重评受 evaluator 替换影响的历史分数。它解决的是“评价器变了导致分数不可比”，但 anchor、替换时间表和编排仍在外部。</p>
+</li>
+<li>
+<p><strong>改进研究目标/策略</strong>：A-Evolve-Training 收集 30B 模型多轮 post-training 的 recipe、checkpoint、失败方向和 discovery log，由 meta-agent 更新下一轮研究 policy。四轮外部得分从 0.80 到 0.86，接近 top human submission 的 0.87；这是固定高层目标下的 policy-level L5，不是 AI 自主改变最终目标。</p>
+</li>
+</ol>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="hci-设计与解释"><a class="markdownIt-Anchor" href="#hci-设计与解释"></a> HCI 设计与解释</h3>
+<p>论文不是训练一个新模型，而是整理 393 条 model–benchmark observations，覆盖十个能力域，并尝试处理 benchmark 版本、harness 不一致以及第一方自报结果偏差。相同 benchmark family 下先用来源加权共识，再按首年 frontier 归一化。论文明确提醒：不同 benchmark 的原始分数不能直接平均；Cybench 后期还存在 subset/pass@1 变化，因此趋势图不是完全同质的纵向实验。</p>
+<h3 id="关键结果"><a class="markdownIt-Anchor" href="#关键结果"></a> 关键结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>观察</strong></th>
+<th><strong>论文报告</strong></th>
+<th><strong>应如何理解</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Advanced mathematics HCI（2026）</td>
+<td>86.4</td>
+<td>数学能力缺口关闭较多，且 2026 增长加速</td>
+</tr>
+<tr>
+<td>Graduate science HCI（2026）</td>
+<td>85.8</td>
+<td>科学推理接近高位 frontier</td>
+</tr>
+<tr>
+<td>Broad knowledge HCI（2026）</td>
+<td>77.2</td>
+<td>稳定增长但边际放缓</td>
+</tr>
+<tr>
+<td>Software engineering HCI（2026）</td>
+<td>52.6</td>
+<td>长链路代码任务仍有明显缺口</td>
+</tr>
+<tr>
+<td>Search/terminal HCI（2026）</td>
+<td>56.8</td>
+<td>工具和环境状态增加验证难度</td>
+</tr>
+<tr>
+<td>Tool-agent HCI（2026）</td>
+<td>39.9</td>
+<td>十个域中最低，最适合检验 RSI 的真实价值</td>
+</tr>
+<tr>
+<td>Theseus clean vs noisy workspace</td>
+<td>+21.7–51.6 pp</td>
+<td>环境质量能把 agent 表现压下去一大截</td>
+</tr>
+<tr>
+<td>Theseus bare vs reconstructed workspace</td>
+<td>+18.65–39.67 pp</td>
+<td>固定模型/harness 下环境重构本身能带来较大收益</td>
+</tr>
+<tr>
+<td>A-Evolve-Training</td>
+<td>0.80→0.86</td>
+<td>支持固定目标下跨轮研究 policy 继承，但离证明通用加速仍有距离</td>
+</tr>
+<tr>
+<td>RQGM</td>
+<td>71.7% vs 69.9%</td>
+<td>evaluator 共演化有初步收益，但由独立 anchor 和 epoch 机制保护</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="这些数字不能推出什么"><a class="markdownIt-Anchor" href="#这些数字不能推出什么"></a> 这些数字不能推出什么</h3>
+<ul>
+<li>HCI 是作者设计的归一化指数，不是公认的能力度量；它受 benchmark 选择、协议链接和来源权重影响。</li>
+</ul>
+<p><img src="/img/paper-reading/img_b9fa9b6747279a64b58c7fd87f6e2e2d4b029ac1b48170b2d2a24af850f7fd93.png" srcset="/img/loading.gif" lazyload alt="Figure 3：跨领域能力轨迹与 HCI" /></p>
+<ul>
+<li>
+<p>Theseus 的 workspace 增益证明环境很重要，但没有单独证明 task model 训练、环境生成和下一轮能力增长已经形成完整、长期、可复现的 RSI。</p>
+</li>
+<li>
+<p>“无人值守运行”不等于节省人力；候选生成、评测器维护、失败调查和基础设施成本必须计入。</p>
+</li>
+<li>
+<p><span class="mark-strong">L5 的多数结果是 structural L5 或 bounded L5</span>。是否能在多代、匹配预算、独立测试下持续提升 successor quality，论文认为仍未建立。</p>
+</li>
+</ul>
+<hr />
+<h2 id="跨场景比较"><a class="markdownIt-Anchor" href="#跨场景比较"></a> 跨场景比较</h2>
+<h3 id="科学发现"><a class="markdownIt-Anchor" href="#科学发现"></a> 科学发现</h3>
+<p>科学 RSI 的难点是开放世界、反馈稀疏且实验失败难归因。当前最强进展在 L2：自动选择 hypothesis、工具、workflow 和 scaffold 的修改；少数工作有 L3 的跨任务经验复用。要到 L4/L5，需要保留实验假设、仪器、协议和不确定性的 provenance，避免局部有效的技能跨领域误用。</p>
+<h3 id="具身智能"><a class="markdownIt-Anchor" href="#具身智能"></a> 具身智能</h3>
+<p>机器人反馈天然来自环境，但经验是 policy 选择出来的，导致数据分布和能力共同变化；感知、规划、控制和身体形态之间也难做 credit assignment，真实试验还不可无限重置。模拟环境已有 POET、EnvGen、GenEnv、SimWorld Studio 等 L3/L4-like 机制，但真实世界的安全继承和跨 embodiment 迁移仍未解决。</p>
+<h3 id="软件工程"><a class="markdownIt-Anchor" href="#软件工程"></a> 软件工程</h3>
+<p>这是最适合研究 RSI 的场景，因为产品和 Agent 都是可执行代码。Self-Harness、Agentic Harness Engineering、Ouroboros 把工具、上下文、prompt、验证逻辑和 harness 改动版本化，并用回归测试和 rollback 控制风险。DGM、HGM 和 population-based 方法进一步关注 lineage 与 metaproductivity：当前分数高，不代表产生后代的能力高。完整 L5 仍需要跨仓库、跨版本和跨任务的可靠迁移。</p>
+<h3 id="医疗健康"><a class="markdownIt-Anchor" href="#医疗健康"></a> 医疗健康</h3>
+<p>医疗的核心限制是不可接受的试错、反馈延迟且混杂、不同人群/机构之间难迁移。现有工作多为模拟或回顾性数据上的 memory、诊断规则、工具和 workflow 演化；真正从纵向真实结局获得反馈并安全继承，仍然非常早期。任何医疗 RSI 都必须有临床验证、前瞻监控、来源追踪和可逆治理。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>把“自我改进”从宣传词变成责任分配问题。</strong> B0–L5 的边界清楚，尤其强调“谁控制策略、经验、验证器和 successor”。</p>
+</li>
+<li>
+<p><strong>把当前能力缺口与 RSI 需求接上。</strong> HCI 的价值不在于制造一个绝对排名，而在于说明工具 Agent、软件工程和长状态交互任务的缺口明显大于封闭知识/数学任务。</p>
+</li>
+<li>
+<p><strong>把 evaluator、环境和持久状态纳入一等公民。</strong> 这是比“模型自己写代码”更成熟的系统视角；许多失败来自数据、上下文、工具、测试覆盖或评价器，而非参数本身。</p>
+</li>
+<li>
+<p><strong>对 L5 的证据边界相对诚实。</strong> 论文区分 structural/effective L5，并承认 AIDE² 等结果没能证明外层改进效率在统计上站得住的优势。</p>
+</li>
+<li>
+<p><strong>覆盖学术和工业材料。</strong> 对新兴领域很必要，因为不少最早的工程细节并未以正式论文发布。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>分类存在主观性。</strong> 同一个系统可能包含多个 loop，论文也承认 L5 只能针对具体 mechanism 分类，不能给整个产品盖章。</p>
+</li>
+<li>
+<p><strong>证据异质性很强。</strong> 论文、预印本、公司报告、博客和内部评测混在一起，许多数字无法独立复现。</p>
+</li>
+<li>
+<p><strong>HCI 的 protocol linking 仍不够稳固。</strong> 只保留能建立桥接的结果会减少覆盖；不同 harness、subset 和 pass@1 聚合可能让轨迹看上去连续但实际不完全可比。</p>
+</li>
+<li>
+<p><strong>缺少统一的长期实证。</strong> 论文提出了应报告 rejected updates、regression、recovery、retention、transfer 和 total cost，但现有系统尚未普遍提供这些纵向数据。</p>
+</li>
+<li>
+<p><strong>“最后一个由人类构建的 AI”是标题级叙事，不是论文证明。</strong> 论文真正有证据支持的是一条自主性路线图，而不是即将出现不可逆的超人类递归爆发。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="关键核对点与可信度"><a class="markdownIt-Anchor" href="#关键核对点与可信度"></a> 关键核对点与可信度</h2>
+<ul>
+<li>
+<p><strong>高可信（论文明确提出）</strong>：B0–L5 定义；improvement loop 的组件拆解；structural L5 与 effective L5 的区分；八类未来研究方向。</p>
+</li>
+<li>
+<p><strong>中可信（论文整理/报告的结果）</strong>：HCI 数字、Theseus workspace 增益、A-Evolve-Training 与 RQGM 的结果；需要回到各原始工作核对协议和统计显著性。</p>
+</li>
+<li>
+<p><strong>低于“已证实 RSI”的部分</strong>：工业系统已经实现通用、长期、低成本、跨域递归自我改进；论文结论明确没有这么说。</p>
+</li>
+</ul>
+<hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p>建立跨轮 artifact schema：父状态、修改、动机证据、评测配置、接受决定、适用条件、后续使用和回滚信息都要可追踪。</p>
+</li>
+<li>
+<p>对 data、model、harness、environment 做 cross-component diagnosis，使用 selective freezing、targeted ablation 和依赖记录分离因果作用。</p>
+</li>
+<li>
+<p>评测经验获取的 learning value，而不只是正确率或任务难度；同时控制多轮预算、数据覆盖和重复利用。</p>
+</li>
+<li>
+<p>将 artifact 的生成质量、检索激活、忠实执行、跨模型迁移和长期收益拆开测量。</p>
+</li>
+<li>
+<p>对 L5 使用 protected reference tasks、held-out transfer、matched total budget、independent anchor 和完整 trajectory。</p>
+</li>
+<li>
+<p>让系统学习何时继续实验、何时暂停、何时升级给人类；把诊断、采样、验证、维护和人工 review 全部计入成本。</p>
+</li>
+<li>
+<p>在科学、机器人和医疗场景中保留 provenance、uncertainty、permission boundary 和 rollback；软件 checkpoint 不能撤销物理或临床后果。</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇论文最值得记住的不是“AI 快要自己造出更强 AI”的口号，而是一个严格得多的判断框架：系统是否<span class="mark-strong">把改进闭环的一部分变成了持久、可继承、可验证的能力</span>。现实中，B0–L2 已经相当普遍，L3–L4 在工具 Agent、科学和模拟机器人中逐步出现，L5 仍是受限的结构性原型。未来 RSI 的决定性实验不是某一轮 benchmark 分数，而是多轮后代能否在相同总预算、独立评测和明确安全边界下，持续提高“产生有用改进”的能力。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p>RSI 的分界不是“模型会不会自改代码”，而是改动是否持久、是否进入下一轮、是否改变未来改进机制。</p>
+</li>
+<li>
+<p>当前最难的不是封闭数学题，而是有工具、状态、环境和长期反馈的交互式工作流。</p>
+</li>
+<li>
+<p>真正的 L5 需要证明“改进方法本身”能稳定产生更好的 successor，而不是只证明当前 Agent 变强。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</div>
+      <div>https://yyhchen.github.io/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年9月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/" title="Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression">
+                        <span class="hidden-mobile">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

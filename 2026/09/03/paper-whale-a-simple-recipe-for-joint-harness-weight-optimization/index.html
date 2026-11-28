@@ -1,0 +1,1506 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="WHALE 认定一个 Agent 是&quot;模型权重 + 可执行 harness&quot;的联合系统，优化就不该只动一边。它交替执行&quot;固定 harness 更新权重&quot;和&quot;固定权重搜索 harness&quot;，在 SearchQA、数学推理、国际象棋三个领域全部超过单组件优化；全文最值钱的一条经验是小步交替胜过把一边训到底再换另一边。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization">
+<meta property="og:url" content="https://yyhchen.github.io/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="WHALE 认定一个 Agent 是&quot;模型权重 + 可执行 harness&quot;的联合系统，优化就不该只动一边。它交替执行&quot;固定 harness 更新权重&quot;和&quot;固定权重搜索 harness&quot;，在 SearchQA、数学推理、国际象棋三个领域全部超过单组件优化；全文最值钱的一条经验是小步交替胜过把一边训到底再换另一边。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_2db248a1a5933129ac2aec9812d4057dc79423a5ae4326a8ea7a54c47a7a398b.svg">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_ffa0636e8ef8e1edfa6c69b0283f7ea28bac46c8270d71722ef093aac19e2fcb.svg">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_d0e5885e71820179bea6b13f012469b6e90716d4617d5d954eda6bdb75288b0b.svg">
+<meta property="article:published_time" content="2026-09-03T08:51:11.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_2db248a1a5933129ac2aec9812d4057dc79423a5ae4326a8ea7a54c47a7a398b.svg">
+  
+  
+  
+  <title>Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-09-03 16:51" pubdate>
+          2026-09-03 16:51:11
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          39 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读whale-a-simple-recipe-for-joint-harnessweight-optimization"><a class="markdownIt-Anchor" href="#paper精读whale-a-simple-recipe-for-joint-harnessweight-optimization"></a> Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>WHALE</strong> 认定一个 Agent 是&quot;模型权重 + 可执行 harness&quot;的联合系统，优化就不该只动一边。它交替执行&quot;固定 harness 更新权重&quot;和&quot;固定权重搜索 harness&quot;，在 SearchQA、数学推理、国际象棋三个领域全部超过单组件优化；全文最值钱的一条经验是**<span class="mark-strong">小步交替</span>**胜过把一边训到底再换另一边。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：WHALE: A Simple Recipe for Joint Harness–Weight Optimization</li>
+<li><strong>arXiv</strong>：2609.00196v1</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.00196">https://arxiv.org/abs/2609.00196</a></li>
+<li><strong>代码</strong>：<a target="_blank" rel="noopener" href="https://github.com/krafton-ai/WHALE">https://github.com/krafton-ai/WHALE</a></li>
+<li><strong>作者</strong>：Haechan Kim, Yoonho Lee, Gisang Lee, Chelsea Finn, Kangwook Lee</li>
+<li><strong>机构</strong>：KRAFTON / KAIST / Stanford University</li>
+<li><strong>日期</strong>：2026-08-31</li>
+</ul>
+</div></details><hr />
+<h2 id="论文分类标注"><a class="markdownIt-Anchor" href="#论文分类标注"></a> 论文分类标注</h2>
+<ul>
+<li>
+<p><span class="mark-strong">研究类型</span>：Agent 系统优化方法论文 + 交替优化实验研究</p>
+</li>
+<li>
+<p><span class="mark-strong">领域归属</span>：LLM Agent &gt; Harness Engineering &gt; 模型权重与可执行工作流联合优化</p>
+</li>
+<li>
+<p><span class="mark-strong">方法学标签</span>：在线拒绝采样微调、LLM 驱动代码搜索、黑盒交替优化、预算/停止策略研究</p>
+</li>
+<li>
+<p><span class="mark-strong">研究对象</span>：模型参数 θ 与可执行 harness h 的联合适配</p>
+</li>
+<li>
+<p><span class="mark-strong">与已有工作关系</span>：将 Meta-Harness 的可执行 harness 搜索与 RSFT 权重更新结合；对比 weight-only、harness-only 和只优化 prompt 的 Fast–Slow Training</p>
+</li>
+</ul>
+<hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>工具型 Agent 的能力从来不只是模型参数的事。harness 决定模型每次调用看到的世界长什么样：哪些观察进上下文、工具怎么暴露、结果怎么回填、错误怎么处理、一轮交互何时结束、最终答案怎么解析。模型再强，harness 没检索到证据、截断了关键结果、没给够轮数，任务照样黄；反过来，harness 再讲究，模型不会查询、不会用代码工具、不会按格式交答案，也白搭。</p>
+<p>以往的联合适配大多只碰&quot;模型权重 + 文本 prompt&quot;，工具接口、上下文管理、中间反馈、解析逻辑和终止策略全冻着。WHALE 要问的是：这些<span class="mark-strong">可执行的系统代码</span>能不能也纳入适配，跟模型权重一起演化？</p>
+<p>难处在于两边的更新节奏对不上：权重更新要不停采样 rollout、筛正确轨迹、做梯度更新；harness 搜索要提案、运行、评估、留候选。两边同时动，一次成功到底该记谁的账说不清。WHALE 的解法是交替——每个阶段把另一半冻住，让当前更新面对一个稳定的对象。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">Harness 是可训练系统的一部分。</span> 它不是模型外面永远固定的胶水代码，而是直接塑造轨迹分布的&quot;控制策略&quot;：检索参数、工具反馈、上下文格式、停止条件，动任何一样，模型实际面对的问题就变了。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">优化瓶颈是领域相关的</span>。</strong> SearchQA 卡在 harness，数学推理卡在模型；没有一个先验答案规定该先训模型还是先改工作流。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">一个组件的更新可能解锁另一个组件</span>。</strong> 数学任务上，初始模型不会主动用代码工具，直接搜 harness 收获很小；先做一小段权重更新，模型行为变了，同一套 harness 搜索才开始起作用。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">长阶段优化会过拟合被冻结的另一半</span>。</strong> 权重可能过度适配旧 harness，harness 也可能过度适配一个马上要被替换的模型。小步交替让两边在联合目标上一起挪。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_2db248a1a5933129ac2aec9812d4057dc79423a5ae4326a8ea7a54c47a7a398b.svg" srcset="/img/loading.gif" lazyload alt="Figure 1：WHALE 的联合搜索空间与三领域结果" /></p>
+<p><em>图注：左边画得很直白——weight-only 和 harness-only 只能沿一根坐标轴挪，WHALE 两个坐标都动；右边概括三类任务上的对比结果。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="1-把-agent-写成-jθh"><a class="markdownIt-Anchor" href="#1-把-agent-写成-jθh"></a> 1. 把 Agent 写成 J(θ,h)</h3>
+<p>论文先把话说清楚：定义模型参数 θ、可执行 harness h，以及二者共同诱导的轨迹分布——</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">τ ~ πθ,h(· | x)<br></code></pre></td></tr></table></div></figure>
+<p>τ 里装的是模型消息、工具调用、工具返回和环境状态转移。给定任务分布 P 和二值/连续 verifier R，系统目标就是：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">J(θ,h) = E[x~P] E[τ~πθ,h(·|x)] [R(x,τ)]<br></code></pre></td></tr></table></div></figure>
+<p>这个公式好就好在不玩数学花样，只钉死一件事：<strong><span class="mark-strong">θ 和 h 通过轨迹分布耦合</span></strong>。改权重，模型的查询方式、回答长度、工具习惯全变；改 harness，上下文、反馈和终止条件变了，模型能不能成事也跟着变。</p>
+<p>weight-only 把 h 冻死只沿 θ 优化，harness-only 反过来；WHALE 在两个方向之间来回挪。</p>
+<h3 id="2-权重更新online-rsft"><a class="markdownIt-Anchor" href="#2-权重更新online-rsft"></a> 2. 权重更新：Online RSFT</h3>
+<p>权重这边不搞花活，用的是 Online Rejection-Sampling Fine-Tuning（RSFT）：</p>
+<ol>
+<li>
+<p>固定当前 harness hₖ；</p>
+</li>
+<li>
+<p>用冻结的旧模型 θ_old 采样多条轨迹；</p>
+</li>
+<li>
+<p>只留 verifier 判定为正确的轨迹；</p>
+</li>
+<li>
+<p>拿模型自己的成功轨迹做监督微调；</p>
+</li>
+<li>
+<p>把更新后的模型同步给 rollout worker。</p>
+</li>
+</ol>
+<p>目标概括成一行：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Ĵweight = 平均的 token-level log pθ(成功轨迹中的模型 token | x,h,历史)<br></code></pre></td></tr></table></div></figure>
+<p>只训模型生成的 token，用户输入和工具返回不进监督目标。选它的理由是比直接 policy gradient 简单稳定；代价也明摆着——全靠成功轨迹，初始模型几乎不出成功样本时，学习信号弱得可怜。</p>
+<h3 id="3-harness-更新meta-harness"><a class="markdownIt-Anchor" href="#3-harness-更新meta-harness"></a> 3. Harness 更新：Meta-Harness</h3>
+<p>θ 冻住后，Meta-Harness 对可执行 harness 做提案—评估—选择：</p>
+<ol>
+<li>
+<p>从当前 harness 起一份候选档案；</p>
+</li>
+<li>
+<p>让 proposer 看已有代码、运行结果、逐题成败和 trajectory log；</p>
+</li>
+<li>
+<p>一次提若干候选 harness；</p>
+</li>
+<li>
+<p>每个候选在 harness-search 数据集上跑 rollout；</p>
+</li>
+<li>
+<p>按 verifier 分数选出档案里最好的版本；</p>
+</li>
+<li>
+<p>下一轮要么继续改新版本，要么回退旧版本。</p>
+</li>
+</ol>
+<p>要紧的是，搜索对象远比 system prompt 大：</p>
+<ul>
+<li>
+<p>system/user prompt；</p>
+</li>
+<li>
+<p>工具输入输出格式；</p>
+</li>
+<li>
+<p>检索 query 的后处理和 top-k/ranking；</p>
+</li>
+<li>
+<p>工具结果和错误信息如何注入上下文；</p>
+</li>
+<li>
+<p>Python 代码的提取与执行；</p>
+</li>
+<li>
+<p>棋盘/状态如何展示；</p>
+</li>
+<li>
+<p>输出解析、retry 逻辑和终止条件；</p>
+</li>
+<li>
+<p>每轮允许的 turn 数和上下文压缩方式。</p>
+</li>
+</ul>
+<p>论文的 FST 对照组只许改 system/user prompt，所以 WHALE 跟 FST 的差距直接回答一个问题：<span class="mark-strong">搜完整可执行 harness，到底比只改 prompt 多赚多少。</span></p>
+<h3 id="4-whale-交替算法"><a class="markdownIt-Anchor" href="#4-whale-交替算法"></a> 4. WHALE 交替算法</h3>
+<p>第 k 个周期就两行：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">θₖ₊₁ = ModelUpdate(θₖ ; hₖ, Dweight)<br>hₖ₊₁ = HarnessSearch(hₖ ; θₖ₊₁, Dharness)<br></code></pre></td></tr></table></div></figure>
+<p>默认设置里，每个周期先跑 <code>E=0.6</code> 个权重训练 epoch，再做 <code>I=6</code> 次 harness 搜索迭代，然后把更新后的 <code>(θₖ₊₁,hₖ₊₁)</code> 当作下一周期的起点。</p>
+<p>它是个模块化 recipe，不是绑死 RSFT 和 Meta-Harness 的单一算法：只要有一个&quot;固定 h 更新 θ&quot;的方法和一个&quot;固定 θ 更新 h&quot;的方法，都能换进来。</p>
+<h3 id="5-adaptive-whale"><a class="markdownIt-Anchor" href="#5-adaptive-whale"></a> 5. Adaptive WHALE</h3>
+<p>固定 <code>(E,I)</code> 是个手工活。Adaptive WHALE 用两条 patience 规则决定切换时机：</p>
+<ul>
+<li>
+<p>权重阶段：滑动窗口内的 verifier reward 在超过最小阶段长度后，连续一段时间没刷新最佳值，就切到 harness 搜索；</p>
+</li>
+<li>
+<p>harness 阶段：档案里的最佳训练分数在至少若干轮后不再涨，就切回权重更新。</p>
+</li>
+</ul>
+<p>实验里的最小条件：权重阶段至少 0.2 epoch，harness 阶段至少 6 次迭代；patience 定为 0.2 epoch / 2 次迭代。全程只看训练信号，不看测试集——这不是拿测试集早停。</p>
+<p><img src="/img/paper-reading/img_ffa0636e8ef8e1edfa6c69b0283f7ea28bac46c8270d71722ef093aac19e2fcb.svg" srcset="/img/loading.gif" lazyload alt="Figure 2：三种任务上随 rollout 增长的最佳测试准确率" /></p>
+<p><em>图注：曲线按累计 rollout 展示 best-so-far test mean@8 accuracy。WHALE 的权重更新阶段和 harness 搜索阶段交替出现，整体超过单组件基线。</em></p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>领域</strong></th>
+<th><strong>基础模型</strong></th>
+<th><strong>训练/测试设置</strong></th>
+<th><strong>主要瓶颈</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SearchQA</td>
+<td>Qwen3.5-2B</td>
+<td>HotpotQA/NQ 训练，7 个 QA 测试集</td>
+<td>检索、格式、答案提取和工具流程</td>
+</tr>
+<tr>
+<td>数学推理</td>
+<td>Qwen3.5-2B</td>
+<td>DAPO-Math-17K，AIME 2024/2025</td>
+<td>是否使用代码工具、是否被截断、最终答案格式</td>
+</tr>
+<tr>
+<td>Chess Puzzles</td>
+<td>Qwen3.5-4B</td>
+<td>Lichess puzzles</td>
+<td>棋盘表示、合法走法解析、重试和多轮交互</td>
+</tr>
+</tbody>
+</table></div>
+<p>主要设置：</p>
+<ul>
+<li>
+<p>权重训练数据：SearchQA 18,946 条，数学 17,917 条，棋题 16,384 条；</p>
+</li>
+<li>
+<p>harness 搜索数据：每个领域 256 条；</p>
+</li>
+<li>
+<p>测试集：SearchQA 700 条、数学 60 条、棋题 256 条；</p>
+</li>
+<li>
+<p>权重更新每题采样 8 条轨迹；harness 候选每题使用 1 条 rollout；</p>
+</li>
+<li>
+<p>测试报告为每题 8 条采样的 <code>mean@8</code>；</p>
+</li>
+<li>
+<p>harness proposer 使用 Claude Opus 4.7；</p>
+</li>
+<li>
+<p>搜索空间包括完整 harness，FST 则只允许改初始 harness 的 system/user prompt。</p>
+</li>
+</ul>
+<h3 id="核心结果固定交替方案"><a class="markdownIt-Anchor" href="#核心结果固定交替方案"></a> 核心结果：固定交替方案</h3>
+<p>默认 <code>(E,I)=(0.6,6)</code> 下，WHALE 在三个领域全部压过单组件基线：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>领域</strong></th>
+<th><strong>Harness-only</strong></th>
+<th><strong>Weight-only</strong></th>
+<th><strong>FST（prompt+weight）</strong></th>
+<th><strong>WHALE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SearchQA</td>
+<td>38.29</td>
+<td>38.27</td>
+<td>35.34</td>
+<td><strong>48.34</strong></td>
+</tr>
+<tr>
+<td>数学推理</td>
+<td>0.42</td>
+<td>15.42</td>
+<td>17.92</td>
+<td><strong>24.79</strong></td>
+</tr>
+<tr>
+<td>Chess Puzzles</td>
+<td>19.82</td>
+<td>22.17</td>
+<td>25.68</td>
+<td><strong>29.83</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>相对更强的单组件基线提升约 <strong><span class="mark-number">7.67–10.05 个百分点</span></strong>，相对 FST 提升 <strong><span class="mark-number">4.15–13.00 个百分点</span></strong>。附录的逐数据集结果也核过一遍：SearchQA 的 7 个子集、数学的 2 个 AIME 子集、棋题测试集，WHALE 全拿最高分——不是靠某个特殊子集撑场面。</p>
+<h3 id="为什么-searchqa-是-harness-dominant"><a class="markdownIt-Anchor" href="#为什么-searchqa-是-harness-dominant"></a> 为什么 SearchQA 是 harness-dominant？</h3>
+<p>SearchQA 里模型本身有点检索底子，卡脖子的是 harness——“怎么检索”&quot;什么时候收工&quot;都归它管：</p>
+<ul>
+<li>
+<p>harness-only 把检索命中参考答案的轨迹比例从 <strong><span class="mark-number">26.88% 提升到 60.61%</span></strong>；</p>
+</li>
+<li>
+<p>WHALE 进一步达到 <strong>65.41%</strong>；</p>
+</li>
+<li>
+<p>harness-only 在格式遵循上达到 <strong>99.98%</strong>，weight-only 为 <strong>97.07%</strong>；</p>
+</li>
+<li>
+<p>但答案提取能力反而更依赖权重，weight-only 峰值 <strong>79.93%</strong>，harness-only 只有 <strong>57.28%</strong>。</p>
+</li>
+</ul>
+<p>这组数字把两件常被混为一谈的事拆开了：&quot;能把正确文档找回来&quot;和&quot;能从文档里把答案抠出来交上去&quot;是两个子能力。WHALE 的路径是 harness 先修检索和格式，权重再补信息综合和答案提取。</p>
+<p>成本证据更直接：harness-only 只花 weight-only <strong><span class="mark-number">5.79%</span></strong> 的 rollout 就摸到了后者的峰值准确率附近。SearchQA 这类任务多训模型解决不了，工作流自己就是主要瓶颈。</p>
+<h3 id="为什么数学推理是-model-dominant"><a class="markdownIt-Anchor" href="#为什么数学推理是-model-dominant"></a> 为什么数学推理是 model-dominant？</h3>
+<p>数学任务上，初始模型爱写长篇解释、不叫 Python，最后 token 上限一到就被截断，verifier 连 <code>\\boxed&#123;&#125;</code> 都找不到：</p>
+<ul>
+<li>
+<p>weight-only 把截断率从 <strong><span class="mark-number">95.83% 降到 30.83%</span></strong>；</p>
+</li>
+<li>
+<p>harness-only 可以改 response cap、turn limit 和最终答案恢复逻辑，但治不了模型不调用代码工具这个病根；</p>
+</li>
+<li>
+<p>harness-only 的数学准确率只有 <strong>0.42%</strong>；</p>
+</li>
+<li>
+<p>WHALE 第一轮小规模 harness 搜索只用 4,608 个 rollout，就把格式准确率从 <strong>0.83% 提到 4.38%</strong>，而 harness-only 花 46,080 个 rollout 只提升 <strong>0.63 个百分点</strong>。</p>
+</li>
+</ul>
+<p>因果链很清楚：权重更新先让模型学会更短、更贴任务要求地用代码工具，harness 再优化工具反馈和答案提取——两边互相解锁。</p>
+<h3 id="交替为什么优于-stagewise"><a class="markdownIt-Anchor" href="#交替为什么优于-stagewise"></a> 交替为什么优于 stagewise？</h3>
+<p>Stagewise 是另一种安排：先把全部权重预算砸在旧 harness 上，再用全部搜索预算适配更新后的模型。结果：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方案</strong></th>
+<th><strong>SearchQA</strong></th>
+<th><strong>数学</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Weight-only</td>
+<td>38.27</td>
+<td>15.42</td>
+</tr>
+<tr>
+<td>Harness-only</td>
+<td>38.29</td>
+<td>0.42</td>
+</tr>
+<tr>
+<td>Stagewise</td>
+<td>43.02</td>
+<td>15.63</td>
+</tr>
+<tr>
+<td>WHALE <code>(0.6,6)</code></td>
+<td><strong>48.34</strong></td>
+<td><strong>24.79</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>WHALE 比 stagewise 高 <strong><span class="mark-number">5.32</span></strong> 和 <strong><span class="mark-number">9.16</span></strong> 个百分点，而且只花 stagewise 到达自身最佳点所需 rollout 的约 <strong><span class="mark-number">29%（SearchQA）</span></strong> 和 **<span class="mark-number">49%（数学）</span>。</p>
+<p>原因还是 <code>J(θ,h)</code> 不可分离：长时间训 θ，模型过度适应旧 h；接着长时间搜 h，harness 又过度适应一个不再更新的 θ。交替更新把这种 conditional over-optimization 压下去了。</p>
+<p><img src="/img/paper-reading/img_d0e5885e71820179bea6b13f012469b6e90716d4617d5d954eda6bdb75288b0b.svg" srcset="/img/loading.gif" lazyload alt="Figure 3：不同交替节奏与自适应调度" /></p>
+<p><em>图注：节奏过短会被噪声误导，节奏过长会对冻结的另一组件过拟合；中等、小步的交替表现最好。</em></p>
+<h3 id="schedule-消融太短和太长都不好"><a class="markdownIt-Anchor" href="#schedule-消融太短和太长都不好"></a> Schedule 消融：太短和太长都不好</h3>
+<p>论文比了五种固定节奏：<code>(0.2,2)</code>、<code>(0.2,6)</code>、<code>(0.6,2)</code>、<code>(0.6,6)</code>、<code>(1.0,10)</code>。</p>
+<p>最佳固定节奏是 <code>(0.2,6)</code>：</p>
+<ul>
+<li>
+<p>SearchQA：<strong>50.09%</strong>；</p>
+</li>
+<li>
+<p>数学：<strong>28.33%</strong>。</p>
+</li>
+</ul>
+<p>相比之下：</p>
+<ul>
+<li>
+<p>SearchQA 随节奏增大从 50.09 → 48.34 → 45.93；</p>
+</li>
+<li>
+<p>数学从 28.33 → 24.79 → 24.79。</p>
+</li>
+</ul>
+<p>两端栽跟头的方式不一样：</p>
+<ul>
+<li>
+<p>太短：数学 <code>(0.2,2)</code> 手里只有两轮候选证据，容易把偶然高分的 harness 当成好方案，模型接着去适应一个错的 harness，训练失稳；</p>
+</li>
+<li>
+<p>太长：单个阶段的训练分还在涨，测试准确率却在掉——过度优化了被冻结的那一半。</p>
+</li>
+</ul>
+<p>所以&quot;每周期多长&quot;不是两个互相独立的超参数。数学任务里把 E 从 0.2 加到 0.6，I=2 时是帮忙，I=6 时反倒有害——一边的最佳预算取决于另一边。</p>
+<h3 id="adaptive-whale"><a class="markdownIt-Anchor" href="#adaptive-whale"></a> Adaptive WHALE</h3>
+<p>Adaptive WHALE 在 SearchQA 做到 <strong><span class="mark-number">52.82%</span></strong>，超过：</p>
+<ul>
+<li>
+<p>默认 <code>(0.6,6)</code>：+4.48；</p>
+</li>
+<li>
+<p>最好的固定节奏 <code>(0.2,6)</code>：+2.73；</p>
+</li>
+<li>
+<p>而且比默认方案少花约 23% rollout。</p>
+</li>
+</ul>
+<p>数学任务上到 <strong>26.46%</strong>，比默认方案高 1.67 个百分点、少花约 4% rollout，但没超过最好的手工节奏 28.33%。patience 规则有用，但还称不上免调参。</p>
+<p>实际运行里，两个领域的中位数权重阶段约 0.24 和 0.29 epoch，harness 阶段都约 7 次迭代——自己落进了固定实验里表现最好的 <code>(0.2,6)</code> 那一带。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">问题定义很重要。</span> 它把 Agent harness 从&quot;工程实现细节&quot;抬到和模型权重同等重要的可优化变量的位置上，这比只做 prompt 优化更贴近真实 Agent 系统。</p>
+</li>
+<li>
+<p><span class="mark-strong">交替策略简单而有解释力。</span> 论文没造复杂的联合梯度，而是用固定一方、优化另一方处理 credit assignment 和更新节奏不同的问题，具体优化器随便换。</p>
+</li>
+<li>
+<p><span class="mark-strong">分析不是只报总分。</span> SearchQA 的检索/格式/提取分解、数学的截断/格式分解，把&quot;这个领域到底谁在卡脖子&quot;说清楚了。</p>
+</li>
+<li>
+<p><span class="mark-strong">预算匹配比较扎实。</span> 单组件方法拿的是与 WHALE/FST 累计预算相匹配的 rollout；比的不只是最终准确率，还有 rollout 成本。</p>
+</li>
+<li>
+<p><span class="mark-strong">WHALE 与 prompt-only 联合优化的差异干净。</span> FST 用相同的更新方法和 schedule，只是把搜索限制在 prompt——WHALE 的优势于是可以放心归因于可执行 harness 搜索空间。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：2B/4B 的模型、三个领域，先把&quot;交替优化有没有用&quot;这个问题答清楚再谈规模化，从小做起我完全理解。但账还是要算：</p>
+<ol>
+<li>
+<p><span class="mark-strong">规模仍小。</span> 主力模型是 Qwen3.5-2B/4B，在 frontier 级大模型、复杂多工具 Agent 或长周期生产环境里还成不成立，没法外推。</p>
+</li>
+<li>
+<p><span class="mark-strong">依赖一个更强的外部 proposer。</span> Harness 搜索用 Claude Opus 4.7，而主结果的 rollout 统计明确排除了 proposer compute，论文自己也说系统效果里含着 proposer 的推理成本——总成本大概率被低估。</p>
+</li>
+<li>
+<p><span class="mark-strong">搜索空间和初始 harness 仍是人工设计。</span> 搜得再广，哪些代码许改、初始工具接口、verifier 和环境规则都是定死的；这不是全自动发现 Agent 架构。</p>
+</li>
+<li>
+<p><span class="mark-strong">verifier 有领域差异。</span> SearchQA 拿 GPT-5.4-mini 当 judge，数学和棋题用确定性 verifier——judge 偏差、格式设计、verifier 规则都可能动摇结论。</p>
+</li>
+<li>
+<p><span class="mark-strong">数据规模和测试集有限。</span> Harness 搜索每域只有 256 个样本，测试集虽不重叠，复杂工作流上的过拟合和可迁移性还是要更广的评估。</p>
+</li>
+<li>
+<p><span class="mark-strong">Adaptive WHALE 的信号仍是稀疏 noisy reward。</span> SearchQA 赚到了，数学却输给最佳手工 schedule——光靠训练 reward 的 patience，还压不住选择噪声和跨阶段 credit assignment。</p>
+</li>
+<li>
+<p><span class="mark-strong">只优化最终二值成功率。</span> 检索、格式、截断这些行为指标都摆出来了，但联合目标仍是 trajectory-level verifier reward；安全性、延迟、token 成本、工具费用、可维护性这些生产指标都还没进目标函数。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>工作</strong></th>
+<th><strong>优化对象</strong></th>
+<th><strong>主要限制</strong></th>
+<th><strong>WHALE 的推进</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RSFT/ReST</td>
+<td>模型权重</td>
+<td>harness 固定</td>
+<td>将其作为 weight-update 模块</td>
+</tr>
+<tr>
+<td>Meta-Harness</td>
+<td>可执行 harness</td>
+<td>模型固定</td>
+<td>将其作为 harness-search 模块</td>
+</tr>
+<tr>
+<td>FST</td>
+<td>prompt + 权重</td>
+<td>harness 侧主要是文本 prompt</td>
+<td>WHALE 搜索工具/反馈/控制流等完整 harness</td>
+</tr>
+<tr>
+<td>GEPA/DSPy</td>
+<td>prompt 或模块化程序</td>
+<td>通常不和权重训练交替</td>
+<td>WHALE 研究代码工作流与模型权重的共同演化</td>
+</tr>
+<tr>
+<td>SWE-agent/Agentic harness engineering</td>
+<td>Agent 工作流与 harness</td>
+<td>主要围绕固定或较少变化的模型</td>
+<td>WHALE 明确研究 θ 与 h 的双向耦合</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="对当前-agent-harness-方向的启发"><a class="markdownIt-Anchor" href="#对当前-agent-harness-方向的启发"></a> 对当前 Agent / Harness 方向的启发</h2>
+<p>这篇论文和 Agent harness、模型训练、RL/蒸馏这条线贴得很近，给了一个可以直接拿去用的系统抽象：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Agent = Model weights + Harness program + Environment<br></code></pre></td></tr></table></div></figure>
+<p>只改模型，可能养出一个更会思考、但不会正确调工具的模型；只改 harness，可能攒出一套流程漂亮、模型根本执行不动的系统。更合理的工程闭环是：</p>
+<ol>
+<li>
+<p>先固定当前 harness，用成功轨迹训练模型；</p>
+</li>
+<li>
+<p>再固定更新后的模型，优化工具接口、反馈和终止逻辑；</p>
+</li>
+<li>
+<p>用短周期反复交替，别把某一边一口气优化到极致；</p>
+</li>
+<li>
+<p>同时记录最终成功率、检索质量、格式合规率、截断率、token 成本和工具调用成本。</p>
+</li>
+</ol>
+<p>对本地模型尤其有参考价值：很多&quot;模型能力不够&quot;的问题，其实是上下文包装、工具 schema、错误反馈或终止条件没设计对；但也有一批&quot;工作流不行&quot;的问题，非得把模型训到会用工具才解得开。WHALE 的价值就是把这两类瓶颈放进同一个可观察、可迭代的控制回路。</p>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>WHALE 不是新基础模型，是一套优化 Agent 系统的 recipe：<span class="mark-strong">固定 harness 训权重，固定权重搜 harness，小步交替来回重复</span>。全文最硬的两条经验：Agent 的瓶颈在不同领域可能落在模型或 harness 任意一侧；一侧的更新可能解锁另一侧的收益。</p>
+<p>实验还钉死了两件事：<span class="mark-strong">完整 harness 搜索比只优化 prompt 更有表现力</span>；交替比 stagewise 的大块训练省 rollout，也更不容易过拟合被冻结的那一半。限制同样清楚——模型规模、任务数量、proposer 成本、verifier 设计都还受控。下一步往哪儿走，答案就写在限制里：更大模型、更复杂的工具链、带成本/安全/稳定性的多目标设置。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>Agent 不等于模型：权重 θ 和可执行 harness h 一起决定轨迹质量。</strong></p>
+</li>
+<li>
+<p><strong>WHALE 用 RSFT 更新权重、用 Meta-Harness 搜索代码，靠小步交替让二者共同适配。</strong></p>
+</li>
+<li>
+<p><strong>SearchQA 卡 harness，数学卡模型；完整 harness 搜索加交替调度，是超过 prompt-only/单组件基线的关键。</strong></p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</div>
+      <div>https://yyhchen.github.io/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年9月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/02/paper-normalized-low-rank-adaptation/" title="Paper精读｜Normalized Low-Rank Adaptation">
+                        <span class="hidden-mobile">Paper精读｜Normalized Low-Rank Adaptation</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

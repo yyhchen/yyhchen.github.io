@@ -1,0 +1,1206 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="论文发现标准 softmax &#x2F; cross-entropy 的常见稳定化写法仍有两种浮点误差：高置信度时正确类别梯度被舍入为零、蒸馏中师生输出接近时相减放大误差。作者通过改写 log-space 计算，避免“先把两个几乎相等的量算出来再相减”，在不提高内部精度的条件下恢复梯度的一致性；实验证明这能消除特定 grokking 设置中的 Slingshot 震荡，并避免初始化相同的学生模型在蒸馏时被">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜A Fix for Softmax and Cross-Entropy">
+<meta property="og:url" content="https://yyhchen.github.io/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="论文发现标准 softmax &#x2F; cross-entropy 的常见稳定化写法仍有两种浮点误差：高置信度时正确类别梯度被舍入为零、蒸馏中师生输出接近时相减放大误差。作者通过改写 log-space 计算，避免“先把两个几乎相等的量算出来再相减”，在不提高内部精度的条件下恢复梯度的一致性；实验证明这能消除特定 grokking 设置中的 Slingshot 震荡，并避免初始化相同的学生模型在蒸馏时被">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_657677ee611ebacad28999480b44d551eb4d1ff56567d21185c196929e865bfe.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_2be0349b49557189e0ce21b9e1b19670760c8ea849740859aad0b1b647736e00.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_02c514ee593f760a096b67807e4cb711ba93270e975c84f40dcd231cdb3e3938.png">
+<meta property="article:published_time" content="2026-10-26T08:00:20.000Z">
+<meta property="article:modified_time" content="2026-11-25T09:15:49.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_657677ee611ebacad28999480b44d551eb4d1ff56567d21185c196929e865bfe.png">
+  
+  
+  
+  <title>Paper精读｜A Fix for Softmax and Cross-Entropy - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-10-26 16:00" pubdate>
+          2026-10-26 16:00:20
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          29 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="模型架构与推理效率"
+        id="heading-2b414557444ce743ae890d15692b8e1e" role="tab" data-toggle="collapse" href="#collapse-2b414557444ce743ae890d15692b8e1e"
+        aria-expanded="true"
+      >
+        模型架构与推理效率
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2b414557444ce743ae890d15692b8e1e"
+           role="tabpanel" aria-labelledby="heading-2b414557444ce743ae890d15692b8e1e">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-mixture-of-loops-transformer/" title="Paper精读｜Mixture-of-Loops Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mixture-of-Loops Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/" title="Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/02/paper-normalized-low-rank-adaptation/" title="Paper精读｜Normalized Low-Rank Adaptation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Normalized Low-Rank Adaptation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/29/paper-prefix-sliding-for-efficient-test-time-scaling/" title="Paper精读｜Prefix Sliding for efficient test-time scaling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prefix Sliding for efficient test-time scaling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/21/paper-recirculation/" title="Paper精读｜Recirculation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recirculation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-mooncake-a-kvcache-centric-disaggregated-architecture-for-llm-serving/" title="Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-kimi-k3-open-frontier-intelligence/" title="Paper精读｜Kimi K3: Open Frontier Intelligence"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-minimax-sparse-attention/" title="Paper精读｜MiniMax Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MiniMax Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/" title="Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/" title="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF/" title="Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜A Fix for Softmax and Cross-Entropy</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;architecture">模型架构与推理效率</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读a-fix-for-softmax-and-cross-entropy"><a class="markdownIt-Anchor" href="#paper精读a-fix-for-softmax-and-cross-entropy"></a> Paper精读｜A Fix for Softmax and Cross-Entropy</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>论文发现标准 softmax / cross-entropy 的常见稳定化写法仍有两种浮点误差：<span class="mark-strong">高置信度时正确类别梯度被舍入为零</span>、蒸馏中师生输出接近时相减放大误差。作者通过改写 log-space 计算，避免“先把两个几乎相等的量算出来再相减”，<span class="mark-strong">在不提高内部精度的条件下恢复梯度的一致性</span>；实验证明这能消除特定 grokking 设置中的 Slingshot 震荡，并避免初始化相同的学生模型在蒸馏时被数值噪声推离教师。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：A Fix for Softmax and Cross-Entropy</li>
+<li><strong>arXiv</strong>：2610.31642v1</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2610.31642">https://arxiv.org/abs/2610.31642</a></li>
+<li><strong>作者</strong>：Jonathan T. Barron, Dan Gnanapragasam, Michael Tschannen</li>
+<li><strong>机构</strong>：Google DeepMind</li>
+<li><strong>日期</strong>：2026-10-22</li>
+<li><strong>论文类型</strong>：数值分析 / 优化方法论文；提出 softmax、log-softmax、交叉熵的稳定实现，并用 grokking 与知识蒸馏实验验证</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>softmax 为 logits 生成概率，交叉熵以概率与目标分布衡量预测误差。工程上通常先减去最大 logit，防止指数溢出；但“防溢出”不等于“所有梯度都数值正确”。当预测极度确信，或师生 logits 极接近时，浮点加减的有效精度可能让损失和梯度与数学上的值不一致。</p>
+<p>问题的分量在这里：优化器看到的从来是数值梯度，不是实数域的公式。Adam/AdamW 会按梯度历史幅值归一化，微小的不对称残差可能被放大成参数更新；在 grokking 实验里，它会表现为损失尖峰，在蒸馏里则可能让原本已与教师完全相同的学生继续漂移。</p>
+<p>本文聚焦于两种特定条件下的数值病态，不是在主张所有训练任务、所有框架实现或所有大模型训练都普遍受损。论文的主要实验是小规模合成任务；真实大规模训练中的频率与影响程度仍需独立测量。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong><span class="mark-strong">误差来自表达式的计算路径，而非交叉熵的数学定义</span>。</strong> 数学上目标类梯度可写成两个等价形式；浮点下 <code>1/(1+小数)-1</code> 会先把分母舍入为 1，再相减得到 0，而 <code>-小数/(1+小数)</code> 保留了小量。</p>
+</li>
+<li>
+<p><span class="mark-strong">概率域相减会损失“两个 logits 之间”的微小差异。</span> 蒸馏梯度是 <code>q-p</code>；若先分别计算并舍入 <code>q</code>、<code>p</code>，再相减，差异可能消失，也可能因前向与反向使用不同计算序列而留下虚假残差。</p>
+</li>
+<li>
+<p><span class="mark-strong">Adam 的 epsilon 不只是防止除零的数值保险。</span> 在 weight decay 存在时，它与权重衰减共同决定训练后期 logit margin 的平衡点，近似为 <code>log(1/epsilon)</code>；这个平衡位置可能刚好跨过标准 softmax 的精度断崖。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">修复不靠升精度，而是用代数重写保留小量</span>。</strong> hard target 路径使用 margin + softplus；soft target 路径用 <code>expm1</code> / <code>log1p</code> 直接计算 log-ratio 与概率差。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_657677ee611ebacad28999480b44d551eb4d1ff56567d21185c196929e865bfe.png" srcset="/img/loading.gif" lazyload alt="Figure 1(a): Softmax Collapse 中标准写法与修正版目标梯度随 margin 的变化" /></p>
+<p><em>图 1(a)：目标 logit margin 增大时，真实目标梯度应平滑趋近于零；标准实现却在浮点精度断崖处突然归零，而修正版保留该小梯度。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件-1softmax-collapse从-margin-直接计算损失与梯度"><a class="markdownIt-Anchor" href="#组件-1softmax-collapse从-margin-直接计算损失与梯度"></a> 组件 1：Softmax Collapse——从 margin 直接计算损失与梯度</h3>
+<p>作者先造一个度量「模型有多确信」的量：设 logits 为 <code>z∈R^K</code>，正确类别为 <code>t</code>，其他类别 logits 为 <code>z_j</code>，定义目标类相对其他类的 logit margin：</p>
+<p><code>m = z_t - logsumexp_&#123;j≠t&#125;(z_j)</code>。</p>
+<p>置信度越高，<code>m</code> 越大。有了 <code>m</code>，hard-label 交叉熵不再依赖 K 个 logits，只剩这一个变量：</p>
+<p><code>L = log(1 + exp(-m)) = softplus(-m)</code>。</p>
+<p>其目标类梯度为：</p>
+<p><code>g_t = -exp(-m)/(1 + exp(-m))</code>，</p>
+<p>非目标类梯度为：</p>
+<p><code>g_j = exp(z_j-z_t)/(1+exp(-m))</code>，<code>j≠t</code>。</p>
+<p>关键是目标梯度不要按 <code>q_t - 1</code> 算。标准路径会先得到 <code>q_t=1/(1+exp(-m))</code>，当 <code>exp(-m)</code> 加到 1 上被舍入丢弃时，<code>q_t</code> 就变成精确的 1，再减 1 得到零。修正版直接在分子保留 <code>exp(-m)</code>，所以目标梯度可以一直保留到指数下溢；同时把最大 logit 槽位设为常数 0，再对其余 logits 做 log-sum-exp，使 autodiff 得到目标梯度等于其余梯度之和的负值，保持梯度和为零。</p>
+<p>论文测得的 precision cliff 约为 bf16 的 <span class="mark-number">5.5</span>、fp32 的 <span class="mark-number">16.6</span>、fp64 的 <span class="mark-number">36.7</span>（以 margin 计）。这些值说明误差不是“概率已经小到数学上等于零”，而是小量加到 1 时被舍入掉。</p>
+<h3 id="组件-2softmax-cancellation在-logit-差异上稳定计算蒸馏梯度"><a class="markdownIt-Anchor" href="#组件-2softmax-cancellation在-logit-差异上稳定计算蒸馏梯度"></a> 组件 2：Softmax Cancellation——在 logit 差异上稳定计算蒸馏梯度</h3>
+<p>教师概率 <code>p=softmax(z_T)</code>，学生概率 <code>q=softmax(z_S)</code>，通常蒸馏梯度为 <code>g=q-p</code>。修正版绕开概率域的这步相减，全程只在 logit 差 <code>δ=z_S-z_T</code> 上做文章。先在教师概率 <code>p</code> 下中心化：</p>
+<p><code>d_k = δ_k - Σ_i p_i δ_i</code>，</p>
+<p>再计算概率比的对数：</p>
+<p><code>s_k = d_k - log1p(Σ_i p_i expm1(d_i))</code>，</p>
+<p>最后把 log-ratio 变回概率差：</p>
+<p><code>u_k = p_k expm1(s_k)</code>。</p>
+<p>这里 <code>expm1(x)=exp(x)-1</code> 在 <code>x≈0</code> 时比直接 <code>exp(x)-1</code> 更能保留小差异，<code>log1p(x)=log(1+x)</code> 同理。为了抵消最后有限精度运算导致的微小总和漂移，再令 <code>g_k=u_k-q_k Σ_i u_i</code>，从而数值上恢复零和梯度。前向仍返回原交叉熵，反向使用自定义的稳定梯度（JAX 中通过 <code>stop_gradient</code> 实现）。</p>
+<p><img src="/img/paper-reading/img_2be0349b49557189e0ce21b9e1b19670760c8ea849740859aad0b1b647736e00.png" srcset="/img/loading.gif" lazyload alt="Figure 1(b): 师生 logits 接近时标准实现的梯度噪声底与修正版" /></p>
+<p><em>图 1(b)：当学生 logits 趋近教师 logits 时，真实梯度应趋近零；标准实现因概率相减而出现非零误差底，修正版避免该误差。</em></p>
+<h3 id="组件-3解释-slingshot-与-margin-平衡"><a class="markdownIt-Anchor" href="#组件-3解释-slingshot-与-margin-平衡"></a> 组件 3：解释 Slingshot 与 margin 平衡</h3>
+<p>论文把 softmax 数值断崖与 grokking 的 Slingshot 现象连成因果链：标准交叉熵跨过精度 cliff 后目标梯度突然归零，Adam 二阶矩估计继续衰减；当参数变化又使样本跌回 cliff 以下，梯度突然恢复，此时很小的二阶矩分母会造成大步更新，引发损失尖峰。</p>
+<p>修正版使梯度随 margin 平滑衰减，因而没有这种“关掉—重新打开”的跳变。进一步地，在 AdamW 的稳态近似下，若 <code>m_hat≈g</code>、<code>v_hat≈g²</code>，单坐标的更新平衡近似满足：</p>
+<p><code>g/(|g|+epsilon) + λθ ≈ 0</code>。</p>
+<p>当梯度幅值远小于 <code>epsilon</code> 时，归一化梯度约为 <code>g/epsilon</code>；它与 weight decay 平衡后，对应 margin 近似 <code>m*(epsilon)≈log(1/epsilon)</code>。这是一个基于稳态近似的解释，不是对任意网络与训练轨迹的普适定理。</p>
+<p><img src="/img/paper-reading/img_02c514ee593f760a096b67807e4cb711ba93270e975c84f40dcd231cdb3e3938.png" srcset="/img/loading.gif" lazyload alt="Figure 2(b): 模数加法 grokking 训练中的训练损失对比" /></p>
+<p><em>图 2(b)：在论文给定的 grokking 配置中，标准交叉熵于精度 cliff 附近出现 Slingshot 波动；修正版越过 cliff 后训练更平滑。</em></p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>实验</strong></th>
+<th><strong>设置</strong></th>
+<th><strong>目的</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数值行为</td>
+<td>bf16、fp32、fp64；比较标准与修正版 softmax / CE</td>
+<td>检查梯度断崖与 cancellation 噪声</td>
+</tr>
+<tr>
+<td>Grokking 主实验</td>
+<td>1 层、宽度 64 的 ReLU Transformer；<code>a+b mod 31</code>；50% 训练集；全批量 AdamW；10,000 epochs；<code>lr=1e-3, β1=0.9, β2=0.98, λ=1</code>；变化 epsilon、精度及 loss</td>
+<td>比较泛化与 Slingshot</td>
+</tr>
+<tr>
+<td>跨任务验证</td>
+<td>4 个既有 grokking 基准：模数加法 Transformer 与两个多项式模运算 MLP；3–5 个随机种子</td>
+<td>检查现象是否只出现在单一任务</td>
+</tr>
+<tr>
+<td>软目标蒸馏</td>
+<td>学生从教师权重初始化；教师在 <code>a+b mod 53</code> 达 100% 准确率；Adam 2,000 步；<code>lr=2e-3, λ=0, epsilon=1e-8, T=4</code></td>
+<td>检查相同 logits 是否产生非零虚假梯度并导致漂移</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>比较</strong></th>
+<th><strong>标准交叉熵</strong></th>
+<th><strong>修正版</strong></th>
+<th><strong>解读</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a+b mod 31</code>，fp32，epsilon=1e-8，5 seeds</td>
+<td>94.3±5.4%</td>
+<td>100.0±0.0%</td>
+<td>标准实现的平均 margin 约 13.0；修正版约 17.9，跨过 fp32 cliff 后到达预期平衡区</td>
+</tr>
+<tr>
+<td>同任务，fp32，epsilon=1e-12</td>
+<td>96.4±5.1%</td>
+<td>99.6±0.7%</td>
+<td>修正版在更高 margin 区仍保持高准确率</td>
+</tr>
+<tr>
+<td>同任务，fp32，epsilon=1e-16</td>
+<td>96.5±4.3%</td>
+<td>99.0±2.3%</td>
+<td>标准 CE 平均 margin 仅 12.7；修正版约 36.8</td>
+</tr>
+<tr>
+<td>bf16，epsilon=1e-8</td>
+<td>93.3±7.4%</td>
+<td>100.0±0.1%</td>
+<td>标准实现停在约 5.1 margin；修正版绕过 bf16 cliff</td>
+</tr>
+<tr>
+<td>fp64，epsilon=1e-16</td>
+<td>97.2±3.2%</td>
+<td>99.0±2.0%</td>
+<td>即使 fp64，在 epsilon 使稳态 margin 超过 fp64 cliff 时也会出问题</td>
+</tr>
+<tr>
+<td>蒸馏：学生初始权重等于教师</td>
+<td>bf16 残差梯度约 1e-3，可令学生漂移；fp32 约 1e-8，出现短暂 KL 尖峰</td>
+<td>初始梯度为零，KL 保持约 0，三种精度均维持 100% 准确率</td>
+<td>自洽性测试：相同输入 logits 不应产生更新</td>
+</tr>
+</tbody>
+</table></div>
+<p>论文也报告：无 weight decay 的 <code>a²+b² mod 97</code> 设置中，标准 CE 的测试准确率在约第 1,250 步<span class="mark-number">从 61% 跌到 23%</span>，修正版继续平滑训练至 <span class="mark-number">85%</span>。在四个 grokking 基准上，fp32 修正版接近 fp64 标准 CE 的表现。与零和梯度投影及 StableMax 的比较显示，在作者测试配置下，修正版准确率更稳，StableMax 的 margin 甚至达到数千至数万。</p>
+<h3 id="结果应该怎样解读"><a class="markdownIt-Anchor" href="#结果应该怎样解读"></a> 结果应该怎样解读</h3>
+<ul>
+<li>
+<p>论文最有说服力的不是单个最终准确率，而是**<span class="mark-strong">数值预测、优化器行为和训练曲线互相吻合</span>**：cliff 与骤发梯度变化对应 Slingshot，改写后 cliff 消失，训练过程也平滑。</p>
+</li>
+<li>
+<p>epsilon 扫描是关键：理论平衡 margin <code>log(1/epsilon)</code> 会随着 epsilon 变小而增大；若高于格式精度 cliff，标准算法可能在达到平衡前先出故障。此解释与多个 epsilon 的实测 margin 相符。</p>
+</li>
+<li>
+<p>蒸馏实验是精确的 sanity check：学生与教师参数相同，真实梯度应为零。<span class="mark-strong">标准实现的数值残差经 Adam 归一化后能造成更新</span>，说明“误差很小”不代表对优化轨迹无影响。</p>
+</li>
+<li>
+<p>但这些实验主要是玩具 grokking 基准及教师初始化蒸馏，不足以证明大规模 LLM 预训练里该问题普遍发生、带来多大收益，或修正版在所有硬件/框架内核上都无成本。</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">抓住了公式等价但浮点行为不等价这一关键点</span>，解释简洁、可检验，也给出可直接复用的 JAX 代码。</p>
+</li>
+<li>
+<p><span class="mark-strong">从数值错误连到优化器动力学</span>：不是只展示误差曲线，还解释 Adam 的二阶矩与 weight decay 如何把局部误差转成训练尖峰。</p>
+</li>
+<li>
+<p><span class="mark-strong">多种精度、多个 grokking 任务、蒸馏场景交叉验证</span>；并给出均值、方差与种子数，证据链比单一示例完整。</p>
+</li>
+<li>
+<p>提供了可作为回归测试的性质：梯度和应为零；学生等于教师时蒸馏梯度应为零；极高置信度时目标梯度应平滑趋近零。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">应用规模有限。</span> 主要训练实验是小模型、模运算与少量 seeds；大型 Transformer 的真实发生率、吞吐/内存影响及端到端收益未实测。</p>
+</li>
+<li>
+<p><span class="mark-strong">实现与硬件覆盖有限。</span> 论文提供 JAX 代码并讨论常见框架实现，但没有展示 PyTorch、TensorFlow、 fused GPU kernels、不同编译器及混合精度训练栈上的全面基准；部署前需在目标 kernel 上验证。</p>
+</li>
+<li>
+<p><span class="mark-strong">“简单替换”仍有集成语义问题。</span> soft-target 方案通过自定义反向梯度保留原 forward loss；与 temperature scaling、label smoothing、ignore mask、分布式归约、非有限值处理等组合时需要额外测试。</p>
+</li>
+<li>
+<p><span class="mark-strong">稳定计算的边界并非无限。</span> <code>expm1</code> / <code>log1p</code> 能减少近零消减误差，但指数下溢仍存在；当目标 logit 并非最大值、存在 NaN/Inf、极端类别数或特殊量化格式时，需要额外考虑边界行为。</p>
+</li>
+<li>
+<p>论文所称“可能无显著减速”是作者对简单实现的判断；文中没有充分的硬件级性能表来证明所有常见生产实现都零成本。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p>在 PyTorch、JAX、TensorFlow 及 fused softmax-cross-entropy kernel 中复现数值测试，尤其检查自动微分与手写 backward 是否一致。</p>
+</li>
+<li>
+<p>用真实语言模型 logits 分布统计 margin 超过 dtype precision cliff 的 token 比例，并按训练阶段、词表大小和混合精度配置拆分。</p>
+</li>
+<li>
+<p>对比标准实现、修正版、提高累加精度、loss scaling 等方案的端到端吞吐、显存、训练稳定性与最终质量。</p>
+</li>
+<li>
+<p>把零和梯度、对数概率与熵约束等不变量加进数值回归测试，覆盖 hard labels、soft labels、temperature、label smoothing 和 batch masking。</p>
+</li>
+<li>
+<p>研究在低精度 fused kernels 中能否通过补偿求和或专门的 softplus/log1p 近似实现同等精度且不损失吞吐。</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇论文的核心是提醒：<span class="mark-strong">数值稳定不能只看 forward loss 是否有限</span>，还要看梯度是否保留了正确的符号、尺度与守恒关系。作者用 margin 形式避免目标概率舍入为 1 后再减 1，用 <code>expm1</code> 与 <code>log1p</code> 避免师生概率直接相减，并展示这些改动能解释并缓解特定 grokking 与蒸馏实验中的异常。它的数学与代码贡献清楚，适合作为训练栈数值正确性的检查清单；但“在现代大模型训练里收益多大”仍是开放问题，需要在真实训练分布和实际 fused kernels 上测量。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p>标准 CE 的 <code>q_t-1</code> 在高置信度下可能把正确类别梯度舍入成零，导致梯度不再和为零。</p>
+</li>
+<li>
+<p>稳定版用 margin + softplus，并用 <code>expm1/log1p</code> 从 logits 差异直接计算蒸馏梯度。</p>
+</li>
+<li>
+<p>小规模 grokking 与蒸馏结果支持方法有效，但尚不能据此推断大模型训练的普遍收益；需在生产 kernel 上复现验证。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/" class="category-chain-item">模型架构与推理效率</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜A Fix for Softmax and Cross-Entropy</div>
+      <div>https://yyhchen.github.io/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年10月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/11/09/paper-understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety/" title="Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/" title="Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models">
+                        <span class="hidden-mobile">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

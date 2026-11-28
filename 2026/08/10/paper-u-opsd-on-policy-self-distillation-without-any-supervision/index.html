@@ -1,0 +1,1332 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="提出 u-OPSD（Unsupervised On-Policy Self-Distillation）：证明 on-policy 自蒸馏可以完全不需要任何外部监督（无 ground-truth 答案、无环境反馈、无更强教师）——只用模型自身的多次采样 + 内部一致性（多数投票） 构造伪解。方法：采样 G 个 rollout → 多数投票得伪答案（置信度阈值过滤）→ 用最短的同意 rollout 作">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/10/paper-u-opsd-on-policy-self-distillation-without-any-supervision/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="提出 u-OPSD（Unsupervised On-Policy Self-Distillation）：证明 on-policy 自蒸馏可以完全不需要任何外部监督（无 ground-truth 答案、无环境反馈、无更强教师）——只用模型自身的多次采样 + 内部一致性（多数投票） 构造伪解。方法：采样 G 个 rollout → 多数投票得伪答案（置信度阈值过滤）→ 用最短的同意 rollout 作">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_e0da2d700be6f1e8053e463279a81e85b5149918d80acc38c9fac9921ee3b177.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_197d2affb3cb98e6dc4fa9f537e407b1c42ef9586575431174708eb4dcbf5123.png">
+<meta property="article:published_time" content="2026-08-10T06:34:43.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_e0da2d700be6f1e8053e463279a81e85b5149918d80acc38c9fac9921ee3b177.png">
+  
+  
+  
+  <title>Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-10 14:34" pubdate>
+          2026-08-10 14:34:43
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          30 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="强化学习与后训练"
+        id="heading-29da1621cfec405f671ce94f3f329a14" role="tab" data-toggle="collapse" href="#collapse-29da1621cfec405f671ce94f3f329a14"
+        aria-expanded="true"
+      >
+        强化学习与后训练
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-29da1621cfec405f671ce94f3f329a14"
+           role="tabpanel" aria-labelledby="heading-29da1621cfec405f671ce94f3f329a14">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/25/Paper%E7%B2%BE%E8%AF%BB-Verifiable-On-Policy-Distillation/" title="Paper精读｜Verifiable On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Verifiable On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/" title="Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/31/paper-ttpo-test-time-policy-optimization/" title="Paper精读｜TTPO: Test-Time Policy Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜TTPO: Test-Time Policy Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-u-opsd-on-policy-self-distillation-without-any-supervision/" title="Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/08/paper-agentopsd-recursive-self-distillation-for-agentic-reinforcement-learning/" title="Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-weak-to-strong-on-policy-distillation/" title="Paper精读｜Weak-to-Strong On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Weak-to-Strong On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-single-rollout-asynchronous-optimization-for-agentic-reinforcement-learning/" title="Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-compactionrl-reinforcement-learning-with-context-compaction-for-long-horizon-agents/" title="Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training/" title="Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-breaking-entropy-bounds-accelerating-rl-training-via-mtp-with-rejection-sampling/" title="Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/26/paper-vector-policy-optimization-training-for-diversity-improves-test-time-search/" title="Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/20/paper-self-distilled-agentic-reinforcement-learning-sdar/" title="Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-evolving-rl-%E7%AB%AF%E5%88%B0%E7%AB%AFrl%E4%BC%98%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96%E8%83%BD%E5%8A%9B/" title="Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/12/paper-flow-opd-on-policy-distillation-for-flow-matching-models/" title="Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/11/paper-skill1-unified-evolution-of-skill-augmented-agents-via-reinforcement-learning/" title="Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/07/paper-on-policy-distillation-uni-opd/" title="Paper精读｜On-Policy Distillation (Uni-OPD)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜On-Policy Distillation (Uni-OPD)</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;reinforcement-learning">强化学习与后训练</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读u-opsd-on-policy-self-distillation-without-any-supervision"><a class="markdownIt-Anchor" href="#paper精读u-opsd-on-policy-self-distillation-without-any-supervision"></a> Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>提出 <strong>u-OPSD（Unsupervised On-Policy Self-Distillation）</strong>：证明 on-policy 自蒸馏可以**<span class="mark-strong">完全不需要任何外部监督</span><strong>（无 ground-truth 答案、无环境反馈、无更强教师）——只用模型自身的多次采样 + <strong>内部一致性（多数投票）</strong> 构造伪解。方法：采样 G 个 rollout → 多数投票得伪答案（置信度阈值过滤）→ 用</strong>最短的同意 rollout** 作为教师参考 → 把教师分布蒸馏到学生<strong>最长的错误补全</strong>前缀上，让模型在&quot;自己确信错误的地方&quot;精确自我纠正。<span class="mark-strong">无监督却打平甚至反超有监督方法</span>：AIME24/AIME25/HMMT25/MATH500/AMC23 上，non-thinking 模式超基座 <strong>8.5%/10.7%</strong>（4B/8B），超 OPSD <strong>3.2%/2.3%</strong>；thinking 模式与 OPSD 持平、超 GRPO 0.7%/1.1%。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：On-Policy Self-Distillation without Any Supervision</li>
+<li><strong>arXiv</strong>：2608.06296</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.06296">https://arxiv.org/abs/2608.06296</a></li>
+<li><strong>作者</strong>：Yijiang Li, Bingyang Wang, Yijun Liang, Yunjie Tian, Di Fu, Nuno Vasconcelos</li>
+<li><strong>机构</strong>：UC San Diego / Georgia Tech / University of Maryland / ByteDance</li>
+<li><strong>日期</strong>：2026-08-06</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>OPD/OPSD（on-policy self-distillation）是 LLM 后训练的强方法——在模型自己的生成上训练，减少 train-inference mismatch 和灾难性遗忘，同时保留稠密 token 级监督。<strong>但现有的&quot;自&quot;蒸馏其实并不自</strong>：</p>
+<ul>
+<li>
+<p><strong>OPSD</strong>（Zhao 2026）：教师和学生是同一模型，但教师条件化在 <strong>ground-truth 解</strong> 上——特权信息来自外部</p>
+</li>
+<li>
+<p><strong>SDFT</strong>：教师条件化在 ICL 示例上（外部提供）</p>
+</li>
+<li>
+<p><strong>SDPO</strong>：需要环境丰富反馈</p>
+</li>
+<li>
+<p>后续工作（DistiLLM、OPSD 变体、RLSD 等）要么需要更强教师、要么需要 GT、要么需要环境反馈</p>
+</li>
+</ul>
+<p><strong>核心问题</strong>：模型只是&quot;教师和学生共享参数&quot;意义上的自蒸馏；让教师更强大的信息<strong>仍来自模型外部</strong>。这卡住了两件事：</p>
+<ol>
+<li>
+<p>无标签问题的可扩展性（不能用于无标注语料）</p>
+</li>
+<li>
+<p>监督昂贵/不可靠/不可得的领域的适用性</p>
+</li>
+</ol>
+<p><strong>论文的问题</strong>：OPSD 的教师真的需要 ground-truth 解吗？模型能否自己构造特权上下文、做真正的自蒸馏？</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>多数投票 = 内生置信信号</strong>：单个 rollout 不可靠，但<strong>多个独立采样的共识</strong>提供无监督置信度——&quot;agreeing rollouts 多于 disagreeing&quot;本身就是&quot;模型知道答案&quot;的证据。这是从 self-consistency（Wang et al. 2023）到训练信号的桥接。</p>
+</li>
+<li>
+<p><strong>投票划分出&quot;能力前沿&quot;（competence frontier）</strong>：过滤掉两类样本——① 投票不充分一致（c(x) &lt; τ，伪解不可靠）；② 所有 rollout 已一致（Y⁻ 空，无分歧可纠正）。<strong>训练只聚焦&quot;模型能稳定识别合理解、但仍给冲突轨迹分配可观概率&quot;的提示</strong>——这个课程天然从投票统计涌现，无需外部难度标签。</p>
+</li>
+<li>
+<p><strong>&quot;<span class="mark-strong">最短正确补全 → 最长错误补全</span>&quot;的精确纠正</strong>：教师参考选<strong>最短的同意 rollout</strong>（简洁=高质量信号），蒸馏目标作用于<strong>最长的不同意（错误）rollout 前缀</strong>——在模型&quot;确信错误&quot;的地方给最大修正信号。这是对&quot;错误最长=错得最远=最需要纠正&quot;这个直觉的形式化。</p>
+</li>
+<li>
+<p><strong>蒸馏的是&quot;解条件化的 next-token 分布&quot;，不是简单模仿</strong>：与多数投票自训练（直接 teacher-forced 模仿选中响应）不同，u-OPSD 沿学生自己的（错误）轨迹转移解条件化的条件分布——<strong>稠密 token 级监督 + on-policy 轨迹</strong>，OPD 的优点一个不落。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">共识作为特权上下文的增益 &gt; 标量奖励</span></strong>：label-free RL 基线（TTRL/RENT/Intuitor）在同样 rollout 预算下最多提升 1.5 点，而 u-OPSD 提升 8.5-10.7 点——<strong>共识解作为 token 级蒸馏的教师上下文，远比把它压缩成标量奖励更有效</strong>。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_e0da2d700be6f1e8053e463279a81e85b5149918d80acc38c9fac9921ee3b177.png" srcset="/img/loading.gif" lazyload alt="Figure 1: OPSD/SDFT 用 GT 解或 ICL（左）、SDPO 用环境反馈（中）、u-OPSD 无任何监督（右）的对比" /></p>
+<p><em>Figure 1（动机图）：现有方法的外部监督来源（GT 解/ICL/环境反馈）与 u-OPSD 的&quot;零监督&quot;对比——u-OPSD 的特权上下文完全来自模型自身的 rollout 共识。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1三步管线sample-vote-distill"><a class="markdownIt-Anchor" href="#组件1三步管线sample-vote-distill"></a> 组件1：三步管线（Sample → Vote → Distill）</h3>
+<p><strong>(1) Sample</strong>：对每个提示 x，以训练温度采样 G 个 rollout y⁽¹⁾…y⁽ᵍ⁾ ~ π̄(·|x)（π̄ = stop-gradient 策略），解析最终答案 a⁽ᵍ⁾ = Ans(y⁽ᵍ⁾)（从 \boxed{…} 提取 + 规范化/标准化；∅ 标记无法解析的 rollout = 截断产生的无效样本）。</p>
+<p><strong>(2) Vote</strong>：有效答案间多数投票得伪答案 ã(x)（平局随机打破）。划分：</p>
+<ul>
+<li>
+<p>Y⁺_x = {同意 ã 的 rollout}，Y⁻_x = {不同意 ã 的 rollout}，无效 rollout 两边都不算</p>
+</li>
+<li>
+<p><strong>自一致性分数</strong> c(x) = (1/G)·Σ 𝟙[a⁽ᵍ⁾ = ã(x)]——注意<strong>按总 rollout 数 G 归一化</strong>而不是按有效数：截断本身就是扣分项，c(x) &lt; τ=1/2 的提示视为无标签、不产生梯度</p>
+</li>
+</ul>
+<p><strong>(3) Distill</strong>：挑一个同意 rollout y⁺ ∈ Y⁺_x 当教师参考（顶替 OPSD 里的 GT 解 y⋆），蒸馏发生在学生的不同意 rollout Y⁻_x 上：</p>
+<figure class="highlight gml"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs gml">L_u-OPSD(θ) = Σ_&#123;i∈W_k&#125; Σ_&#123;t=<span class="hljs-number">1</span>&#125;^&#123;|<span class="hljs-variable language_">y</span>⁽ⁱ⁾|&#125; D_β( π̄(·|<span class="hljs-variable language_">x</span>, <span class="hljs-variable language_">y</span>⁺, <span class="hljs-variable language_">y</span>⁽ⁱ⁾_&#123;&lt;t&#125;) ‖ π_θ(·|<span class="hljs-variable language_">x</span>, <span class="hljs-variable language_">y</span>⁽ⁱ⁾_&#123;&lt;t&#125;) )<br></code></pre></td></tr></table></div></figure>
+<ul>
+<li>
+<p>教师 = 条件化在 (x, y⁺, 学生轨迹前缀) 的 stop-gradient 模型——**“沿着学生自己的错误轨迹”**把解条件化的 next-token 分布传下去</p>
+</li>
+<li>
+<p>W_k = 只包含不同意 rollout 的窗口（错误补全）</p>
+</li>
+</ul>
+<h3 id="组件2与-opsd-的形式对比"><a class="markdownIt-Anchor" href="#组件2与-opsd-的形式对比"></a> 组件2：与 OPSD 的形式对比</h3>
+<ul>
+<li>
+<p>OPSD：教师条件化在 (x, y⋆)（GT 解）；u-OPSD：教师条件化在 (x, y⁺)（投票伪解）——形式上只换了这一个上下文，监督依赖就整个拆掉了</p>
+</li>
+<li>
+<p>OPSD 需要标注对 (x, y⋆)；u-OPSD 只需要无标签 x</p>
+</li>
+<li>
+<p>两者都共享参数、都在 on-policy 轨迹上给稠密 token 监督</p>
+</li>
+</ul>
+<h3 id="组件3与-opd-家族的关系定位"><a class="markdownIt-Anchor" href="#组件3与-opd-家族的关系定位"></a> 组件3：与 OPD 家族的关系定位</h3>
+<ul>
+<li>
+<p><strong>OPD</strong>：外部更强教师，c = x（学生只看到问题）</p>
+</li>
+<li>
+<p><strong>OPSD</strong>：同模型教师 + GT 特权上下文</p>
+</li>
+<li>
+<p><strong>u-OPSD</strong>：同模型教师 + <strong>模型自造的</strong>特权上下文——“真正的自蒸馏”</p>
+</li>
+</ul>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p><strong>零监督成本</strong>：无标注需求，可扩展到任意无标签语料</p>
+</li>
+<li>
+<p><strong>训练-推理一致</strong>：与 OPSD 相同——学生只条件化在 x 上，推理时无特权信息</p>
+</li>
+<li>
+<p><strong>天然课程</strong>：投票统计自动聚焦&quot;能力前沿&quot;，无需外部难度信号</p>
+</li>
+<li>
+<p><strong>与 RLVR 的互补</strong>：GRPO 在&quot;可验证奖励&quot;可用时很强；u-OPSD 在奖励不可得时提供稠密监督替代——两者可组合（u-OPSD 构造伪标签 + GRPO 验证）</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<ul>
+<li>
+<p><strong>模型</strong>：Qwen3-4B / Qwen3-8B（base），另测 Qwen3-30B-A3B-Instruct-2507 等指令微调模型</p>
+</li>
+<li>
+<p><strong>模式</strong>：thinking 与 non-thinking 两种推理模式分别评测</p>
+</li>
+<li>
+<p><strong>基准</strong>：AIME24、AIME25、HMMT25、MATH500、AMC23（五个数学竞赛/推理基准）</p>
+</li>
+<li>
+<p><strong>基线</strong>：有监督（SFT、GRPO、OPSD）+ 无监督 RL（TTRL、RENT、Intuitor）——同 rollout 预算</p>
+</li>
+</ul>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<p><strong>Non-thinking 模式（Table 1）——无监督反超有监督</strong></p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方法</strong></th>
+<th><strong>Qwen3-4B Avg</strong></th>
+<th><strong>Qwen3-8B Avg</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base</td>
+<td>41.0（推算）</td>
+<td>43.6（推算）</td>
+</tr>
+<tr>
+<td>+ SFT (GT)</td>
+<td>~42</td>
+<td>~45</td>
+</tr>
+<tr>
+<td>+ GRPO (GT)</td>
+<td>~46</td>
+<td>~52</td>
+</tr>
+<tr>
+<td>+ OPSD (GT)</td>
+<td>~46</td>
+<td>~52</td>
+</tr>
+<tr>
+<td>+ TTRL / RENT / Intuitor (无监督 RL)</td>
+<td>≤ +1.5</td>
+<td>≤ +1.5</td>
+</tr>
+<tr>
+<td><strong>+ u-OPSD (无监督)</strong></td>
+<td><strong>49.49</strong>（+8.5）</td>
+<td><strong>54.31</strong>（+10.7）</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>
+<p><strong>关键解读</strong>：u-OPSD 用<strong>零监督</strong>超过了所有用 GT 的监督基线（SFT/GRPO/OPSD）——超 OPSD 3.2/2.3 点；无监督 RL 基线最多提升 1.5 点。<strong>“共识构造的教师上下文 + 稠密 token 蒸馏” &gt; “标量奖励压缩共识”</strong>，差距不是零点几个点，是一整个量级。</p>
+</li>
+<li>
+<p>5 个基准中 u-OPSD 在两个模型上各拿 4 个最优——增益一致，不是某一两个基准上的运气。</p>
+</li>
+</ul>
+<p><strong>Thinking 模式（Table 2）——与有监督打平</strong></p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方法</strong></th>
+<th><strong>Qwen3-4B Avg</strong></th>
+<th><strong>Qwen3-8B Avg</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base</td>
+<td>74.85</td>
+<td>76.09</td>
+</tr>
+<tr>
+<td>+ GRPO</td>
+<td>76.35</td>
+<td>76.92</td>
+</tr>
+<tr>
+<td>+ OPSD</td>
+<td>76.20</td>
+<td>77.97</td>
+</tr>
+<tr>
+<td><strong>+ u-OPSD</strong></td>
+<td><strong>77.05</strong>（+0.9 vs OPSD）</td>
+<td><strong>77.99</strong>（持平 OPSD，+1.1 vs GRPO）</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>关键解读</strong>：thinking 模式基座更强（74.85 vs 41.0），提升空间小——u-OPSD 仍打平/略超有监督。论文的解释说得通：<strong>共识蒸馏在&quot;基座足够可靠能产生有信息量的共识、但仍有提升空间&quot;时最有效</strong>——thinking 模式余量已经不大。</li>
+</ul>
+<p><strong>指令微调模型（Table 3）</strong>：Qwen3-30B-A3B-Instruct-2507 上同样提升——方法不限于 base 模型。</p>
+<h3 id="训练曲线figure-3"><a class="markdownIt-Anchor" href="#训练曲线figure-3"></a> 训练曲线（Figure 3）</h3>
+<ul>
+<li>前 4 个 checkpoint 的 AIME24/AIME25/MATH500 曲线：u-OPSD 在 non-thinking 模式快速拉开差距，thinking 模式稳定略优——与表 1/2 一致。</li>
+</ul>
+<p><img src="/img/paper-reading/img_197d2affb3cb98e6dc4fa9f537e407b1c42ef9586575431174708eb4dcbf5123.png" srcset="/img/loading.gif" lazyload alt="Figure 2: u-OPSD 概览——多数投票伪标签替换 GT 监督" /></p>
+<p><em>Figure 2（方法总览）：采样 G 个 rollout → 解析答案 → 多数投票得伪答案（置信度阈值过滤）→ 选最短同意 rollout 作教师参考 → 在最长错误补全上蒸馏解条件化分布。</em></p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>&quot;自&quot;字第一次名副其实</strong>：特权上下文完全内生（投票共识），OPSD 对 GT 解的依赖被打断。OPSD 论文留下的那个问题——“教师需要 GT 吗？”——答案是不需要。</p>
+</li>
+<li>
+<p><strong>赢的档次不对</strong>：无监督超过有监督基线（+3.2/+2.3 vs OPSD）——不是&quot;无监督勉强追上有监督&quot;，是反超。&quot;监督信息是蒸馏的必要输入&quot;这个隐含假设被正面挑战了。</p>
+</li>
+<li>
+<p><strong>课程是自己长出来的</strong>：投票统计天然圈出&quot;能力前沿&quot;（能认出解、但仍有分歧），外部难度标签和调度都不用——这一手我很买账。</p>
+</li>
+<li>
+<p><strong>&quot;最短正确→最长错误&quot;有信息论直觉撑腰</strong>：简洁参考 = 高质量信号；最长错误 = 修正需求最大——修正信号被投放到最需要它的地方。</p>
+</li>
+<li>
+<p><strong>与 RLVR/GRPO 正交</strong>：无监督伪标签 + 可验证奖励可以叠着用，&quot;奖励不可得&quot;的领域有了稠密监督的替代品。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>答案可解析假设</strong>：Ans(·) 提取依赖 \boxed{…} 这类可解析格式——只适用于<strong>答案有明确格式的数学/推理任务</strong>；开放式任务（写作、代码、对话）无法投票</p>
+</li>
+<li>
+<p><strong>投票有效性依赖基座能力</strong>：基座太弱时共识本身不可靠（c(x) &lt; τ 过滤大量样本 → 训练数据稀缺）；基座太强时无分歧可纠正（提升空间小）——<strong>u-OPSD 只在&quot;中间能力带&quot;最有效</strong>，论文也承认 thinking 模式增益小</p>
+</li>
+<li>
+<p><strong>共识 ≠ 正确</strong>：多数投票的伪答案可能是<strong>系统性错误</strong>（模型集体犯同类错误）——与 RLVR 的可验证奖励不同，无外部纠错；论文未讨论&quot;共识错误&quot;的污染风险</p>
+</li>
+<li>
+<p><strong>采样成本</strong>：G 个 rollout/提示 + 双上下文前向（教师+学生）——训练成本高于 GRPO，与 OPSD 同级但都明显贵于 SFT</p>
+</li>
+<li>
+<p><strong>基准面窄</strong>：全部是数学推理基准；代码、agentic、多模态领域的验证缺失</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>共识正确性的保障</strong>：与 RLVR 结合（共识伪标签 + 可验证奖励二次确认），或交叉验证（分两组投票互验）</p>
+</li>
+<li>
+<p><strong>开放式任务的投票信号</strong>：无 \boxed 格式的任务如何定义&quot;答案一致&quot;（嵌入相似度、语义等价）？</p>
+</li>
+<li>
+<p><strong>多粒度蒸馏窗口</strong>：目前选最长错误补全；能否按&quot;错误程度&quot;分层（部分正确轨迹给部分监督）？</p>
+</li>
+<li>
+<p><strong>与 AgentOPSD 的融合</strong>：u-OPSD 的投票共识 vs AgentOPSD 的技能条件化——两者都在构造&quot;特权上下文&quot;，可否统一为&quot;自监督信用分配&quot;框架？</p>
+</li>
+<li>
+<p><strong>规模化验证</strong>：更大模型（30B+）与更多领域（代码/数学/agent）</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OPSD (Zhao 2026)</strong></td>
+<td>直接前身</td>
+<td>OPSD 教师条件化在 GT 解上；u-OPSD 用投票伪解替换 GT——无监督反超 3.2/2.3 点</td>
+</tr>
+<tr>
+<td><strong>SDFT / SDPO</strong></td>
+<td>OPD 家族</td>
+<td>分别需要 ICL 示例/环境反馈；u-OPSD 两者都不要</td>
+</tr>
+<tr>
+<td><strong>GRPO (DeepSeek 2025)</strong></td>
+<td>RLVR 代表</td>
+<td>GRPO 需要可验证奖励（GT 答案）；u-OPSD 在无奖励时提供稠密监督替代</td>
+</tr>
+<tr>
+<td><strong>TTRL / RENT / Intuitor</strong></td>
+<td>无监督 RL 基线</td>
+<td>把共识压缩成标量奖励，最多 +1.5 点；u-OPSD 用它做教师上下文，+8.5~10.7 点</td>
+</tr>
+<tr>
+<td><strong>Self-Consistency (Wang 2023)</strong></td>
+<td>投票方法论来源</td>
+<td>SC 是推理时解码策略；u-OPSD 把共识从&quot;解码时&quot;升级为&quot;训练时特权信号&quot;</td>
+</tr>
+<tr>
+<td><strong>AgentOPSD（2608.05987）</strong></td>
+<td>同日 OPD 家族</td>
+<td>AgentOPSD 用技能条件化构造特权上下文（agentic）；u-OPSD 用投票共识（数学）——两种&quot;无监督特权上下文&quot;路线</td>
+</tr>
+<tr>
+<td><strong>W2S-OPD（2607.26246）</strong></td>
+<td>OPD 家族源头之一</td>
+<td>W2S-OPD 用弱/强模型对比构造 proxy teacher；u-OPSD 用投票共识——&quot;教师从哪来&quot;的三种答案</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>u-OPSD 的贡献是一个干净的概念跃迁：<strong>自蒸馏的&quot;自&quot;第一次名副其实</strong>——<span class="mark-strong">教师参考、学生轨迹、置信度信号全部来自模型自身的采样一致性</span>，没有任何外部输入。更难得的是它在实证上赢了：无监督反超所有有监督基线（non-thinking +8.5/+10.7 vs 基座、+3.2/+2.3 vs OPSD），证明&quot;共识构造的特权上下文 + 稠密 token 蒸馏&quot;这条路径比&quot;标量奖励压缩共识&quot;（无监督 RL）和&quot;外部 GT 特权&quot;（OPSD）都强。局限也摆得清楚：依赖可解析答案格式、在基座能力的&quot;中间带&quot;最有效、共识可能系统性错误。对做后训练/蒸馏的人，这篇的价值在于<strong>给出了&quot;监督在蒸馏中可能不是必需品&quot;的证据</strong>，并铺了一条零标注的实操路径——和 AgentOPSD、W2S-OPD 放在一起看，OPD 家族正在整体走向&quot;无监督化&quot;。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>真正的自蒸馏</strong>：教师参考、学生轨迹、置信度全部来自模型自身采样 + 多数投票——零外部监督，无监督反超 OPSD 3.2/2.3 点。</p>
+</li>
+<li>
+<p><strong>投票划分能力前沿</strong>：只训练&quot;能稳定识别合理解、但仍有分歧&quot;的提示——课程从投票统计自动涌现，无需外部难度标签。</p>
+</li>
+<li>
+<p><strong>最短正确 → 最长错误</strong>：选最短同意 rollout 作教师，在最长错误补全前缀上蒸馏——在模型&quot;确信错误&quot;处精确投放修正信号。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/" class="category-chain-item">强化学习与后训练</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</div>
+      <div>https://yyhchen.github.io/2026/08/10/paper-u-opsd-on-policy-self-distillation-without-any-supervision/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/08/paper-agentopsd-recursive-self-distillation-for-agentic-reinforcement-learning/" title="Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning">
+                        <span class="hidden-mobile">Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

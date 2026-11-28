@@ -1,0 +1,1325 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Thinking Machines 发布 Inkling——975B 总参数 &#x2F; 41B 激活的 MoE 模型。可控思考努力（controllable thinking effort）此前是 GPT-5.6 这类闭源模型的专属，Inkling 第一次把它带进开源权重，原生多模态（文本&#x2F;图像&#x2F;音频）和大规模 RL 训练也在同一次训练里做齐。定位不装：不做&quot;最强模型&quot;，做&quot;最好的可微调底座&quot;。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Inkling: Our Open-Weights Model">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/16/paper-inkling-our-open-weights-model/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="Thinking Machines 发布 Inkling——975B 总参数 &#x2F; 41B 激活的 MoE 模型。可控思考努力（controllable thinking effort）此前是 GPT-5.6 这类闭源模型的专属，Inkling 第一次把它带进开源权重，原生多模态（文本&#x2F;图像&#x2F;音频）和大规模 RL 训练也在同一次训练里做齐。定位不装：不做&quot;最强模型&quot;，做&quot;最好的可微调底座&quot;。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_95be58146f6bd2b7a968f3b9b133c52fab53b82593782a82d08077a6605fff33.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_3f13acc3556520cb96711b4b59ccd45a2503379814af312ff67f9f23e0d60fb1.png">
+<meta property="article:published_time" content="2026-07-16T11:53:43.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_95be58146f6bd2b7a968f3b9b133c52fab53b82593782a82d08077a6605fff33.png">
+  
+  
+  
+  <title>Paper精读｜Inkling: Our Open-Weights Model - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Inkling: Our Open-Weights Model</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-16 19:53" pubdate>
+          2026-07-16 19:53:43
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="多模态与具身智能"
+        id="heading-c45b252d6962ccf4d335660bbc5ad714" role="tab" data-toggle="collapse" href="#collapse-c45b252d6962ccf4d335660bbc5ad714"
+        aria-expanded="true"
+      >
+        多模态与具身智能
+        <span class="list-group-count">(5)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-c45b252d6962ccf4d335660bbc5ad714"
+           role="tabpanel" aria-labelledby="heading-c45b252d6962ccf4d335660bbc5ad714">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(5)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/07/29/paper-data-pyramid-for-embodied-manipulation/" title="Paper精读｜Data Pyramid for Embodied Manipulation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Data Pyramid for Embodied Manipulation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/16/paper-inkling-our-open-weights-model/" title="Paper精读｜Inkling: Our Open-Weights Model"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Inkling: Our Open-Weights Model</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-mamoda2-5-enhancing-unified-multimodal-model-with-dit-moe/" title="Paper精读｜Mamoda2.5: Enhancing Unified Multimodal Model with DiT-MoE"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mamoda2.5: Enhancing Unified Multimodal Model with DiT-MoE</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-let-vit-speak-generative-language-image-pre-training/" title="Paper精读｜Let ViT Speak: Generative Language-Image Pre-training"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Let ViT Speak: Generative Language-Image Pre-training</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-thinking-with-visual-primitives/" title="Paper精读｜Thinking with Visual Primitives"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Thinking with Visual Primitives</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Inkling: Our Open-Weights Model</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;multimodal">多模态与具身智能</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读inkling-our-open-weights-model"><a class="markdownIt-Anchor" href="#paper精读inkling-our-open-weights-model"></a> Paper精读｜Inkling: Our Open-Weights Model</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>Thinking Machines 发布 <strong>Inkling</strong>——975B 总参数 / 41B 激活的 MoE 模型。<span class="mark-entity">可控思考努力</span>（controllable thinking effort）此前是 GPT-5.6 这类闭源模型的专属，<strong>Inkling 第一次把它带进开源权重</strong>，原生多模态（文本/图像/音频）和大规模 RL 训练也在同一次训练里做齐。定位不装：不做&quot;最强模型&quot;，做&quot;最好的可微调底座&quot;。<br />
+<em>（原图未能本地化：Inkling: Our open-weights model；IMA 媒体接口没有可用媒体编号）</em><br />
+<em>The cover image: a fluid, generative ink-blot artwork in deep blues and blacks, evoking both the fluidity of thought and the inkwell from which the model’s name derives. The abstract forms radiate outward, suggesting the model’s capacity for expansive, controllable reasoning.</em></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Inkling: Our Open-Weights Model</li>
+<li><strong>原文链接</strong>：<a target="_blank" rel="noopener" href="https://thinkingmachines.ai/news/introducing-inkling/">Thinking Machines Blog</a></li>
+<li><strong>作者</strong>：Thinking Machines</li>
+<li><strong>机构</strong>：Thinking Machines</li>
+<li><strong>日期</strong>：2026-07-15</li>
+<li><strong>类型</strong>：模型发布公告（含完整技术报告）</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>当前开源模型面临一个根本性困境：<strong>能力越强，使用成本越高</strong>。DeepSeek V4 Pro、Kimi K2.6、Nemotron 3 Ultra 等模型在 benchmark 上表现亮眼，但开发者实际部署时面临两个痛点：</p>
+<ol>
+<li>
+<p><strong>思考成本不可控</strong>：模型要么&quot;想太少&quot;答错，要么&quot;想太多&quot;浪费 token，无法根据任务难度动态调整推理 compute</p>
+</li>
+<li>
+<p><strong>多模态能力缺失</strong>：大多数开源模型只支持文本，音频/视觉能力依赖外部编码器，无法实现真正的原生多模态推理</p>
+</li>
+</ol>
+<p>Inkling 的设计目标是：<strong>在开源的前提下，提供一个&quot;够广、够省、够安全&quot;的底座</strong>，让开发者通过微调解决自己的问题，而不是追求 benchmark 上的最高分。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>可控思考努力是开源模型的缺失能力</strong>：通过 RL 训练让模型学会&quot;该多想时多想，该少想时少想&quot;，在 Terminal Bench 2.1 上达到 Nemotron 3 Ultra <span class="mark-number">同等性能仅需 1/3 token</span></p>
+</li>
+<li>
+<p><strong><span class="mark-strong">原生多模态不需要编码器</span></strong>：音频用 dMel 频谱图、视觉用 40×40 patch + hMLP，直接和文本 token 联合训练，避免了编码器瓶颈</p>
+</li>
+<li>
+<p><strong>30M+ rollouts 的 RL 训练带来 log-linear 持续提升</strong>：<span class="mark-strong">推理分数随 RL 训练步数对数线性增长</span>，且 chain of thought 自动变得更简洁（emergent compression）</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">安全性和可微调性可以兼得</span></strong>：FORTRESS 对抗测试 78%（开源最高），同时支持在 Tinker 上微调后不破坏安全行为</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1moe-架构"><a class="markdownIt-Anchor" href="#组件1moe-架构"></a> 组件1：MoE 架构</h3>
+<ul>
+<li>
+<p>256 个 routed experts + 2 个 shared experts，每 token 激活 6 个 routed experts</p>
+</li>
+<li>
+<p>总参数 975B，激活参数 41B（激活率 <span class="mark-number">4.2%</span>）</p>
+</li>
+<li>
+<p><strong>Sigmoid-based router</strong> + auxiliary-loss-free load-balancing bias（避免传统 MoE 的辅助损失干扰训练目标）</p>
+</li>
+<li>
+<p>参考 DeepSeek-V3 的 MoE 设计但做了简化</p>
+</li>
+</ul>
+<h3 id="组件2注意力机制"><a class="markdownIt-Anchor" href="#组件2注意力机制"></a> 组件2：注意力机制</h3>
+<ul>
+<li>
+<p><strong>滑动窗口 + 全局注意力 5:1 交替</strong>：每 5 层 sliding window 配 1 层全局注意力，8 个 KV heads</p>
+</li>
+<li>
+<p><strong>相对位置编码（RPE）替代 RoPE</strong>：在长上下文外推性上优于 RoPE，<span class="mark-number">1M token</span> 上下文窗口</p>
+</li>
+<li>
+<p><strong>短卷积</strong>：在 attention 的 key/value 投影后、以及残差分支输出处各加一次短卷积，增强局部信息提取</p>
+</li>
+</ul>
+<h3 id="组件3多模态输入"><a class="markdownIt-Anchor" href="#组件3多模态输入"></a> 组件3：多模态输入</h3>
+<ul>
+<li>
+<p><strong>编码器无关架构（encoder-free）</strong>：</p>
+<ul>
+<li>
+<p>音频 → 离散 dMel 频谱图 → 轻量 embedding 层</p>
+</li>
+<li>
+<p>图像 → 40×40 pixel patches → 四层 hMLP → 轻量 embedding 层</p>
+</li>
+</ul>
+</li>
+<li>
+<p>音频和视觉 token 与文本 token 联合训练，共享同一个 Transformer backbone</p>
+</li>
+<li>
+<p>推理时可配合 Python 工具做图像 zoom/crop 操作</p>
+</li>
+</ul>
+<h3 id="组件4可控思考努力"><a class="markdownIt-Anchor" href="#组件4可控思考努力"></a> 组件4：可控思考努力</h3>
+<p><img src="/img/paper-reading/img_95be58146f6bd2b7a968f3b9b133c52fab53b82593782a82d08077a6605fff33.png" srcset="/img/loading.gif" lazyload alt="官方图｜思考预算和主要任务表现的关系" /></p>
+<p><em>官方图｜思考预算和主要任务表现的关系。 <a target="_blank" rel="noopener" href="https://thinkingmachines.ai/news/introducing-inkling/">来源</a></em></p>
+<ul>
+<li>
+<p>通过 system message 设定 effort 参数（0.2 ~ 0.99）</p>
+</li>
+<li>
+<p>训练时通过 <strong>per-token cost</strong> 让模型学习&quot;不同 effort 对应不同 token 消耗&quot;</p>
+</li>
+<li>
+<p>结果：effort=0.99 时性能最高，effort=0.2 时速度最快</p>
+</li>
+<li>
+<p>在 Terminal Bench 2.1 上，Inkling 用 1/3 token 达到 Nemotron 3 Ultra 同等分数</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Figure 3 — 可控思考努力曲线</strong>：折线图，X 轴为 effort（0.2 ~ 0.99），Y 轴为性能分数（0-100）。每条折线代表一个 benchmark（Terminal Bench 2.1, HLE, IFBench）。所有曲线均呈单调递增趋势，但 effort &gt; 0.8 后边际收益递减。标注显示 Inkling 在 effort=0.99 时达到 Nemotron 3 Ultra（虚线）的同等性能，但仅消耗 1/3 的 token（约 8000 vs 24000）。另一条曲线显示 mean generated tokens 从 effort=0.2 时的 ~5K 增长到 effort=0.99 时的 ~25K。</p>
+</blockquote>
+<h3 id="组件5大规模-rl-训练"><a class="markdownIt-Anchor" href="#组件5大规模-rl-训练"></a> 组件5：大规模 RL 训练</h3>
+<p><img src="/img/paper-reading/img_3f13acc3556520cb96711b4b59ccd45a2503379814af312ff67f9f23e0d60fb1.png" srcset="/img/loading.gif" lazyload alt="官方图｜从 SFT 到发布检查点的强化学习曲线" /></p>
+<p><em>官方图｜从 SFT 到发布检查点的强化学习曲线。 <a target="_blank" rel="noopener" href="https://thinkingmachines.ai/news/introducing-inkling/">来源</a></em></p>
+<ul>
+<li>
+<p><strong>异步 RL，30M+ rollouts</strong>，连续两个长训练阶段</p>
+</li>
+<li>
+<p>推理分数随 rollout 数量 <strong>log-linear 提升</strong>（从 SFT 初始化到最终 checkpoint 单调递增）</p>
+</li>
+<li>
+<p><strong>Emergent chain-of-thought 压缩</strong>：RL 训练后，模型的思考链自动变得更简洁（去掉语法冗余如冠词、连词），但保持可理解和正确性</p>
+</li>
+<li>
+<p>奖励信号：</p>
+<ul>
+<li>
+<p>推理任务：正确性奖励</p>
+</li>
+<li>
+<p>指令遵循：rubric grader + factuality grader 双评分器</p>
+</li>
+<li>
+<p>校准性：proper scoring rules + 短形式 QA 的弃答奖励</p>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>Figure 4 — RL 训练 log-linear 提升</strong>：折线图，X 轴为 RL rollout 数量（从 0 到 30M+），Y 轴为聚合推理 eval 的 reward（AIME + HLE + GPQA 等）。曲线从约 40% 单调上升到约 75%，全程保持对数线性趋势，未出现平台期。虚线标注&quot;SFT 初始化&quot;起点和&quot;released checkpoint&quot;终点。</p>
+</blockquote>
+<h3 id="组件6安全训练"><a class="markdownIt-Anchor" href="#组件6安全训练"></a> 组件6：安全训练</h3>
+<ul>
+<li>
+<p>FORTRESS 对抗测试 78%（开源最高），良性查询通过率 95.9%</p>
+</li>
+<li>
+<p>StrongREJECT 98.6%（与闭源模型持平）</p>
+</li>
+<li>
+<p>安全行为覆盖：CBRN、网络攻击、失控风险、谄媚、弱势用户保护</p>
+</li>
+<li>
+<p>微调后安全行为保持研究（ongoing work）</p>
+</li>
+</ul>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p><strong>开源可微调</strong>：全权重 Hugging Face 发布 + Tinker 平台支持微调</p>
+</li>
+<li>
+<p><strong>NVFP4 checkpoint</strong>：支持 NVIDIA Blackwell 高效推理</p>
+</li>
+<li>
+<p><strong>1M token 上下文</strong>：业界最长之一</p>
+</li>
+<li>
+<p><strong>多模态原生</strong>：文本/图像/音频统一训练，非后期拼接</p>
+</li>
+<li>
+<p><strong>Inkling-Small 兄弟模型</strong>：276B/12B 激活，性能接近但成本更低</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<ul>
+<li>
+<p>所有 eval 在 effort=0.99、temperature=1.0 下运行</p>
+</li>
+<li>
+<p>Coding eval 使用 256K max-token trajectory limit</p>
+</li>
+<li>
+<p>对比模型：Nemotron 3 Ultra, Kimi K2.5, Kimi K2.6, GLM 5.2, DeepSeek V4 Pro, Gemini 3.1 Pro, Claude Fable 5, GPT 5.6 Sol</p>
+</li>
+</ul>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>指标</strong></th>
+<th><strong>Inkling</strong></th>
+<th><strong>Nemotron 3 Ultra</strong></th>
+<th><strong>Kimi K2.6</strong></th>
+<th><strong>GPT 5.6 Sol</strong></th>
+<th><strong>Claude Fable 5</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HLE text only</td>
+<td>29.7%</td>
+<td>26.6%</td>
+<td>35.9%</td>
+<td>47.2%</td>
+<td>53.3%</td>
+</tr>
+<tr>
+<td>HLE with tools</td>
+<td>46.0%</td>
+<td>37.4%</td>
+<td>54.0%</td>
+<td>55.0%</td>
+<td>64.5%</td>
+</tr>
+<tr>
+<td>AIME 2026</td>
+<td>97.1%</td>
+<td>94.2%</td>
+<td>96.4%</td>
+<td>99.9%</td>
+<td>99.9%</td>
+</tr>
+<tr>
+<td>GPQA Diamond</td>
+<td>87.2%</td>
+<td>86.7%</td>
+<td>91.1%</td>
+<td>94.1%</td>
+<td>92.6%</td>
+</tr>
+<tr>
+<td>SWEBench Verified</td>
+<td>77.6%</td>
+<td>70.7%</td>
+<td>80.2%</td>
+<td>82.2%</td>
+<td>95.0%</td>
+</tr>
+<tr>
+<td>Terminal Bench 2.1</td>
+<td>63.8%</td>
+<td>56.4%</td>
+<td>71.3%</td>
+<td>91.9%</td>
+<td>84.6%</td>
+</tr>
+<tr>
+<td>MMMU Pro</td>
+<td>73.5%</td>
+<td>–</td>
+<td>79.0%</td>
+<td>83.0%</td>
+<td>84.2%</td>
+</tr>
+<tr>
+<td>VoiceBench</td>
+<td>91.4%</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>FORTRESS Adv</td>
+<td>78.0%</td>
+<td>77.6%</td>
+<td>65.6%</td>
+<td>82.4%</td>
+<td>96.0%</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>Figure 2 — 通用模型基准对比（雷达图）</strong>：五轴雷达图，五个轴分别为：Text / Agentic / Multimodal / Audio / Safety。每个轴的范围是 0-100。五种颜色的多边形分别代表五种模型：Inkling（蓝色）、Nemotron 3 Ultra（橙色）、GLM 5.2（绿色）、GPT 5.6 Sol（紫色）、Claude Fable 5（红色）。Inkling 的多边形在所有轴都偏向&quot;Safety&quot;和&quot;Agentic&quot;方向，但在&quot;Text&quot;和&quot;Multimodal&quot;方向被闭源模型超出。Inkling 的整体形状偏五边形（均衡），不像某些模型那样偏科某个方向。图注说明：“Inkling is a broad, balanced generalist model.”</p>
+</blockquote>
+<blockquote>
+<p><strong>Figure 1 — Inkling 自我微调 Demo（终端截图）</strong>：黑色背景终端界面复刻了 OpenCode 的视觉效果。界面顶部显示 “Build · inkling · tinker-prod”，当前目录 “~/news/introducing-inkling/”，版本号 “1.33.7”。下方有 7 个故事播放控制按钮（Story 1-7），关键帧预览：</p>
+<ul>
+<li>
+<p>Story 1: landing and first prompt — 初始对话界面</p>
+</li>
+<li>
+<p>Story 2: base model answer — 展示模型原始回答（包含字母 “e”）</p>
+</li>
+<li>
+<p>Story 3: fine-tuning intent — 用户提示：“fine tune yourself with Tinker to be a lipogram model where you never use the letter e”</p>
+</li>
+<li>
+<p>Story 4: rubric — 模型生成评估标准</p>
+</li>
+<li>
+<p>Story 5: training — 通过 Tinker API 进行训练</p>
+</li>
+<li>
+<p>Story 6: self-update — 模型加载新权重</p>
+</li>
+<li>
+<p>Story 7: updated model answer — 新回答不再包含字母 “e”</p>
+</li>
+</ul>
+<p>图注说明完整展示了从&quot;模型在当前 harness 中运行&quot;到&quot;新定制化模型生效&quot;的完整闭环。</p>
+</blockquote>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<ul>
+<li>
+<p><strong>预训练</strong>：45T tokens，文本/图像/音频/视频混合</p>
+</li>
+<li>
+<p><strong>优化器</strong>：Muon（大矩阵权重）+ Adam（其他参数），weight decay 与 learning rate 平方耦合</p>
+</li>
+<li>
+<p><strong>硬件</strong>：NVIDIA GB300 NVL72 系统</p>
+</li>
+<li>
+<p><strong>后训练</strong>：SFT（Kimi K2.5 合成数据）→ 大规模 RL（异步，30M+ rollouts）</p>
+</li>
+<li>
+<p><strong>Inkling-Small</strong>：276B/12B 激活，相同后训练流程，性能接近大哥但成本更低</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Figure 5 — Chain of Thought 演化示例</strong>：并排展示同一个数学题（5D 时空中的自旋-2 涨落）的两次回答。左侧&quot;Early in RL — verbose, grammatical&quot; 的回答完整流畅：“We need to understand the operator. The 5D line element is ds² = e^{2A(x)} (ds²_4d + dx²), where A(x) = sin(x) + 4 cos(x)…”。右侧&quot;Late in RL — compressed, telegraphic&quot; 的回答变得碎片化：“We need determine eigenvalue problem for spin-2 fluctuations h_{μν}(x,y) with TT in 4d and depend on x…”，去掉了冠词（the）、连词（and）和冗余解释（“Wait”），但保持了推理的正确性。RL 训练使模型的推理风格从&quot;学术写作&quot;变成了&quot;电报体&quot;，但答案质量不变。</p>
+</blockquote>
+<h3 id="inkling-vs-inkling-small-对比"><a class="markdownIt-Anchor" href="#inkling-vs-inkling-small-对比"></a> Inkling vs Inkling-Small 对比</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>指标</strong></th>
+<th><strong>Inkling (41B)</strong></th>
+<th><strong>Inkling-Small (12B)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HLE text only</td>
+<td>29.7%</td>
+<td>29.6%</td>
+</tr>
+<tr>
+<td>AIME 2026</td>
+<td>97.1%</td>
+<td>95.1%</td>
+</tr>
+<tr>
+<td>SWEBench Verified</td>
+<td>77.6%</td>
+<td>77.4%</td>
+</tr>
+<tr>
+<td>Terminal Bench 2.1</td>
+<td>63.8%</td>
+<td>52.7%</td>
+</tr>
+<tr>
+<td>SimpleQA Verified</td>
+<td>43.9%</td>
+<td>20.9%</td>
+</tr>
+<tr>
+<td>IFBench</td>
+<td>79.8%</td>
+<td>83.4%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Inkling-Small 在推理和 agentic 任务上跟大哥贴得很近，拉开差距的是 Terminal Bench（<span class="mark-number">63.8% vs 52.7%</span>）和 SimpleQA（<span class="mark-number">43.9% vs 20.9%</span>）。12B 激活 + 可控思考努力，预算紧的场景下这差价换得值。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>工程完整度高</strong>：不是&quot;刷 benchmark 的模型&quot;，而是从架构设计（MoE + RPE + 短卷积）到训练策略（Muon + 异步 RL）再到部署生态（Tinker + Hugging Face + 多推理框架）的完整系统</p>
+</li>
+<li>
+<p><strong>可控思考努力是真正的差异化</strong>：此前只有 GPT-5.6 等闭源模型支持，Inkling 首次在开源模型中实现，对生产部署有直接价值</p>
+</li>
+<li>
+<p><strong>多模态原生设计</strong>：encoder-free 架构避免了传统多模态模型的编码器瓶颈，音频/视觉与文本真正联合训练</p>
+</li>
+<li>
+<p><strong>安全训练透明</strong>：公开 FORTRESS/StrongREJECT 测试结果，承认开源模型的安全挑战，并承诺持续研究</p>
+</li>
+<li>
+<p><strong>RL 训练的 log-linear 发现</strong>：30M+ rollouts 下推理分数持续提升未饱和，为&quot;RL scaling 还能走多远&quot;提供了正面证据</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：Inkling 本来就没打算跟闭源旗舰拼绝对分数，定位是可微调的底座，我理解为什么它不把 benchmark 表上那些落后当回事。但理解归理解，数字摆出来还是得认：</p>
+<ol>
+<li>
+<p><strong>绝对性能不及闭源旗舰</strong>：HLE 29.7% vs Claude Fable 5 的 53.3%，SWEBench 77.6% vs 95.0%，差距就摆在那儿</p>
+</li>
+<li>
+<p><strong>多模态能力仍落后</strong>：MMMU Pro 73.5% vs Gemini 3.1 Pro 的 82.0%，音频 VoiceBench 91.4% vs 94.3%</p>
+</li>
+<li>
+<p><strong>RL 训练细节不够透明</strong>：未公开奖励函数的具体设计、rollout 的采样策略、异步 RL 的并行度等关键细节</p>
+</li>
+<li>
+<p><strong>Inkling-Small 尚未完成测试</strong>：预览版，full weights 未发布</p>
+</li>
+<li>
+<p><strong>缺乏 ablation study</strong>：无法判断 MoE 设计、RPE vs RoPE、短卷积等组件各自的贡献</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>RL scaling 的极限探索</strong>：30M+ rollouts 仍未饱和，继续增加能否突破闭源模型的推理差距？</p>
+</li>
+<li>
+<p><strong>多模态能力的持续进化</strong>：当前音频/视觉能力偏基础，需要更多领域数据和更精细的模态平衡</p>
+</li>
+<li>
+<p><strong>安全微调的影响</strong>：开源模型微调后安全行为如何保持？Tinker 上的实际案例需要更多研究</p>
+</li>
+<li>
+<p><strong>Inkling-Small 的潜力</strong>：12B 激活参数 + 可控思考努力，能否成为&quot;本地部署的最佳选择&quot;？</p>
+</li>
+<li>
+<p><strong>与 Harness Engineering 的结合</strong>：Inkling 作为可微调底座，如何与 ACE/MCE/Self-Harness 等框架结合，实现自动化的自我改进</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>Inkling 不是&quot;又一个刷榜模型&quot;，它对&quot;开源模型该往哪里走&quot;的答案是绕开正面拼分：<strong>靠差异化定位（可控思考 + 原生多模态 + 可微调底座），在闭源模型的阴影下圈出自己的一块地</strong>。</p>
+<p>从技术角度看，MoE 架构、RPE 替代 RoPE、encoder-free 多模态、30M+ rollouts 的 RL 训练，每一个都是值得拆开研究的工程选择。但真正让我多看两遍的是“<span class="mark-strong">RL 训练下 chain of thought 自动压缩</span>”——没有哪个奖励显式鼓励简洁，推理链却自己变短了。现在模型的推理里还藏着多少水分，这个发现至少把问题摆上了桌。</p>
+<p>知识网络这边，这条笔记直接挂在 <code>model-harness</code>（可微调底座）、<code>scaling-rl-for-llms</code>（30M rollouts log-linear）、<code>embodied-ai</code>（多模态推理）三个概念上。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>可控思考努力</strong>：Inkling 首次在开源模型中实现 effort/performance 的连续调节，同等性能下仅需竞品 1/3 token</p>
+</li>
+<li>
+<p><strong>原生多模态</strong>：encoder-free 架构让音频/视觉/文本联合训练，避免编码器瓶颈</p>
+</li>
+<li>
+<p><strong>RL 持续 scaling</strong>：30M+ rollouts 下推理分数 log-linear 增长未饱和，且 chain of thought 自动压缩变简洁</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%8E%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/" class="category-chain-item">多模态与具身智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%8E%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Inkling: Our Open-Weights Model</div>
+      <div>https://yyhchen.github.io/2026/07/16/paper-inkling-our-open-weights-model/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月16日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Language model harnesses are compositional generalizers</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/10/paper-llm-as-a-verifier-a-general-purpose-verification-framework/" title="Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework">
+                        <span class="hidden-mobile">Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

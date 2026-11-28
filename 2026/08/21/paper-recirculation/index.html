@@ -1,0 +1,1340 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Recirculation（再循环）：一个推理时的架构增强——运行 LLM 时每步把深层激活&quot;泄漏&quot;一小部分回浅层（source→destination 层对 + 混合系数 α），让前馈 Transformer 变成动力系统，能像 RNN&#x2F;Kalman 滤波那样追踪信念状态。核心动机：前馈 Transformer 的状态更新受模型深度限制（一个 token 的信息要跨很多层才能影响后续处理），而">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Recirculation">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/21/paper-recirculation/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="Recirculation（再循环）：一个推理时的架构增强——运行 LLM 时每步把深层激活&quot;泄漏&quot;一小部分回浅层（source→destination 层对 + 混合系数 α），让前馈 Transformer 变成动力系统，能像 RNN&#x2F;Kalman 滤波那样追踪信念状态。核心动机：前馈 Transformer 的状态更新受模型深度限制（一个 token 的信息要跨很多层才能影响后续处理），而">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_819a3a066404c204985f7a426009def2d4015efa7628381aa112817229221119.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_110ac12560aca4d7e1f613bc8b52beaaedb80b0677b5fdfede945b02191e3271.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_748dfc606c6fd99652f2beb96f019aeb21dd1bbbce217b58958dc6086e0e5b9b.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_b8f96aa3e9a806696cfaa9842dc3108bc5b4a8d6d08eb21b77bd09f50ed8e233.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_35248a388bed0daf1b5826c20dae3288cdd2db4571ca6bd05cd0179c7a630ce5.png">
+<meta property="article:published_time" content="2026-08-21T12:06:24.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_819a3a066404c204985f7a426009def2d4015efa7628381aa112817229221119.png">
+  
+  
+  
+  <title>Paper精读｜Recirculation - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Recirculation</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-21 20:06" pubdate>
+          2026-08-21 20:06:24
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          32 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="模型架构与推理效率"
+        id="heading-2b414557444ce743ae890d15692b8e1e" role="tab" data-toggle="collapse" href="#collapse-2b414557444ce743ae890d15692b8e1e"
+        aria-expanded="true"
+      >
+        模型架构与推理效率
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2b414557444ce743ae890d15692b8e1e"
+           role="tabpanel" aria-labelledby="heading-2b414557444ce743ae890d15692b8e1e">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-mixture-of-loops-transformer/" title="Paper精读｜Mixture-of-Loops Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mixture-of-Loops Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/" title="Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/02/paper-normalized-low-rank-adaptation/" title="Paper精读｜Normalized Low-Rank Adaptation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Normalized Low-Rank Adaptation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/29/paper-prefix-sliding-for-efficient-test-time-scaling/" title="Paper精读｜Prefix Sliding for efficient test-time scaling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prefix Sliding for efficient test-time scaling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/21/paper-recirculation/" title="Paper精读｜Recirculation"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Recirculation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-mooncake-a-kvcache-centric-disaggregated-architecture-for-llm-serving/" title="Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-kimi-k3-open-frontier-intelligence/" title="Paper精读｜Kimi K3: Open Frontier Intelligence"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-minimax-sparse-attention/" title="Paper精读｜MiniMax Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MiniMax Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/" title="Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/" title="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF/" title="Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Recirculation</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;architecture">模型架构与推理效率</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读recirculation"><a class="markdownIt-Anchor" href="#paper精读recirculation"></a> Paper精读｜Recirculation</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>Recirculation（再循环）</strong>：一个<strong>推理时的架构增强</strong>——运行 LLM 时每步把深层激活&quot;泄漏&quot;一小部分回浅层（source→destination 层对 + 混合系数 α），让前馈 Transformer 变成<strong>动力系统</strong>，能像 RNN/Kalman 滤波那样追踪信念状态。核心动机：<strong>前馈 Transformer 的状态更新受模型深度限制</strong>（一个 token 的信息要跨很多层才能影响后续处理），而 recirculation 让状态在同层内跨时间步更新。与 chain-of-thought（留给复杂推理）、looping（仅深度方向复用权重）、重训循环 Transformer（昂贵）区分。在 <strong>Gemma3 家族</strong>（1B/4B/12B）上：<strong><span class="mark-number">困惑度平均降低 23%</span></strong>、<strong>GSM8k 准确率 +21%</strong>、Racing Thoughts 等下游任务稳定提升；自适应变体（只学 α/β 系数、冻结原权重）效果最佳。<strong>训练零成本</strong>——纯推理时技术，且&quot;让模型自己告诉我们架构怎么改&quot;。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Recirculation</li>
+<li><strong>arXiv</strong>：2608.17981（cs.LG / <a target="_blank" rel="noopener" href="http://cs.CL">cs.CL</a>）</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.17981">https://arxiv.org/abs/2608.17981</a></li>
+<li><strong>作者</strong>：Michael C. Mozer、Shoaib Ahmed Siddiqui、Danny Sawyer（Google DeepMind）、Sunny Sanyal（UT Austin）、Rosanne Liu（Google DeepMind；ML Collective 创始人）</li>
+<li><strong>日期</strong>：2026-08-18</li>
+<li><strong>注</strong>：Mozer 是认知科学/机器学习老牌学者（双向联想记忆 BAM、TD 学习等经典工作）；Rosanne Liu 是 ML Collective 发起人</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p><strong><span class="mark-strong">状态追踪（state tracking）失败是 Transformer 架构的根本弱点</span></strong>：</p>
+<ol>
+<li>
+<p><strong>并行性牺牲了状态追踪</strong>：传统状态追踪（RNN、Kalman 滤波）靠潜变量的迭代顺序更新；Transformer 训练和 prefill 都完全并行，“无法以传统方式追踪状态”</p>
+</li>
+<li>
+<p><strong>Transformer 用&quot;巧妙技巧&quot;弥补</strong>：对有限序列长度，能学到各种近似状态追踪的方案——但会失败：</p>
+</li>
+</ol>
+<ul>
+<li>
+<p>多轮对话失去连贯性</p>
+</li>
+<li>
+<p>信息收集低效</p>
+</li>
+<li>
+<p>多 agent 场景沟通协作崩溃</p>
+</li>
+<li>
+<p>推理失败：工作记忆低效、心智理论（theory-of-mind）表征不稳定、缺乏鲁棒的内部世界模型</p>
+</li>
+</ul>
+<ol start="3">
+<li><strong>典型症状——上下文化错误（contextualization error）</strong>：Figure 1 的经典例子——&quot;Fred 去钓鱼，开车到 bank（河岸）&quot;之后，模型回答&quot;bank（银行）里能找到 ATM 吗？&quot;时<strong>翻车</strong>（Gemini 2.5 Flash 2025 年实测）：模型没有维护&quot;bank=河岸&quot;的信念状态，摇摆回默认解释且不自知</li>
+</ol>
+<p><strong>根本限制</strong>：前馈 Transformer 中状态更新受模型深度限制——一个 token 的信息要经过有限层数才能影响其他 token 的处理；<strong><span class="mark-strong">深度是状态传播的硬边界</span></strong>。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>深度不是唯一的方向，时间也是</strong>：标准 Transformer 只有深度（层）一个传播维度；recirculation 引入<strong>深度 × 时间步</strong>两个维度的循环——状态 z(t+1) = f(z(t), x(t)) 中，<span class="mark-strong">同一层可以同时容纳 z(t) 和 z(t+1)</span>。这是它与 looping 拉开差距的地方：<strong>looping 的循环仅在深度方向</strong>（z(t+1) 必须比 z(t) 深一层），recirculation 在深度和时间步都有投影。</p>
+</li>
+<li>
+<p><strong>小混合系数即可</strong>：<span class="mark-number">α ∈ {0.04-0.16}</span>——只需把深层激活的一小部分（~10%）回注浅层，困惑度就压得动；α 太大反而有害（更多 source-destination 对伤害性能）。</p>
+</li>
+<li>
+<p><strong>模型自己告诉我们改哪</strong>：超参扫描的热力图平滑且有系统模式（layer 4 是好的 destination，source 高 5-7 层）——<strong>“由训练网络的性质引导架构演化，而非强加任意设计选择”</strong>。</p>
+</li>
+<li>
+<p><strong>状态追踪 ≠ CoT</strong>：recirculation 解决的是&quot;基本状态追踪&quot;（保持连贯的信念状态），CoT 应留给复杂推理——两者正交。</p>
+</li>
+<li>
+<p><strong>预填充串行、生成并行</strong>：recirculation 需要 prefill 阶段串行处理（状态随时间步传播），但<strong>生成阶段几乎无额外延迟</strong>——这是实用的关键。</p>
+</li>
+<li>
+<p><strong>早期 token 可能有害</strong>：1B 模型上下文窗口开头的 token 再循环有害（没有状态可传播，还把表征推出分布）；4B/12B 无此问题——用 ramping（衰减前几个 token 的 α）解决。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1动机前馈深度限制1"><a class="markdownIt-Anchor" href="#组件1动机前馈深度限制1"></a> 组件1：动机——前馈深度限制（§1）</h3>
+<p>状态更新函数 z(t+1) = f(z(t), x(t)) 在标准 Transformer 里实现：z(t+1) 必须比 z(t) 深一层（因为信息只能沿深度方向流动）——等价于一张权重共享的更深前馈网络，状态传播被深度绑死。Recirculation 打破这个限制：<strong>深度和步两个方向都有投影，同一层可同时持有 z(t) 和 z(t+1)</strong>。</p>
+<h3 id="组件2recirculation-形式化2"><a class="markdownIt-Anchor" href="#组件2recirculation-形式化2"></a> 组件2：Recirculation 形式化（§2）</h3>
+<p><strong>单次迭代混合</strong>（Equation 1）：</p>
+<p>z(t+1,t,d) = α·f(z(t,t,s) | d,t) + β·z(t,t,d)</p>
+<ul>
+<li>
+<p>t = 更新次序索引，s/d = source/destination 层索引</p>
+</li>
+<li>
+<p>α/β = 混合系数（凸混合 β ≡ 1−α）</p>
+</li>
+<li>
+<p>f(·) = 重归一化函数：把 source 激活缩放到与 destination 相同的 L2 范数（Equation 2）——残差流嵌入幅度随层增长，必须重归一化</p>
+</li>
+</ul>
+<p><strong>与 looping 的关键区别</strong>：</p>
+<ul>
+<li>
+<p>Looping：循环的是<strong>整个残差流</strong>，直接替代前一层的输入；循环<strong>仅在深度方向</strong></p>
+</li>
+<li>
+<p>Recirculation：激活在 source 与 destination 层间<strong>混合</strong>；循环<strong>在深度和时间步两个方向</strong></p>
+</li>
+<li>
+<p>所有实验用&quot;单额外迭代&quot;变体；迭代次数无界时退化为真正的 RNN</p>
+</li>
+</ul>
+<h3 id="组件3自适应变体46figure-13"><a class="markdownIt-Anchor" href="#组件3自适应变体46figure-13"></a> 组件3：自适应变体（§4.6，Figure 13）</h3>
+<ul>
+<li>
+<p>不微调模型权重，只<strong>学习 α/β 系数</strong>（token 条件/无条件 × 标量/向量四种变体）</p>
+</li>
+<li>
+<p><strong>learned-conditional-vector 变体最佳</strong>——<span class="mark-strong">甚至超过全模型微调</span>（后者风险：过拟合、成本高）</p>
+</li>
+<li>
+<p>轻量调超参 + 冻结原权重 = 训练零成本的自适应 recirculation</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_819a3a066404c204985f7a426009def2d4015efa7628381aa112817229221119.png" srcset="/img/loading.gif" lazyload alt="图 2｜银行与河岸歧义案例中的 Transformer 状态传播" /></p>
+<p><em>图 2｜银行与河岸歧义案例中的 Transformer 状态传播。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.17981v1/#S1.F2">来源</a></em></p>
+<p><em>Figure 2（动机示意）：处理&quot;bank=河岸/银行&quot;例子时 Transformer 各层激活的可视化——状态信息未能在层间正确传播，导致上下文化错误。</em></p>
+<p><img src="/img/paper-reading/img_110ac12560aca4d7e1f613bc8b52beaaedb80b0677b5fdfede945b02191e3271.png" srcset="/img/loading.gif" lazyload alt="图 3｜引入循环连接的 Transformer 架构" /></p>
+<p><em>图 3｜引入循环连接的 Transformer 架构。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.17981v1/#S2.F3">来源</a></em></p>
+<p><img src="/img/paper-reading/img_748dfc606c6fd99652f2beb96f019aeb21dd1bbbce217b58958dc6086e0e5b9b.png" srcset="/img/loading.gif" lazyload alt="图 4｜展开的循环 Transformer 与 recirculation 状态更新" /></p>
+<p><em>图 4｜展开的循环 Transformer 与 recirculation 状态更新。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.17981v1/#S2.F4">来源</a></em></p>
+<p><em>Figure 3/4（核心机制对比）：上排 looping（循环仅深度方向，z(t+1) 必须比 z(t) 深一层）；下排 recirculation（深度与时间步双方向投影——同一层同时容纳 z(t) 与 z(t+1)，任意状态更新函数 f 可直接实现）。</em></p>
+<h3 id="组件4实验设置4"><a class="markdownIt-Anchor" href="#组件4实验设置4"></a> 组件4：实验设置（§4）</h3>
+<ul>
+<li>
+<p><strong>模型</strong>：Gemma3 1B/4B/12B PT（预训练）与 IT（指令微调）变体；扩展到 5 个模型家族验证普适性</p>
+</li>
+<li>
+<p><strong>超参</strong>：α（混合系数）、s/d（source/destination 层）、归一化方案（L2 重归一化、非凸混合 β=1 等）、ramping</p>
+</li>
+<li>
+<p><strong>调参</strong>：arXiv/C4/PG19 调优集（1.5M tokens）网格搜索 → 最优 s/d 对：<span class="mark-number">1B {11,4}、4B {18,9}、12B {35,16}</span>；α=0.15 评估</p>
+</li>
+<li>
+<p><strong>评测</strong>：10 个语言建模数据集困惑度 + 8 个单 token 响应数据集 + Racing Thoughts（上下文化错误检测）+ GSM8k（pass@1/pass@128）+ 指令跟随</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="困惑度table-1一致且随规模增大"><a class="markdownIt-Anchor" href="#困惑度table-1一致且随规模增大"></a> 困惑度（Table 1）——一致且随规模增大</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>数据集</strong></th>
+<th><strong>1B 降低</strong></th>
+<th><strong>4B 降低</strong></th>
+<th><strong>12B 降低</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>arxiv</td>
+<td>13.99%</td>
+<td>11.26%</td>
+<td><strong>25.20%</strong></td>
+</tr>
+<tr>
+<td>pg19</td>
+<td>14.41%</td>
+<td>15.72%</td>
+<td><strong>35.40%</strong></td>
+</tr>
+<tr>
+<td>booksum/book</td>
+<td>15.95%</td>
+<td>15.95%</td>
+<td><strong>32.91%</strong></td>
+</tr>
+<tr>
+<td>gov_report</td>
+<td>7.26%</td>
+<td>9.37%</td>
+<td><strong>30.74%</strong></td>
+</tr>
+<tr>
+<td>pubmed</td>
+<td>11.08%</td>
+<td>9.21%</td>
+<td><strong>24.49%</strong></td>
+</tr>
+<tr>
+<td>big_patent</td>
+<td>9.13%</td>
+<td>7.08%</td>
+<td><strong>24.76%</strong></td>
+</tr>
+<tr>
+<td>lambada</td>
+<td>-0.72%</td>
+<td>0.53%</td>
+<td>-2.81%（少数退化）</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>
+<p><strong>12B 增益最大</strong>（平均 ~23%）：更大的模型受益更多——状态追踪能力随规模释放</p>
+</li>
+<li>
+<p>lambada 是唯一退化数据集（短上下文单 token 预测，recirculation 无增益空间）</p>
+</li>
+</ul>
+<h3 id="超参扫描figure-56模型自己告诉我们改哪"><a class="markdownIt-Anchor" href="#超参扫描figure-56模型自己告诉我们改哪"></a> 超参扫描（Figure 5/6）——“模型自己告诉我们改哪”</h3>
+<ul>
+<li>
+<p>热力图平滑、有系统模式；α 增大放大效应但也让更多 s/d 对有害</p>
+</li>
+<li>
+<p><strong>layer 4 是理想 destination，source 高 5-7 层</strong>；跨三个数据集平均最优降低 4.72%（调优集）</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_b8f96aa3e9a806696cfaa9842dc3108bc5b4a8d6d08eb21b77bd09f50ed8e233.png" srcset="/img/loading.gif" lazyload alt="图 5｜Gemma3 1B 的回流层配置与困惑度" /></p>
+<p><em>图 5｜Gemma3 1B 的回流层配置与困惑度。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.17981v1/#S4.F5">来源</a></em></p>
+<p><em>Figure 5（超参扫描）：Gemma3 1B 在 arXiv 上的 source/destination 层热力图（α=0.04/0.07/0.10/0.16）。热图平滑且有系统模式：layer 4 是好的 destination、source 高 5-7 层；α 越大效应越强但有害的 s/d 对越多——“由模型自身性质引导架构修改”。</em></p>
+<h3 id="racing-thoughtsfigure-11状态追踪的直接检验"><a class="markdownIt-Anchor" href="#racing-thoughtsfigure-11状态追踪的直接检验"></a> Racing Thoughts（Figure 11）——状态追踪的直接检验</h3>
+<ul>
+<li>三个组件数据集（含&quot;bank 河岸/银行&quot;类上下文化错误）上，Gemma3 IT 模型 1B/4B/12B <strong>全部提升准确率</strong>——recirculation 确实修复状态追踪失败</li>
+</ul>
+<h3 id="gsm8kfigure-12能力锐化-扩展"><a class="markdownIt-Anchor" href="#gsm8kfigure-12能力锐化-扩展"></a> GSM8k（Figure 12）——能力锐化 + 扩展</h3>
+<ul>
+<li>
+<p>4B PT 模型 pass@1 与 pass@128 <strong>双双提升</strong>（自适应变体增益最大，摘要称 +21%）</p>
+</li>
+<li>
+<p>pass@1 提升 = 能力锐化（正确回答在候选集中胜出）；pass@128 提升 = 能力扩展（候选集本身变大）——<strong>两种机制都受益</strong></p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_35248a388bed0daf1b5826c20dae3288cdd2db4571ca6bd05cd0179c7a630ce5.png" srcset="/img/loading.gif" lazyload alt="Figure 11: Racing Thoughts 问答准确率——Gemma3 IT 1B/4B/12B 基线 vs recirculation，三个组件数据集全部提升（状态追踪失败的直接检验）" /></p>
+<p><em>Figure 11（Racing Thoughts）：Gemma3 IT 1B/4B/12B 在三组上下文化错误数据集上的准确率——recirculation 全部提升，直接证明状态追踪能力的修复。</em></p>
+<h3 id="其他figure-7813"><a class="markdownIt-Anchor" href="#其他figure-7813"></a> 其他（Figure 7/8/13）</h3>
+<ul>
+<li>
+<p><strong>5 个模型家族普适</strong>（Figure 7）：s/d 扫描显示鲁棒的收益区域</p>
+</li>
+<li>
+<p><strong>与 looping 对比</strong>（Figure 8）：recirculation 优于 looped transformer</p>
+</li>
+<li>
+<p><strong>变体对比</strong>（Figure 13）：learned-conditional-vector 自适应最佳，<strong>超过全模型微调</strong>；固定系数次之；comment 形状噪音无效</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>直击架构级根本限制</strong>：把&quot;状态更新受深度限制&quot;说清楚，并给出不重训的解法——对 off-the-shelf 模型纯推理时增强，工程上立即可用</p>
+</li>
+<li>
+<p><strong>与 looping/CoT/循环 Transformer 的清晰区分</strong>：深度循环 vs 深度×时间循环的对比（Figure 3/4）是全文最精华的洞见——<strong>&quot;同一层可同时持有 z(t) 和 z(t+1)&quot;一句话点破要害</strong></p>
+</li>
+<li>
+<p><strong>零训练成本 + 模型自指导</strong>：自适应变体只学 α/β（冻结权重）就超过全量微调——「让网络告诉你怎么改架构」这条路子，比拍脑袋定层对可信得多</p>
+</li>
+<li>
+<p><strong>增益随规模增长</strong>：12B 平均降困惑度 23% vs 1B ~10%——与大模型更强的状态追踪需求一致，规模越大越划算</p>
+</li>
+<li>
+<p><strong>Motivation 有真实案例</strong>：Figure 1 的 bank 例子（Gemini 2.5 Flash 实测）让&quot;状态追踪失败&quot;具体可感</p>
+</li>
+<li>
+<p><strong>归一化/ramping 等工程细节扎实</strong>：L2 重归一化、非凸混合 β=1、早期 token ramping——处理了残差流幅度漂移等真实工程问题</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>prefill 串行化的成本</strong>：虽然生成阶段无额外延迟，但 prefill 必须串行——长上下文 prefill 的延迟代价未充分量化（对在线服务可能是实际障碍）</p>
+</li>
+<li>
+<p><strong>超参依赖调优集</strong>：s/d 对靠 arXiv/C4/PG19 调优集网格搜索——不同领域/任务分布的最优层对可能不同（好在 Figure 7 显示收益区域鲁棒）</p>
+</li>
+<li>
+<p><strong>困惑度 ≠ 下游质量</strong>：语言建模收益大，但单 token 响应数据集（Table 2）改进&quot;modest&quot;、lambada 甚至退化——收益分布不均衡</p>
+</li>
+<li>
+<p><strong>Gemma3 家族为主</strong>：跨 5 家族验证是&quot;promising&quot;（Figure 7），但详细实验集中在 Gemma3——闭源前沿模型（GPT/Claude）不可得，适用性未证明</p>
+</li>
+<li>
+<p><strong>与 RNN 化训练的边界</strong>：迭代次数无界即真 RNN——recirculation 与&quot;训练循环架构&quot;是连续谱，论文只取了单额外迭代这一端</p>
+</li>
+<li>
+<p><strong>机制解释偏定性</strong>：token 分析（Figure 9）显示早期 token 再循环有害等定性结论，但对&quot;为什么 α~0.1 最优&quot;缺乏理论解释</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>prefill 加速</strong>：串行 prefill 的并行化/近似（块级再循环、分层调度）——消解实际部署障碍</p>
+</li>
+<li>
+<p><strong>自适应调优的扩展</strong>：α/β 之外学习 s/d 选择；每层/每 token 的条件混合</p>
+</li>
+<li>
+<p><strong>与 CoT/推理时扩展叠加</strong>：recirculation（状态追踪）× CoT（复杂推理）× test-time compute——三个正交杠杆的组合</p>
+</li>
+<li>
+<p><strong>更大模型</strong>：70B+ 规模下增益是否持续放大；训练时即带 recirculation 的收益</p>
+</li>
+<li>
+<p><strong>领域自适应</strong>：不同任务分布的最优层对自动选择（可学习 s/d）</p>
+</li>
+<li>
+<p><strong>理论化</strong>：为什么小 α 最优？与残差流子空间（residual stream 的低秩结构）的关系</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Looped Transformer（looping）</strong></td>
+<td>最接近的邻居</td>
+<td>循环仅深度方向、整个残差流回环；recirculation 深度×时间双方向 + 混合（非替代）——Figure 4 的状态传播对比是核心区别</td>
+</tr>
+<tr>
+<td><strong>Recurrent Transformers（重训）</strong></td>
+<td>相关但昂贵</td>
+<td>recirculation 纯推理时、零训练——&quot;训练循环架构&quot;的免训练近似</td>
+</tr>
+<tr>
+<td><strong>Chain-of-Thought</strong></td>
+<td>正交互补</td>
+<td>CoT 留给复杂推理；recirculation 做基本状态追踪——论文明确划界</td>
+</tr>
+<tr>
+<td><strong>Kalman 滤波 / RNN 状态追踪</strong></td>
+<td>概念源头</td>
+<td>传统顺序状态更新在 Transformer 并行架构上的重新引入</td>
+</tr>
+<tr>
+<td><strong>Residual Stream 研究（低秩、子空间）</strong></td>
+<td>机制相关</td>
+<td>α~0.1 的最优性可能源于残差流低秩结构——可联动理解</td>
+</tr>
+<tr>
+<td><strong>Proteus（2608.16844）</strong></td>
+<td>记忆/状态主题</td>
+<td>Proteus 调度记忆容量（长上下文压缩）；recirculation 调度层间状态传播（信念追踪）——&quot;状态/记忆管理&quot;浪潮的不同维度</td>
+</tr>
+<tr>
+<td><strong>Titans / 线性注意力</strong></td>
+<td>状态建模</td>
+<td>显式记忆状态；recirculation 是隐式状态——前馈网络本身当动力系统</td>
+</tr>
+<tr>
+<td><strong>推理时计算（test-time compute）</strong></td>
+<td>广义范畴</td>
+<td>recirculation 属于&quot;推理时增强&quot;家族，但增加的是深度×时间计算而非采样/搜索</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇论文两头都占，架构洞见和工程实用各占一头：它把 Transformer 状态追踪失败归因于<strong>深度是状态传播的硬边界</strong>，然后用一个极简的推理时机制（深层激活按 α 混合回浅层）让前馈网络变成动力系统——与 looping 的&quot;深度方向循环&quot;不同，recirculation 在<strong>深度和时间步两个方向</strong>投影，使同一层能同时持有前后时间步的状态。实证上 Gemma3 家族一致获益（12B 困惑度平均 -23%、GSM8k +21%、Racing Thoughts 全提升），自适应变体（只学混合系数、冻结权重）甚至超过全量微调，且 5 个模型家族显示普适性。最有哲学味道的贡献是&quot;<strong>让模型自己告诉我们架构怎么改</strong>&quot;——超参热力图的平滑系统性替代了强行设计。对做推理优化的人，这是即插即用的免费午餐（唯一代价是 prefill 串行）；对理解 Transformer 局限的人，它把&quot;状态追踪&quot;这个认知科学概念变成了可操作的架构指标。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>深度是状态传播的硬边界</strong>：前馈 Transformer 的状态更新受层数限制；recirculation 把深层激活按 α~0.1 混合回浅层，引入深度×时间双方向循环——同一层同时容纳 z(t) 与 z(t+1)。</p>
+</li>
+<li>
+<p><strong>零训练、即插即用</strong>：Gemma3 12B 困惑度平均 -23%、GSM8k +21%、Racing Thoughts 全提升；自适应变体只学 α/β 冻结权重，甚至超过全模型微调。</p>
+</li>
+<li>
+<p><strong>与 looping/CoT 划清界限</strong>：looping 仅深度循环、CoT 留给复杂推理、重训循环架构太贵——recirculation 是&quot;状态追踪&quot;任务的专用免训练方案；唯一代价是 prefill 串行（生成阶段零额外延迟）。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/" class="category-chain-item">模型架构与推理效率</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Recirculation</div>
+      <div>https://yyhchen.github.io/2026/08/21/paper-recirculation/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月21日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling">
+                        <span class="hidden-mobile">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

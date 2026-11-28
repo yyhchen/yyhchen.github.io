@@ -1,0 +1,1510 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="WikiSkill 把 Agent 的原始执行轨迹编译成持久化的 Wiki 层，再让 Wiki 反过来指导可回滚的技能更新：经验先沉淀成知识，知识再驱动技能，Raw &#x2F; Wiki &#x2F; Skill 三层各管各的。跑下来它比无技能基线稳，也压过 Trace2Skill、EvoSkill、SkillOpt 这批主流 skill-evolution 方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="WikiSkill 把 Agent 的原始执行轨迹编译成持久化的 Wiki 层，再让 Wiki 反过来指导可回滚的技能更新：经验先沉淀成知识，知识再驱动技能，Raw &#x2F; Wiki &#x2F; Skill 三层各管各的。跑下来它比无技能基线稳，也压过 Trace2Skill、EvoSkill、SkillOpt 这批主流 skill-evolution 方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_a22d96990e04a72b05a0670b5b5f624dc01e092d7f9c3c067d6085bb92b6efe8.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_6d973507dc74a634b90c8b7ce40d02cf1fa13b6ba8262e9ce1e88fbdbe21cd3c.png">
+<meta property="article:published_time" content="2026-08-30T15:14:19.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_a22d96990e04a72b05a0670b5b5f624dc01e092d7f9c3c067d6085bb92b6efe8.png">
+  
+  
+  
+  <title>Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-30 23:14" pubdate>
+          2026-08-30 23:14:19
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          28 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution"><a class="markdownIt-Anchor" href="#paper精读wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution"></a> Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>WikiSkill</strong> 把 Agent 的原始执行轨迹编译成<strong>持久化的 Wiki 层</strong>，再让 Wiki 反过来指导<strong>可回滚的技能更新</strong>：经验先沉淀成知识，知识再驱动技能，Raw / Wiki / Skill 三层各管各的。跑下来它比无技能基线稳，也压过 Trace2Skill、EvoSkill、SkillOpt 这批主流 skill-evolution 方法。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</li>
+<li><strong>arXiv</strong>：2608.27454（v1, 2026-08-27）</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.27454">https://arxiv.org/abs/2608.27454</a></li>
+<li><strong>作者</strong>：Liyan Tang, Cyrus Rashtchian, Chun-Sung Ferng, Andrew Tomkins, Da-Cheng Juan, Tu Vu</li>
+<li><strong>机构</strong>：Google Research / Virginia Tech</li>
+<li><strong>日期</strong>：2026-08-27</li>
+</ul>
+</div></details><hr />
+<h2 id="论文分类标注"><a class="markdownIt-Anchor" href="#论文分类标注"></a> 论文分类标注</h2>
+<ul>
+<li>
+<p><strong>研究类型</strong>：Agent / LLM 系统与技能演化论文；引入可持久化知识库以支持技能持续改进。</p>
+</li>
+<li>
+<p><strong>领域归属</strong>：LLM agent &gt; 技能演化 / skill evolution &gt; 经验积累、知识管理与技能复用。</p>
+</li>
+<li>
+<p><strong>方法学标签</strong>：三层知识架构（Raw/Wiki/Skill）、持久化 wiki 维护、Skill Proposer、Gating and Rollback、跨模型 transfer、Ablation of wiki access。</p>
+</li>
+<li>
+<p><strong>性质</strong>：面向 Open/Reinforcement Agent Skill 的框架性改进，强调&quot;经验→知识→技能&quot;的编译分离。</p>
+</li>
+<li>
+<p><strong>与用户笔记库的关系</strong>：呼应此前精读的 Prime Agent、Trace2Skill、EvoSkill、SkillOpt 等 Agent/Skill 路线；是&quot;如何让 Agent 从执行轨迹中持续积累结构经验&quot;的更系统化版本。</p>
+</li>
+</ul>
+<hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>Agent skill 这两年成了把领域知识和工作流打包成可复用资源的标准做法：不动模型参数，把知识写成文件系统里的模块，注进 agent 的上下文或工具调用。参数一个字节不碰，换来的是<strong>可审计、可复用、可跨轮次积累</strong>。</p>
+<p>Trace2Skill、EvoSkill、SkillOpt 这条线已经证明，让 agent 在训练任务上反复 rollout、从成败轨迹里提取反馈迭代技能，就能换来渐进式适应。但这批方法盯的都是「怎么改技能文件」，<strong>促成改进的那些经验洞察本身</strong>并没有一个自己的家——每次更新都是一次独立编辑，上一轮学到的教训不会系统地传给下一轮。</p>
+<p>这篇论文的核心问题是：</p>
+<blockquote>
+<p>如何把 agent 的执行经验编译为持久化的结构化知识，让后续技能演化可以建立在前一轮积累的基础上，而不是每次从头优化？</p>
+</blockquote>
+<p>作者的答案是把系统拆成三个阶段：</p>
+<ul>
+<li>
+<p><strong>Raw 层</strong>：保留不可变的执行轨迹，用于事后诊断</p>
+</li>
+<li>
+<p><strong>Wiki 层</strong>：维护结构化的跨轮次知识，持续累积</p>
+</li>
+<li>
+<p><strong>Skill 层</strong>：包含当前可执行技能，参与推理并使用 skill 的渐进披露</p>
+</li>
+</ul>
+<p>整套设计里最关键的一条差异：<strong><span class="mark-strong">wiki 永远不会被重置或回滚</span></strong>，能回滚的只有技能。技能更新可以大胆试错——反正教训已经写进 wiki 了，丢不了。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong><span class="mark-strong">经验不直接变技能，先被编译成知识</span></strong>：把 rollout 直接映射到 skill，诊断过程和跨轮次模式就丢了。先写进 wiki 再据此改 skill，中间多出一层能翻账本的经验管理。</p>
+</li>
+<li>
+<p><strong>Skill 可回滚，Wiki 不回滚</strong>：验证不过就撤销 skill 变更，wiki 里新记的模式照样留着——这次更新失败了，失败原因和修正证据下一轮提案还是能用上。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">模型越大，从技能演化里捞到越多</span></strong>：Qwen-3.5-4B → 9B → 27B 的增益分别约 <span class="mark-number">+12.3、+17.5、+23.9 分</span>，一路放大；小模型配上演化技能还可能反超大模型裸奔。技能发现和技能执行是两种能力，能力强的模型更会把演化出的技能用足。</p>
+</li>
+<li>
+<p><strong>跨模型迁移时常比自我演化更好用</strong>：Gemini 或更大 Qwen 模型学出的技能搬到小模型上，有时比自己演化还强；反过来大模型也能从小模型的技能里受益。迁移效果不只看 source 强不强，还得看技能本身抽象到什么程度。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_a22d96990e04a72b05a0670b5b5f624dc01e092d7f9c3c067d6085bb92b6efe8.png" srcset="/img/loading.gif" lazyload alt="Figure 2: WikiSkill 的整体架构图" /></p>
+<p><em>图注：系统分为 Raw Layer、Wiki Layer、Skill Layer。每轮循环由 Inference Agent 生成 rollout，Wiki Maintainer 把轨迹压缩为 wiki，Skill Proposer 在此基础上提出 skill 更新，最终由 validation gating 决定是否接受。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1三层知识架构"><a class="markdownIt-Anchor" href="#组件1三层知识架构"></a> 组件1：三层知识架构</h3>
+<ul>
+<li>
+<p><strong>Raw Layer (<strong><strong><code>raw/</code></strong></strong>)</strong></p>
+<ul>
+<li>
+<p>包含所有从训练集上执行得到的 rollout trace，格式为 <code>(o_1, a_1, ..., o_T, a_T)</code></p>
+</li>
+<li>
+<p>该层是 immutable 的，只供分析使用</p>
+</li>
+<li>
+<p>包含观察、工具调用、推理和最终答案</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Wiki Layer (<strong><strong><code>wiki/</code></strong></strong>)</strong></p>
+<ul>
+<li>
+<p>维护跨轮次积累的 structured knowledge</p>
+</li>
+<li>
+<p>主要组成部分包括：</p>
+<ul>
+<li>
+<p><code>patterns/</code> 目录，存放每个 pattern 的 markdown 文件（失败模式与成功策略）</p>
+</li>
+<li>
+<p><code>index.md</code>，维护 pattern 列表</p>
+</li>
+<li>
+<p><code>logs.md</code>，记录演化日志</p>
+</li>
+<li>
+<p><code>skill-impact.md</code>，记录每次提案 diff 和验证结果</p>
+</li>
+</ul>
+</li>
+<li>
+<p>wiki 在整个演化过程中持续增长，不被丢弃</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Skill Layer (<strong><strong><code>skills/</code></strong></strong>)</strong></p>
+<ul>
+<li>
+<p>包含当前活跃技能集合 <code>S</code></p>
+</li>
+<li>
+<p>每个 skill 包含 <code>SKILL.md</code>（实际技能内容）和 <code>PURPOSE.md</code>（说明该技能受哪些 wiki 模式驱动）</p>
+</li>
+<li>
+<p>skill 在推理时通过 prompt injection 直接加载，避免 skill retrieval 干扰评估</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="组件2四阶段演化循环"><a class="markdownIt-Anchor" href="#组件2四阶段演化循环"></a> 组件2：四阶段演化循环</h3>
+<p>演化循环（Algorithm 1）每轮 <code>k</code> 跑四步，看点在每一步能读什么、不能读什么：</p>
+<ol>
+<li><strong>Inference Agent 执行 rollout</strong></li>
+</ol>
+<ul>
+<li>
+<p>使用当前技能 <code>S_&#123;k-1&#125;</code> 在训练集上执行</p>
+</li>
+<li>
+<p>生成轨迹 <code>T_train,k</code></p>
+</li>
+<li>
+<p>推理阶段限制访问 wiki，因为 ablation 发现推理时看 wiki 反而不利于技能学习</p>
+</li>
+</ul>
+<ol start="2">
+<li><strong>Wiki Maintainer 模式整合</strong></li>
+</ol>
+<ul>
+<li>
+<p>对成功和失败轨迹做分层采样（最多 8 条，含失败的 ≤5 条和成功的 ≤3 条）</p>
+</li>
+<li>
+<p>执行根因分析与成功策略提取</p>
+</li>
+<li>
+<p>更新 wiki 并写入 <code>logs.md</code></p>
+</li>
+</ul>
+<ol start="3">
+<li><strong>Skill Proposer 提案</strong></li>
+</ol>
+<ul>
+<li>
+<p>基于 wiki index、<a target="_blank" rel="noopener" href="http://skill-impact.md">skill-impact.md</a>、以及任务结果摘要发起多轮 ReAct-style 推理</p>
+</li>
+<li>
+<p>按需读取特定 pattern 和 raw trace</p>
+</li>
+<li>
+<p>产生一个针对单个 skill 的 patch-style 更新</p>
+</li>
+</ul>
+<ol start="4">
+<li><strong>Gating &amp; Rollback</strong></li>
+</ol>
+<ul>
+<li>
+<p>把提案应用到 <code>S_&#123;k-1&#125;</code>，得到候选 <code>S'_k</code></p>
+</li>
+<li>
+<p>在 validation set 上评估</p>
+</li>
+<li>
+<p>得分高于当前阈值则接受并更新 <code>R_best</code>，否则丢弃</p>
+</li>
+<li>
+<p>无论是否接受，wiki 均被更新并追加本次提案记录</p>
+</li>
+</ul>
+<p>状态转移可简化为：</p>
+<ul>
+<li>
+<p>rollout：<code>τ_i ∼ π(x_i; S_&#123;k-1&#125;)</code></p>
+</li>
+<li>
+<p>wiki 更新：<code>W'_k ← M_WM(W_&#123;k-1&#125;, T_sample,k)</code></p>
+</li>
+<li>
+<p>提案：<code>P_k ← M_P(W'_k, S_&#123;k-1&#125;, T_train,k)</code></p>
+</li>
+<li>
+<p>接受判定：<code>S_k ← S'_k</code> 当且仅当 <code>R(T_val,k) &gt; R_best</code>，否则 <code>S_k = S_&#123;k-1&#125;</code></p>
+</li>
+</ul>
+<h3 id="组件3关键实现细节"><a class="markdownIt-Anchor" href="#组件3关键实现细节"></a> 组件3：关键实现细节</h3>
+<ul>
+<li>
+<p><strong>策略生成方式</strong>：采用 patch 式更新（add/remove/edit 段落），而非重写整个 skill</p>
+</li>
+<li>
+<p><strong>验证门控阈值</strong>：初始化为无 skill 基线在 validation 集上的分数；验证得分到 1.0 就提前终止</p>
+</li>
+<li>
+<p><strong>wiki 的审计功能</strong>：记录所有被拒的 skill 提案及其 diff，后续提案不重复踩同一个坑</p>
+</li>
+<li>
+<p><strong>Skill 注入方式</strong>：完整 active skill 直接写进 system prompt，保证 skill retrieval 的噪声不干扰实验对比</p>
+</li>
+<li>
+<p><strong>样本分层</strong>：优先采样错误轨迹做 root-cause analysis，同时留少量成功轨迹防止退化</p>
+</li>
+<li>
+<p><strong>Prompt 隔离</strong>：wiki 不进推理阶段，只进 wiki maintainer 和 proposer 阶段——「学习时的知识」和「执行时的知识」被切开</p>
+</li>
+</ul>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p><strong>持久记忆不丢失</strong>：失败经验一直留在 wiki，后续迭代随时能翻出来用</p>
+</li>
+<li>
+<p><strong>可回滚但可积累</strong>：skill 撤销得了，wiki 撤销不了</p>
+</li>
+<li>
+<p><strong>结构化知识比 raw trace 好复用</strong>：wiki 是对 raw 的经验总结，省掉了直接啃长 trace 的噪声</p>
+</li>
+<li>
+<p><strong>skill 与 wiki 解耦</strong>：前者装 procedural knowledge，后者装 meta-patterns，混在一起就没法追溯了</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>项目</strong></th>
+<th><strong>设置</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型</td>
+<td>Qwen-3.5-4B、Qwen-3.5-9B、Qwen-3.6-27B、Gemma-4-31B、Gemini-3.5-Flash</td>
+</tr>
+<tr>
+<td>任务</td>
+<td>LiveMathematicianBench、SealQA、SpreadsheetBench、OfficeQA、ALFWorld</td>
+</tr>
+<tr>
+<td>Baseline</td>
+<td>Trace2Skill、EvoSkill、SkillOpt、No-skill</td>
+</tr>
+<tr>
+<td>评价</td>
+<td>五次 benchmark 平均分，三次独立运行取平均</td>
+</tr>
+<tr>
+<td>验证标准</td>
+<td>paired bootstrap 显著性检验（1000 次），p &lt; 0.05</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>No skill</strong></th>
+<th><strong>EvoSkill</strong></th>
+<th><strong>SkillOpt</strong></th>
+<th><strong>WikiSkill</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen-3.5-4B</td>
+<td>26.2</td>
+<td>33.7</td>
+<td>35.2</td>
+<td><strong>38.5</strong></td>
+</tr>
+<tr>
+<td>Qwen-3.5-9B</td>
+<td>29.9</td>
+<td>42.3</td>
+<td>40.2</td>
+<td><strong>47.4</strong></td>
+</tr>
+<tr>
+<td>Qwen-3.6-27B</td>
+<td>39.4</td>
+<td>53.3</td>
+<td>50.7</td>
+<td><strong>63.3</strong></td>
+</tr>
+<tr>
+<td>Gemma-4-31B</td>
+<td>41.3</td>
+<td>43.4</td>
+<td>49.1</td>
+<td><strong>54.9</strong></td>
+</tr>
+<tr>
+<td>Gemini-3.5-Flash</td>
+<td>49.5</td>
+<td>56.1</td>
+<td>55.9</td>
+<td><strong>68.1</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><em>Figure 1 画出来也是同一个故事：所有模型上 WikiSkill 都压着其他 skill-evolution 方法。</em></p>
+<p>表之外还有几条发现，每条都有信息量：</p>
+<ul>
+<li>
+<p>Qwen 系列上增益随模型变大而放大：+12.3、+17.5、+23.9 分</p>
+</li>
+<li>
+<p><span class="mark-strong">小模型带上 skill 能翻过大模型裸奔这条线</span>：Qwen-3.5-9B with WikiSkill 47.4% vs Qwen-3.6-27B no-skill 39.4%</p>
+</li>
+<li>
+<p>ALFWorld 上提升最大，Spreadsheet 次之；OfficeQA 对较小模型帮助有限</p>
+</li>
+<li>
+<p>LiveMath 增益最稳：几乎所有模型都提升约 20 分以上</p>
+</li>
+<li>
+<p>跨模型 transfer 有效：大模型学到的 skill 往往比小模型自进化更好用，反过来也成立</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_6d973507dc74a634b90c8b7ce40d02cf1fa13b6ba8262e9ce1e88fbdbe21cd3c.png" srcset="/img/loading.gif" lazyload alt="Figure 3: ALFWorld 上的一次 wiki-guided 技能演化案例" /></p>
+<p><em>图注：展示了一个被拒绝的 skill 提案如何被后续提案继承经验，并最终形成更具体的规则。Wiki 层在此过程中持续累积模式证据。</em></p>
+<h3 id="关键分析"><a class="markdownIt-Anchor" href="#关键分析"></a> 关键分析</h3>
+<ul>
+<li>
+<p><strong>Persistent wiki 的重要性</strong></p>
+<ul>
+<li>
+<p>有 wiki 的 Skill Proposer vs 无 wiki 的平均性能差距约 <strong><span class="mark-number">+15.0 分</span></strong></p>
+</li>
+<li>
+<p>去掉 wiki 后，复杂失败模式的修复明显变差</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>推理时禁用 wiki 更好</strong></p>
+<ul>
+<li>允许 Inference Agent 访问 wiki 反而拉低性能，论文给的解释是「知识会被 bypass skill 直接读取，从而削弱 skill 学习」</li>
+</ul>
+</li>
+<li>
+<p><strong>Skill 长度与 Wiki 模式数随模型/任务变化</strong></p>
+<ul>
+<li>
+<p>Qwen 系产出更长 skill（约 118-128 行）</p>
+</li>
+<li>
+<p>SpreadsheetBench 产生最多 wiki patterns（平均 9.8 个）</p>
+</li>
+<li>
+<p>任务越复杂，需要越多模式与更细粒度的 skill</p>
+</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>三层分离是真设计，不是概念装饰</strong>：Raw/Wiki/Skill 各司其职，wiki 作为 persistent knowledge base 有了实际工程价值——这一层正是 Trace2Skill、EvoSkill、SkillOpt 都没给的。</p>
+</li>
+<li>
+<p><strong>实验铺得开</strong>：5 种模型 × 5 个 benchmark 全跑，ablation、cross-model transfer、paired bootstrap 显著性检验都做了，不是只挑顺手的场景。</p>
+</li>
+<li>
+<p><strong>反直觉发现不止一个</strong>：小模型演化技能能赢无技能大模型、模型越大从演化获益越多、推理时给 agent 看 wiki 反而帮倒忙——每条都指向「技能发现和技能执行是两种能力」。</p>
+</li>
+<li>
+<p><strong>和 prior work 的分界画得清楚</strong>：Trace2Skill、EvoSkill、SkillOpt 都在「直接改技能」，WikiSkill 在中间加了「经验先编译成知识」这一步，对比实验里赢的就是这一步。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：skill 全量注入 prompt、完全不碰检索，是为了把「技能演化」这一个变量干净地隔离出来，我理解这个取舍。但代价在哪儿也得说清楚：</p>
+<ol>
+<li>
+<p><strong>skill 是全量注入的，没有检索</strong>：真实部署里 skill 一多就得有检索与触发，论文完全没碰这块，往外推要打折扣</p>
+</li>
+<li>
+<p><strong>验证集偏小，噪声风险在</strong>：validation split 规模有限，gating 决策可能被噪声带偏</p>
+</li>
+<li>
+<p><strong>wiki 没有自动剪枝</strong>：积累到后期会膨胀，论文自己承认缺这套机制</p>
+</li>
+<li>
+<p><strong>任务跨度离真实场景还远</strong>：benchmark 多是较短交互任务，小时级、超长 horizon 的多步任务没覆盖</p>
+</li>
+<li>
+<p><strong>skill 质量与模型能力的耦合还没掰开</strong>：scaling 与 skill evolution 有互补性这点立住了，但具体到每类任务，skill 发现和执行能力怎么分工，论文没给出答案</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p>引入 skill retrieval、triggering 机制，扩展为可检索的 skill library</p>
+</li>
+<li>
+<p>设计 wiki 自动 pruning 与去重机制，避免知识过度膨胀</p>
+</li>
+<li>
+<p>将 skill 更新扩展到支持中间表现停滞但仍具长期收益的中性提案（而非仅限 strictly 提升）</p>
+</li>
+<li>
+<p>引入在线 skill adaptation，在单次长时间 rollout 内动态调整 skill</p>
+</li>
+<li>
+<p>研究 skill 与 model parameter 变化的联合训练</p>
+</li>
+<li>
+<p>扩展到更长 horizon 的任务，如 hour-long multi-turn agentic 工作流</p>
+</li>
+<li>
+<p>将 skill transfer 机制与 negative transfer 检测结合，提升跨域可迁移性</p>
+</li>
+<li>
+<p>将 Wiki 扩展为可版本化、可分支的结构化知识库</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>本文关系</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trace2Skill</td>
+<td>更强调单轮轨迹本地经验；WikiSkill 增加持久化 wiki 记录跨轮经验</td>
+</tr>
+<tr>
+<td>EvoSkill</td>
+<td>更强调多候选 search；WikiSkill 强调知识层分离与持久化</td>
+</tr>
+<tr>
+<td>SkillOpt</td>
+<td>反馈型 meta guidance；WikiSkill 提供独立 knowledge base 避免信息丢失</td>
+</tr>
+<tr>
+<td>Karpathy LLM Wiki</td>
+<td>启发式来源；将“经验即知识库”的思想落实到 skill evolution 系统</td>
+</tr>
+<tr>
+<td>Skill Retrieval / routing</td>
+<td>WikiSkill 暂时不处理；但后续可将 wiki 作为检索辅助</td>
+</tr>
+<tr>
+<td>Reinforcement Learning / Skill RL</td>
+<td>WikiSkill 与 SkillRL 等路线互补；前者管经验沉淀，后者管参数/策略更新</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>WikiSkill 把技能演化从「单轮试错→改文件」改成了「经验编译→持续积累→指导演化」：技能每轮可回滚，wiki 只增不减，失败教训留在系统里，不随轨迹一起被扔掉。ablation 里分量最重的是那个 <strong><span class="mark-strong">+15.0 分</span></strong> 的对比——wiki 拿掉，Skill Proposer 就少了一半判断依据，复杂失败模式修不动。论文没回答的恰恰是规模问题：skill 多到注不进 prompt、wiki 涨到读不完的时候，这套无检索、无剪枝的设计还撑不撑得住。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p>轨迹先编译进持久 wiki，wiki 再指导 skill 的可回滚更新——「经验沉淀」和「技能进化」分成两层，各走各的。</p>
+</li>
+<li>
+<p>5 模型 × 5 benchmark 压过 Trace2Skill/EvoSkill/SkillOpt，且模型越大从 skill evolution 里捞到的增益越大。</p>
+</li>
+<li>
+<p>开放问题集中在规模：skill 数量涨上来之后，检索与触发怎么接进来；wiki 长期积累之后，靠什么自动剪枝和版本化。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</div>
+      <div>https://yyhchen.github.io/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/31/paper-ttpo-test-time-policy-optimization/" title="Paper精读｜TTPO: Test-Time Policy Optimization">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜TTPO: Test-Time Policy Optimization</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/paper-prefix-sliding-for-efficient-test-time-scaling/" title="Paper精读｜Prefix Sliding for efficient test-time scaling">
+                        <span class="hidden-mobile">Paper精读｜Prefix Sliding for efficient test-time scaling</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

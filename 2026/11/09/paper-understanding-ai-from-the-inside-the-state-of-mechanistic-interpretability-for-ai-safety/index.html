@@ -1,0 +1,1271 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这篇综述的核心结论不是“看懂模型就能保证安全”，而是：机制可解释性为行为评测补上内部表征、计算路径和因果干预证据，但现有解释既不完整、也不够稳健或可扩展，理解本身更不等于控制；它应与行为评测、训练治理和部署防护组成纵深防御。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety">
+<meta property="og:url" content="https://yyhchen.github.io/2026/11/09/paper-understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="这篇综述的核心结论不是“看懂模型就能保证安全”，而是：机制可解释性为行为评测补上内部表征、计算路径和因果干预证据，但现有解释既不完整、也不够稳健或可扩展，理解本身更不等于控制；它应与行为评测、训练治理和部署防护组成纵深防御。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_b30ac68617da28b63b9d87bed04f136cc18eead835c2a5c438094faa3dabbccc.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_daf5f9f0b45daaf18445c2acbb48675c2f9b1184915e6dfabebb48eb7e9c38a9.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_28ec1b4bc5d545ed8aa069740ae467367e491b5a41fe2b874a20516120877987.png">
+<meta property="article:published_time" content="2026-11-09T06:01:59.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_b30ac68617da28b63b9d87bed04f136cc18eead835c2a5c438094faa3dabbccc.png">
+  
+  
+  
+  <title>Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-11-09 14:01" pubdate>
+          2026-11-09 14:01:59
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          57 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="安全与可解释性"
+        id="heading-0d787b97203726100c0db5d789844778" role="tab" data-toggle="collapse" href="#collapse-0d787b97203726100c0db5d789844778"
+        aria-expanded="true"
+      >
+        安全与可解释性
+        <span class="list-group-count">(4)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-0d787b97203726100c0db5d789844778"
+           role="tabpanel" aria-labelledby="heading-0d787b97203726100c0db5d789844778">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(4)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/09/paper-understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety/" title="Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/12/paper-stealing-reasoning-traces-from-proprietary-llm-apis/" title="Paper精读｜Stealing Reasoning Traces from Proprietary LLM APIs"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stealing Reasoning Traces from Proprietary LLM APIs</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-measuring-reward-seeking-via-contrastive-belief-updates/" title="Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-model-spec-midtraining-improving-how-alignment-training-generalizes/" title="Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;safety">安全与可解释性</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety"><a class="markdownIt-Anchor" href="#paper精读understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety"></a> Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>这篇综述的核心结论不是“看懂模型就能保证安全”，而是：<strong>机制可解释性为行为评测补上内部表征、计算路径和因果干预证据，但<span class="mark-strong">现有解释既不完整、也不够稳健或可扩展</span>，理解本身更不等于控制；它应与行为评测、训练治理和部署防护组成纵深防御。</strong></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</li>
+<li><strong>arXiv</strong>：2611.08438v1（<a target="_blank" rel="noopener" href="http://cs.CL">cs.CL</a>），2026-11-05</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2611.08438">https://arxiv.org/abs/2611.08438</a></li>
+<li><strong>HTML 全文</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/html/2611.08438">https://arxiv.org/html/2611.08438</a></li>
+<li><strong>作者</strong>：Fazl Barez、Tung-Yu Wu、Hunar Batra、Gabriele Dominici、Florent Draye、Yanai Elazar、Damiano Fornasiere、Antía García、Abir Harrasse、Riley Harris、Sara Hooker、Michael Lan、Belinda Z. Li、Aaron Maiwald、Narmeen Fatimah Oozeer、Naomi Saphra、Or David Shafran、Adi Simhi、Robert Trager、Shriyash Kaustubh Upadhyay、Ziyu Yao、Yu Zhao、Shay B. Cohen、Mor Geva、Yoshua Bengio、Stella Biderman、Hassan Sajjad</li>
+<li><strong>机构</strong>：University of Oxford、Martian、Università della Svizzera italiana、Max Planck Institute for Intelligent Systems、Bar-Ilan University、LawZero、Adaption Labs、MIT、Anthropic、Boston University、Tel Aviv University、Technion、George Mason University、University of Edinburgh、Mila / Université de Montréal、EleutherAI、NYU Abu Dhabi / Dalhousie University</li>
+<li><strong>通讯作者</strong>：Fazl Barez（论文署名页）</li>
+<li><strong>论文类型</strong>：机制可解释性与 AI 安全综述（survey）；不是提出单一新算法或报告统一新实验的实证论文</li>
+<li><strong>阅读范围</strong>：正文 §§1–15、附录 A–C。附录 A 是符号表，B 解释图示及引文证据颜色，C 补充因果推断、局部学习系数和信息论基础。参考文献未逐篇重新核验；论文中的既有研究结果按“作者转述”理解。</li>
+</ul>
+</div></details><hr />
+<h2 id="论文分类标注与阅读导航"><a class="markdownIt-Anchor" href="#论文分类标注与阅读导航"></a> 论文分类标注与阅读导航</h2>
+<ul>
+<li>
+<p><span class="mark-strong">研究类型</span>：领域综述 + 评估框架提案 + 安全应用与风险分析。</p>
+</li>
+<li>
+<p><span class="mark-strong">领域归属</span>：AI 安全 / 可信 AI → 机制可解释性（Mechanistic Interpretability, MI）→ 特征、回路、训练动态、数据归因与安全干预。</p>
+</li>
+<li>
+<p><span class="mark-strong">核心问题</span>：“知道模型内部怎么算”到底能否带来比“只测它输出什么”更可靠的安全保证？在哪些场景值得付出机制分析成本？</p>
+</li>
+<li>
+<p><span class="mark-strong">文章的三层贡献</span>：① 系统整理方法谱系与基础假设；② 提出五维评估框架、划分六种研究取向；③ 将安全收益与认识论、部署、对抗及资源分配风险放在同一框架中讨论。</p>
+</li>
+<li>
+<p><span class="mark-strong">证据等级提醒</span>：论文以橙色标注正式发表成果、绿色标注预印本/技术报告/工作坊/博客等尚未经过正式同行评审的研究输出。综述里的例子和数字，不等于作者在本文中重新跑过实验——读的时候随时记着这一条。</p>
+</li>
+</ul>
+<hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>行为评测观察的是有限输入集上的输入—输出关系。它擅长发现模型“在这里做错了什么”，却无法单凭分数判断模型是靠稳健机制、数据记忆、捷径，还是对评测环境的识别来得到答案。训练集污染、基准饱和、评测意识、分布外失效与缺乏精细控制，都会让高分不足以推出部署安全（§2）。一个模型在测试集上拒绝有害请求，这个结果证明不了它在陌生触发条件下也没有有害能力。</p>
+<p>机制可解释性试图把证据往内部推进：找到可重复的特征，追踪组件间信息流，再用消融、patching、steering 等干预检验这些内部结构是否真的影响行为。论文的关键限定——也是我建议每个读者都背下来的一句——<strong><span class="mark-strong">知道信息可读出，不等于模型使用了它</span>；干预能改变行为，不等于完整机制已被解释；机制解释成立，也不等于已证明模型安全。</strong></p>
+<hr />
+<h2 id="核心框架从观察到可审计的因果主张"><a class="markdownIt-Anchor" href="#核心框架从观察到可审计的因果主张"></a> 核心框架：从观察到可审计的因果主张</h2>
+<p><img src="/img/paper-reading/img_b30ac68617da28b63b9d87bed04f136cc18eead835c2a5c438094faa3dabbccc.png" srcset="/img/loading.gif" lazyload alt="Figure 2：综述的概念流，覆盖动机与概念、技术方法、研究方向、安全与开放问题" /></p>
+<p><em>Figure 2：文章把基础概念、技术方法、研究方向与安全应用/开放问题连接起来；它是全文结构图，不是新实验结果。</em></p>
+<h3 id="行为评估与内部解释的证据阶梯"><a class="markdownIt-Anchor" href="#行为评估与内部解释的证据阶梯"></a> 行为评估与内部解释的证据阶梯</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>证据层次</strong></th>
+<th><strong>典型问题</strong></th>
+<th><strong>可支持的结论</strong></th>
+<th><strong>单独不能支持的结论</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>行为评测</td>
+<td>模型在测试输入上表现如何？</td>
+<td>特定分布上的输出、错误和回归</td>
+<td>错误由哪个机制导致；未测输入上安全吗</td>
+</tr>
+<tr>
+<td>输入归因 / saliency</td>
+<td>哪些输入部分与输出相关？</td>
+<td>输入 token、像素或特征的影响线索</td>
+<td>模型内部如何加工这些信息</td>
+</tr>
+<tr>
+<td>Probe / lens / verbaliser</td>
+<td>激活里能读出什么？</td>
+<td>某信息在表示中可解码或可描述</td>
+<td>模型实际使用了它，或解释忠实</td>
+</tr>
+<tr>
+<td>定位与干预</td>
+<td>修改某层/方向/特征会怎样？</td>
+<td>在给定条件下的因果影响</td>
+<td>找到的是唯一、完整且可迁移的机制</td>
+</tr>
+<tr>
+<td>回路与因果抽象</td>
+<td>哪些组件共同实现行为？</td>
+<td>有范围限定的内部机制解释</td>
+<td>对未覆盖情形、替代路径或未来模型的安全保证</td>
+</tr>
+</tbody>
+</table></div>
+<p>这张阶梯表是全文的底盘。机制解释的强弱取决于覆盖范围、替代解释、干预特异性和跨条件稳健性；“图画得清楚”不是验证标准。</p>
+<h3 id="论文提出的五维评估框架75"><a class="markdownIt-Anchor" href="#论文提出的五维评估框架75"></a> 论文提出的五维评估框架（§7.5）</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>要回答的问题</strong></th>
+<th><strong>代表性测量</strong></th>
+<th><strong>常见误读</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>归因忠实度</td>
+<td>解释的重要性分数是否对应真实干预效应？</td>
+<td>分数—干预效应相关、效应大小误差、反事实效应恢复</td>
+<td>相关不等于完整解释；分母接近零时比例指标不稳定</td>
+</tr>
+<tr>
+<td>完整性</td>
+<td>解释覆盖了多少目标行为或激活？</td>
+<td>loss recovery、行为覆盖率、未解释方差</td>
+<td>低重构误差不等于重建了原模型的计算</td>
+</tr>
+<tr>
+<td>稳定性</td>
+<td>换随机种子、超参、提示改写后结论是否一致？</td>
+<td>跨种子特征对齐、超参敏感度、改写一致性</td>
+<td>单次跑出的漂亮 feature 可能只是偶然解</td>
+</tr>
+<tr>
+<td>因果有效性</td>
+<td>目标部件是否必要、充分且特异？</td>
+<td>消融、只保留目标回路、目标/非目标副作用</td>
+<td>必要性或充分性单项结果都可能受冗余路径影响</td>
+</tr>
+<tr>
+<td>人类可解释性</td>
+<td>人是否因此更会预测、调试或一致地理解模型？</td>
+<td>预测增益、错误修复率、标注者一致性</td>
+<td>自然语言解释流畅不等于人真的理解了机制</td>
+</tr>
+</tbody>
+</table></div>
+<p>这是<span class="mark-strong">作者提出的评估框架</span>，不是已经被社区采纳的标准化 benchmark。指标阈值、任务选择、人类评估成本、不同目标间的可比性，都还没解决（§7.5.4、§14.2）——拿它当检查表用可以，拿它当排名榜用不行。</p>
+<hr />
+<h2 id="基础概念与四项核心假设"><a class="markdownIt-Anchor" href="#基础概念与四项核心假设"></a> 基础概念与四项核心假设</h2>
+<h3 id="transformer-特征与回路"><a class="markdownIt-Anchor" href="#transformer-特征与回路"></a> Transformer、特征与回路</h3>
+<p>MI 的全套工具都挂在残差流这个概念上：把它当作各层共享的信息通道，每层只管往里写自己的贡献。省掉归一化细节，经典 Transformer 就剩两行：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>h</mi><mi mathvariant="normal">ℓ</mi><mo mathvariant="normal">′</mo></msubsup><mo>=</mo><msub><mi>h</mi><mrow><mi mathvariant="normal">ℓ</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">n</mi></mrow><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">(</mo><msub><mi>h</mi><mrow><mi mathvariant="normal">ℓ</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>h</mi><mi mathvariant="normal">ℓ</mi></msub><mo>=</mo><msubsup><mi>h</mi><mi mathvariant="normal">ℓ</mi><mo mathvariant="normal">′</mo></msubsup><mo>+</mo><msub><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">L</mi><mi mathvariant="normal">P</mi></mrow><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">(</mo><msubsup><mi>h</mi><mi mathvariant="normal">ℓ</mi><mo mathvariant="normal">′</mo></msubsup><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">h&#x27;_{\ell}=h_{\ell-1}+\mathrm{Attn}_{\ell}(h_{\ell-1}),\qquad h_{\ell}=h&#x27;_{\ell}+\mathrm{MLP}_{\ell}(h&#x27;_{\ell}).
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.048892em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8018919999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.902771em;vertical-align:-0.208331em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord"><span class="mord mathrm">A</span><span class="mord mathrm">t</span><span class="mord mathrm">t</span><span class="mord mathrm">n</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.048892em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8018919999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.051892em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord"><span class="mord mathrm">M</span><span class="mord mathrm">L</span><span class="mord mathrm">P</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8018919999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></p>
+<p>展开后，每层 attention 与 MLP 都向残差流写入加性贡献。注意力主要做跨 token 的信息路由与聚合，MLP 做逐位置的非线性变换。提醒一句：这是便于分析的简化视角，不是所有现代 Transformer、MoE、GQA 或 MLA 的完整实现（§4.4）。</p>
+<p>论文把“特征”定义为激活空间中的几何结构：它既要能预测某概念的出现，也要对相关行为有因果关联——两条腿缺一不可，probe 解码成功只满足可读出那条腿。Circuit 是由头、MLP 或特征节点及其信息流组成的计算子图；task-level circuit 解释一类行为，query-level circuit 追踪单一输入的计算，两者不能混为一谈（§4.3–4.5）。</p>
+<h3 id="四项假设不是定理5"><a class="markdownIt-Anchor" href="#四项假设不是定理5"></a> 四项假设不是定理（§5）</h3>
+<ol>
+<li>
+<p><span class="mark-strong">线性表征假设</span>：部分概念能由激活空间中的方向表示，投影大小近似反映特征强度。它让线性 probe、SAE 与 steering 可行；但非线性组合、分布式子空间和算法性表征构成边界。弱版本比“所有概念都线性”可信得多。</p>
+</li>
+<li>
+<p><span class="mark-strong">超叠假设</span>：概念特征数可能远多于神经元维度，多个方向共享表示空间，用来解释神经元多义性。多义性与 SAE 可提取许多特征是支持线索，却不能单独证明超叠是成因；没有超叠，特征学习和神经元多义也可能出现。</p>
+</li>
+<li>
+<p><span class="mark-strong">特权访问假设</span>：模型可能在特定训练/提示下读取自身内部信息。自我报告有时有效，但 probe、activation-reading 工具和模型自我预测也存在失败；语言流畅的“内省”不能当内部访问证据用。</p>
+</li>
+<li>
+<p><span class="mark-strong">普遍性 / 柏拉图表征假设</span>：相似任务可能令不同模型收敛到相似表征或算法。相似电路给弱普遍性提供线索；强普遍性证据更弱，受架构、数据、优化轨迹与相似度度量影响。</p>
+</li>
+</ol>
+<p>作者自己把话说得很清楚：这些是**<span class="mark-strong">指导研究的方法论假设，尚未被严格证明</span>**。论文没有建立一套统一、已验证的“真实特征本体”。</p>
+<hr />
+<h2 id="方法解读从激活分解到训练数据归因"><a class="markdownIt-Anchor" href="#方法解读从激活分解到训练数据归因"></a> 方法解读：从激活分解到训练数据归因</h2>
+<h3 id="1-sae稀疏分解是候选特征不是真实神经元"><a class="markdownIt-Anchor" href="#1-sae稀疏分解是候选特征不是真实神经元"></a> 1. SAE：稀疏分解是候选特征，不是“真实神经元”</h3>
+<p>SAE 押的是这件事：激活其实能由少量字典方向拼出来。为此学一对编码器解码器，用重构误差和稀疏惩罚一起训练：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>z</mi><mo>=</mo><mi>E</mi><mo stretchy="false">(</mo><mi>h</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi mathvariant="script">L</mi><mrow><mi>S</mi><mi>A</mi><mi>E</mi></mrow></msub><mo>=</mo><mi mathvariant="double-struck">E</mi><mo stretchy="false">[</mo><mi mathvariant="normal">∥</mi><mi>h</mi><mo>−</mo><mi>D</mi><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo><msubsup><mi mathvariant="normal">∥</mi><mn>2</mn><mn>2</mn></msubsup><mo>+</mo><mi>λ</mi><mi mathvariant="normal">∥</mi><mi>z</mi><msub><mi mathvariant="normal">∥</mi><mn>1</mn></msub><mo stretchy="false">]</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">z=E(h),\qquad \mathcal L_{SAE}=\mathbb E[\|h-D(z)\|_2^2+\lambda\|z\|_1].
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mopen">(</span><span class="mord mathdefault">h</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight">A</span><span class="mord mathdefault mtight" style="margin-right:0.05764em;">E</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbb">E</span><span class="mopen">[</span><span class="mord">∥</span><span class="mord mathdefault">h</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.1141079999999999em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="mclose">)</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">λ</span><span class="mord">∥</span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">]</span><span class="mord">.</span></span></span></span></span></p>
+<p>重构项逼着稀疏字典保住原激活，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>L</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">L_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 项让每个输入只点亮少数潜变量；过完备字典允许特征数大于残差维度。解码器列必须规范化，不然可以缩小 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>z</mi></mrow><annotation encoding="application/x-tex">z</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span></span></span></span>、放大 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span></span></span></span> 来“投机”降低稀疏惩罚，实际一点没变稀疏（§6.1–6.2）。</p>
+<ul>
+<li>
+<p><span class="mark-strong">Gated SAE</span> 将是否启用与激活幅度分开，缓解 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>L</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">L_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> shrinkage，但需要额外门控与辅助损失。</p>
+</li>
+<li>
+<p><span class="mark-strong">JumpReLU</span> 学阈值决定特征是否为零，使用 straight-through estimator，仍需调参。</p>
+</li>
+<li>
+<p><span class="mark-strong">Top-k / BatchTop-k</span> 直接限制每样本或每批的活跃特征数；前者要选 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span></span></span></span>，后者让不同样本按难度分配稀疏预算。</p>
+</li>
+</ul>
+<p>论文转述的失效模式，读的时候最好都记一笔：死特征在不佳设置下可达 10–50%（示例激活率阈值 &lt;0.01%）；特征重复、父特征被子特征吸收/拆分，以及不同随机种子得到不同字典（部分研究报告跨种子一致特征常不足 50%）。这些是综述引用的经验报告，不是固定普遍常数。更根本的一条是<span class="mark-strong">不可辨识性</span>：多个稀疏分解可能都能重构同一激活，却给出不同“特征”。所以必要性、充分性、特异性、跨种子稳定和下游任务效用得另外测（§6.5）。</p>
+<h3 id="2-transcoder-clt-crosscoder分析表示还是变换"><a class="markdownIt-Anchor" href="#2-transcoder-clt-crosscoder分析表示还是变换"></a> 2. Transcoder、CLT、Crosscoder：分析“表示”还是“变换”</h3>
+<ul>
+<li>
+<p><span class="mark-strong">Transcoder</span> 学 MLP 输入特征如何生成输出：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>z</mi><mo>=</mo><mi>E</mi><mo stretchy="false">(</mo><msup><mi>h</mi><mrow><mi>i</mi><mi>n</mi></mrow></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">z=E(h^{in})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.0746639999999998em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.824664em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mover accent="true"><mi>h</mi><mo>^</mo></mover><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msup><mo>=</mo><msub><mi>W</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mi>z</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">\hat h^{out}=W_{out}z+b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9578799999999998em;vertical-align:0em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9578799999999998em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathdefault">h</span></span><span style="top:-3.26344em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;">^</span></span></span></span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span></span></span></span>。相较在某层静态激活上训练 SAE，它更直接覆盖组件的非线性输入—输出映射。</p>
+</li>
+<li>
+<p><span class="mark-strong">Cross-layer transcoder（CLT）</span> 让较早层特征向本层及后续层 MLP 输出写入，可形成跨层 attribution graph。好处是跨层计算好追踪了；代价是模型规模、训练成本和替代模型保真度风险。论文特别提醒，局部精确匹配依赖冻结原模型 attention pattern、缓存 normalization 统计和逐层误差校正；这不代表 CLT 全量替代原模型时普遍等价。综述举的两个数很能说明问题：18 层小 Transformer 的 CLT top-1 一致率约 50%；Gemma-2-9B CLT 训练约 <span class="mark-number">3,844 H100 GPU-hours</span>（50% FLOPs efficiency）。方法能做细粒度分析，但当前成本与代理保真度都不能忽略。</p>
+</li>
+<li>
+<p><span class="mark-strong">Crosscoder</span> 将多层（或多模型）输入投影到共享潜空间，适合研究跨层特征与 model diffing；acausal 版本可以比较层，但不等同真实前向因果路径。</p>
+</li>
+</ul>
+<p>选工具前先问自己：问题是“这一层有哪些可解码特征”，还是“这个组件如何改变表示”，或“信息如何跨层传播”？SAE、transcoder、CLT、crosscoder 不产生可互换的解释对象。</p>
+<h3 id="3-circuit-discovery重要边图必须经过因果核验"><a class="markdownIt-Anchor" href="#3-circuit-discovery重要边图必须经过因果核验"></a> 3. Circuit discovery：重要边图必须经过因果核验</h3>
+<p>Activation/path patching 将干净输入激活与损坏输入激活互换，测目标行为指标变化；ACDC 逐边判断是否剪枝，直观但计算昂贵且受阈值/顺序影响。EAP 以梯度与干净—损坏激活差的内积作一阶 Taylor 近似，能高效并行给边打分，却可能漏掉强非线性交互。</p>
+<p>回路<strong>必要性</strong>：消融后目标行为受损；回路<strong>充分性</strong>：只保留候选回路并把其余部分换成损坏激活，行为仍可复现。真实回路常受冗余路径、上下文与边界例影响，论文引用的概括中常只能解释约 60–80% 行为方差——这个范围不能当固定目标使。Causal scrubbing 和 interchange intervention 用来检验高层机制假设能否对应底层干预。发现一个归因图不等于完成证明：图可能只解释输入特定的路径，或依赖 CLT 对原模型计算的近似（§7）。</p>
+<h3 id="4-lens-patchscopes-与-probe读得出不等于模型用得上"><a class="markdownIt-Anchor" href="#4-lens-patchscopes-与-probe读得出不等于模型用得上"></a> 4. Lens、Patchscopes 与 Probe：读得出不等于模型用得上</h3>
+<ul>
+<li>
+<p><span class="mark-strong">Logit Lens</span> 把每层残差状态直接投影到最终词表；简单，但假设了中间层已适合最终解码。</p>
+</li>
+<li>
+<p><span class="mark-strong">Tuned Lens</span> 为各层学习映射，使预测接近最终输出；它可能把中间过程过度翻译成终点，低 KL 不等于忠实展示内部算法。</p>
+</li>
+<li>
+<p><span class="mark-strong">Jacobian Lens</span> 用隐藏状态对最终状态的局部雅可比，尝试解释当前表示会推动什么输出；属于局部线性影响，词级限制与层位依赖仍在。论文给的 Claude Sonnet 4.5 例子中，信息层段约占深度 38–92%——单模型数字，不可推广到别处。</p>
+</li>
+<li>
+<p><span class="mark-strong">Patchscopes / LatentQA</span> 把激活注入检查提示，或微调 verbaliser 把激活说成文字。流畅解释仍可能来自分布外注入、提示偏差、记忆或从原输入猜答案，需用反事实激活和不同提示独立核验。</p>
+</li>
+</ul>
+<p><em>（原图未能本地化：Figure 11：Patchscopes 从源提示提取中间表示，再移植至检查提示以观察可解码内容；该资源曾被明确限制访问，未再次获取）</em></p>
+<p><em>Figure 11：图中用“United Kingdom”表示示例展示激活移植；它说明方法流程，不单独证明语言解释忠实。</em></p>
+<ul>
+<li><span class="mark-strong">Probe</span> 准确率只说明信息可解码，不证明下游模型实际用它。控制任务、selectivity、简单 probe、跨种子测试、amnesic probing 与 activation patching 能增强证据；冗余信息和副作用仍须检查。论文转述 sleeper-agent 探针 AUROC &gt;99% 的结果，是特定构造实验的检测证据，不是一般欺骗检测保证（§8）——这两个字的差别，在安全语境里是全部的差别。</li>
+</ul>
+<h3 id="5-model-diffing-定位与-steering"><a class="markdownIt-Anchor" href="#5-model-diffing-定位与-steering"></a> 5. Model diffing、定位与 steering</h3>
+<p>Model diffing 试图找微调前后、不同规模/架构间出现或变化的表征。难点在特征方向可能旋转，SAE/crosscoder 的分解也会制造“新特征”假象；发现一个模型独有 latent，只能算一条待核验假设。Knowledge localisation 找到对目标事实或行为影响较大的层、MLP、子空间，但信息可能冗余分布在多个组件；“干预这里影响最大”推不出“知识只存这里”（§9.1–9.2）。</p>
+<p><img src="/img/paper-reading/img_daf5f9f0b45daaf18445c2acbb48675c2f9b1184915e6dfabebb48eb7e9c38a9.png" srcset="/img/loading.gif" lazyload alt="Figure 14：通过 crosscoder 比较模型迭代或架构间的共享与变化特征" /></p>
+<p><em>Figure 14：特征激活差异可提示模型变化，但方向旋转、字典分解伪差异仍需因果验证。</em></p>
+<p>steering 的标准做法便宜得直接：偏好样本和非偏好样本的残差均值一减，就拿来当方向用：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mrow><mi>s</mi><mi>t</mi><mi>e</mi><mi>e</mi><mi>r</mi></mrow></msub><mo>=</mo><mi mathvariant="double-struck">E</mi><mo stretchy="false">[</mo><msub><mi>h</mi><mi mathvariant="normal">ℓ</mi></msub><mo>∣</mo><mi>p</mi><mi>r</mi><mi>e</mi><mi>f</mi><mi>e</mi><mi>r</mi><mi>r</mi><mi>e</mi><mi>d</mi><mo stretchy="false">]</mo><mo>−</mo><mi mathvariant="double-struck">E</mi><mo stretchy="false">[</mo><msub><mi>h</mi><mi mathvariant="normal">ℓ</mi></msub><mo>∣</mo><mi>u</mi><mi>n</mi><mi>p</mi><mi>r</mi><mi>e</mi><mi>f</mi><mi>e</mi><mi>r</mi><mi>r</mi><mi>e</mi><mi>d</mi><mo stretchy="false">]</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>h</mi><mo>~</mo></mover><mi mathvariant="normal">ℓ</mi></msub><mo>=</mo><msub><mi>h</mi><mi mathvariant="normal">ℓ</mi></msub><mo>+</mo><mi>α</mi><msub><mi>v</mi><mrow><mi>s</mi><mi>t</mi><mi>e</mi><mi>e</mi><mi>r</mi></mrow></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">v_{steer}=\mathbb E[h_\ell\mid preferred]-\mathbb E[h_\ell\mid unpreferred],\qquad \tilde h_\ell=h_\ell+\alpha v_{steer}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbb">E</span><span class="mopen">[</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">ℓ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">p</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">e</span><span class="mord mathdefault">d</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbb">E</span><span class="mopen">[</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">ℓ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.1812999999999998em;vertical-align:-0.25em;"></span><span class="mord mathdefault">u</span><span class="mord mathdefault">n</span><span class="mord mathdefault">p</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">e</span><span class="mord mathdefault">d</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9312999999999998em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathdefault">h</span></span><span style="top:-3.61344em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;">~</span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">ℓ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">ℓ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span></p>
+<p>它可以在不更新权重的情况下改拒答、语气或迎合行为，也顺带充当候选特征的因果探针。但一个方向里可能混着好几个因素，还常受提示分布漂移影响，所以要同步看目标收益、非目标能力损害、反向/随机方向基线和分布外输入。<strong>行为被 steering 改了，<span class="mark-strong">不代表这个方向就是某个单一概念的完整实现</span>。</strong></p>
+<h3 id="6-学习动态与训练数据归因"><a class="markdownIt-Anchor" href="#6-学习动态与训练数据归因"></a> 6. 学习动态与训练数据归因</h3>
+<p>固定终态只能看到模型最后是什么；checkpoint 纵向分析才能观察表示何时形成、稳定或漂移。能力专属连续指标、逐样本 loss、refined Local Learning Coefficient（LLC）及分叉续训可定位候选跃迁与机制形成时间。作者特别提醒的一点很容易被忽略：许多“早期预警”是训练结束后回溯找到的信号；只有预先登记并在未观察的未来训练上验证，才算前瞻预测。行为跃迁可能来自多个组件平滑变化的叠加，不能仅凭曲线拐点断言单一机制突变（§10）。</p>
+<p>训练数据归因有两类不同证据：<strong>OLMoTrace</strong> 找生成文本与语料的最长逐字匹配，支持“这段文字在语料中出现过”，不证明模型唯一依赖该来源；<strong>influence function / PBRF / GGN、K-FAC、TRAK、TracIn</strong> 估计训练样本对参数或测试行为的敏感度。后者最经典的路子是影响函数——问的是「把这个样本的权重抬高一点，测试行为会怎么动」：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="script">I</mi><mi>M</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>m</mi></msub><mo separator="true">,</mo><msub><mi>z</mi><mrow><mi>t</mi><mi>e</mi><mi>s</mi><mi>t</mi></mrow></msub><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><msup><mi>M</mi><mi>T</mi></msup><msup><mi>H</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><mi mathvariant="script">L</mi><mo stretchy="false">(</mo><msub><mi>z</mi><mi>m</mi></msub><mo separator="true">,</mo><msup><mi>θ</mi><mo>∗</mo></msup><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathcal I_M(z_m,z_{test})=-\nabla_\theta M^T H^{-1}\nabla_\theta\mathcal L(z_m,\theta^*).
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.07382em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07382em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.10903em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">m</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.1413309999999999em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">M</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913309999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span></span></span></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.864108em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathcal">L</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">m</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.738696em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></p>
+<p>它来自对样本权重 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">ϵ</span></span></span></span> 的一阶扰动，依赖局部最优、可微、Hessian 可逆和小扰动这些条件；而神经网络的 Hessian 常常是病态的。PBRF 用输出空间 Bregman 距离加 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>λ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\lambda I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">λ</span><span class="mord mathdefault" style="margin-right:0.07847em;">I</span></span></span></span> 正则，得到 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>+</mo><mi>λ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">G+\lambda I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">λ</span><span class="mord mathdefault" style="margin-right:0.07847em;">I</span></span></span></span>（GGN），构造上保证可逆，但终究是代理目标下的局部估计。TracIn 拿训练轨迹上的梯度内积近似影响，绕开了 Hessian 求逆，精度受 checkpoint 采样和一阶近似影响（§11）。</p>
+<hr />
+<h2 id="六种研究取向目标不同不应争一个最佳方法12"><a class="markdownIt-Anchor" href="#六种研究取向目标不同不应争一个最佳方法12"></a> 六种研究取向：目标不同，不应争一个“最佳方法”（§12）</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>取向</strong></th>
+<th><strong>主要目标</strong></th>
+<th><strong>优势</strong></th>
+<th><strong>关键风险/边界</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pragmatic Interpretability</td>
+<td>用 proxy task 找当下可用安全干预</td>
+<td>可较快产生实际安全收益；不要求先完整理解</td>
+<td>干预有用不等于解释机制</td>
+</tr>
+<tr>
+<td>Ambitious Interpretability</td>
+<td>完整、可预测的内部算法理解</td>
+<td>科学目标明确，强调 faithfulness 与 simulatability</td>
+<td>当前成本高，frontier 模型覆盖不足</td>
+</tr>
+<tr>
+<td>Developmental Interpretability</td>
+<td>解释表示、能力如何在训练中形成</td>
+<td>观察阶段、相变与有效复杂度</td>
+<td>以科学解释为主，不自动预测/控制未来行为</td>
+</tr>
+<tr>
+<td>Interpretability Across Time</td>
+<td>预测并干预训练中的安全相关轨迹</td>
+<td>争取在不良行为显现前预警/干预</td>
+<td>checkpoint 与训练数据难获取；回溯式证据多</td>
+</tr>
+<tr>
+<td>Introspective Interpretability</td>
+<td>让模型报告自己的内部状态</td>
+<td>访问门槛低，适合假设生成与快速分诊</td>
+<td>confabulation、校准差、提示敏感、策略性误报</td>
+</tr>
+<tr>
+<td>Automated Interpretability</td>
+<td>自动发现、解释、审计大量特征/回路</td>
+<td>覆盖面与规模潜力大</td>
+<td>错误可批量传播、automation bias、反馈回路</td>
+</tr>
+</tbody>
+</table></div>
+<p><img src="/img/paper-reading/img_28ec1b4bc5d545ed8aa069740ae467367e491b5a41fe2b874a20516120877987.png" srcset="/img/loading.gif" lazyload alt="Figure 17：机制可解释性六种研究取向" /></p>
+<p><em>Figure 17：六种取向各自优化目标与时间尺度不同，不存在对所有任务都占优的单一路线。</em></p>
+<p>这张表最大的用处是止争：内省方法应经独立机制与行为证据核验；自动化要保留抽样人工审核、跨解释器一致性、因果检查、对抗测试、校准与监管版本记录。最合理的分工是自动化提供 breadth，人类负责深度、目标设定与异常审查；六种路线可以混合，取决于问题、成本、访问权限和容忍的不确定性。</p>
+<hr />
+<h2 id="从理解到安全干预能做什么不能承诺什么13"><a class="markdownIt-Anchor" href="#从理解到安全干预能做什么不能承诺什么13"></a> 从理解到安全干预：能做什么，不能承诺什么（§13）</h2>
+<ol>
+<li>
+<p><span class="mark-strong">概念擦除（PISCES）</span>：用 SAE 找目标概念特征，在 MLP 输出向量中识别对应部分，再将目标特征系数反向后重构，试图比“只压住输出”更精确地移除概念。作者展示的是流程与引用结果，不等于本文对所有概念重新实验；是否完全消除、能否被提示重新学回，仍要做行为与副作用测试。</p>
+</li>
+<li>
+<p><span class="mark-strong">知识编辑（ROME / MEMIT）</span>：通过 causal tracing 定位事实关联影响最大的 MLP，再对局部权重做 rank-one 等编辑。可快速纠错，也可被滥用植入错误信息；早期方法有一般能力副作用，后续方法仍需审计。</p>
+</li>
+<li>
+<p><span class="mark-strong">Steering 与 mechanistic monitoring</span>：前者在推理时加方向改变行为，后者监控特征/回路是否出现危险机制。监控可捕捉尚未外显的内部信号，但“应监控哪些百万级特征”、误报、漏报和被模型规避，都还没有答案。</p>
+</li>
+<li>
+<p><span class="mark-strong">与 black-box 的关系</span>：prompt、输入/输出过滤、用户风险分级、数据过滤和安全微调各有实用性。黑盒不提供内部机制证据；白盒也不因此普遍更优。互补部署比二选一更合理。</p>
+</li>
+</ol>
+<h3 id="mi-自身的四类安全风险"><a class="markdownIt-Anchor" href="#mi-自身的四类安全风险"></a> MI 自身的四类安全风险</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>风险</strong></th>
+<th><strong>机制</strong></th>
+<th><strong>例子 / 防护方向</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>认识论</td>
+<td>对部分或错误解释产生过度信心</td>
+<td>报告覆盖边界；“未在 top-10% 归因边中找到”不等于“机制不存在”</td>
+</tr>
+<tr>
+<td>部署运行</td>
+<td>分布漂移时工具静默失效</td>
+<td>持续监控、对抗测试、与行为防护异构组合、失效时保守降级</td>
+</tr>
+<tr>
+<td>对抗双用</td>
+<td>解释揭示拒答回路或可编辑权重</td>
+<td>负责任披露、访问控制、红队测试，不把公开分析视作无风险</td>
+</tr>
+<tr>
+<td>机会成本</td>
+<td>过度投入昂贵 MI，挤占即时有效措施</td>
+<td>比较边际安全收益；同时投资行为评估、训练、harness、治理与 MI</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="open-problems-与作者结论1415"><a class="markdownIt-Anchor" href="#open-problems-与作者结论1415"></a> Open Problems 与作者结论（§14–15）</h2>
+<ul>
+<li>
+<p><span class="mark-strong">何时机制理解是必要条件</span>？若目标是解释内部算法，它显然必要；若只需满足一项可验证安全属性，是否必须先完整理解模型，社区尚无定论。</p>
+</li>
+<li>
+<p><span class="mark-strong">评测标准如何统一</span>？不同方法优化重构、稀疏度、覆盖、因果保真或成本，需建立有 ground-truth circuit 的合成任务与多行为基准。</p>
+</li>
+<li>
+<p><span class="mark-strong">不完整、不可扩展、不可泛化和对抗适应</span>：人类可读的高层因果模型可能丢失神经计算信息；规模、迁移与反解释策略都可能形成长期瓶颈。</p>
+</li>
+<li>
+<p>**<span class="mark-strong">理解与对齐不是同一个问题</span>：**MI 可帮验证、定位、控制，却不能单独告诉我们“模型应该追求什么”或替代价值/目标规范。</p>
+</li>
+<li>
+<p><span class="mark-strong">解释的本体问题</span>：同一行为可能有多个有效抽象层级；一个符合干预数据的解释未必是唯一真实算法。</p>
+</li>
+<li>
+<p><span class="mark-strong">Proxy fidelity</span>：SAE、CLT 等可解释代理可能学出和原模型输出相似、但内部算法不同的计算。因此代理里“没发现 deception circuit”不能推成目标模型没有。</p>
+</li>
+<li>
+<p><span class="mark-strong">超越 Transformer</span>：CNN、Mamba/RWKV、扩散语言模型与 MoE 的计算结构不同；现有工具大多围绕 Transformer 残差流发展，跨架构原理尚未清楚。</p>
+</li>
+</ul>
+<p>作者最后把路线概括为三种互补范式：<strong>post-hoc explanation、studying learning dynamics、interpretability by design</strong>。领域需要可证伪、可复现的科学主张；机制可解释性是防御纵深中的一种方法，不是独立安全认证。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">把&quot;解释&quot;拆成证据强度</span>。全文反复区分可读出、因果影响、必要/充分和完整性，抑制了“特征有名字所以解释了行为”的跳跃——这一条就值得全文通读一遍。</p>
+</li>
+<li>
+<p><span class="mark-strong">把评测、方法和部署风险接在一起</span>。不仅盘点 SAE / circuits，也讨论自我报告、自动化治理、知识编辑双用和资源机会成本，视野没有停在方法层。</p>
+</li>
+<li>
+<p><strong>对代理模型问题抓得准。</strong><span class="mark-strong">重构成功不能推出计算忠实</span>；这直接关系到“未发现危险机制”能否作为安全证据——我认为是全文最有杀伤力的一条限定。</p>
+</li>
+<li>
+<p><span class="mark-strong">框架有可操作性</span>。五维评估与六种取向可以直接当检查表用：设计实验、读论文、判断某个应用成熟度，都能对号入座。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p>这是一篇范围很广的叙述性综述；正文未给出可复核的系统检索/纳排流程或证据综合统计，因此不能据此断言文献覆盖完整、引用选择无偏。</p>
+</li>
+<li>
+<p>五维框架提供的是维度，不是统一量尺。阈值、数据分布、干预基线、效应方向和“人类理解”测量仍依赖任务，跨论文直接排名做不了。</p>
+</li>
+<li>
+<p>部分安全应用以概念性案例说明流程；它们展示“如何做”，不应误读成本文已验证规模化部署有效。</p>
+</li>
+<li>
+<p>论文覆盖的是截至 2026 年的快速演进领域；对引用成果的结论需回到原研究核对审稿状态、实验设置与后来修订，尤其留意论文自己的橙/绿引文标记。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="附录-ac-的作用"><a class="markdownIt-Anchor" href="#附录-ac-的作用"></a> 附录 A–C 的作用</h2>
+<ul>
+<li>
+<p><span class="mark-strong">A 符号表</span>：统一残差维度 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">d</span></span></span></span>、层数 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span>、序列长度 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">T</span></span></span></span>、SAE 扩展系数与激活、attention 权重等。</p>
+</li>
+<li>
+<p><span class="mark-strong">B 图示与证据颜色</span>：蓝色定义、绿色例子、金色洞见、红色警告、青色实践；橙色引文为正式发表成果，绿色引文为预印本/报告/工作坊/博客等。</p>
+</li>
+<li>
+<p><span class="mark-strong">C 数学基础</span>：必要性是移除组件后行为消失；充分性是只保留组件时行为出现；因果抽象要求高层干预映射到底层干预后因果效果一致。LLC 以局部低损失参数区域体积随容忍度 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">ϵ</span></span></span></span> 缩小的速率刻画局部有效复杂度；熵、互信息和 KL 可度量信息，但本身不建立因果机制。</p>
+</li>
+</ul>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">Probe 能读出 ≠ 模型使用；SAE 重构好 ≠ 原计算被忠实还原</span>。</p>
+</li>
+<li>
+<p><span class="mark-strong">因果干预增强机制证据，但必要、充分、特异、稳定、完整是不同验收项</span>。</p>
+</li>
+<li>
+<p><span class="mark-strong">MI 的安全价值来自与行为评测、训练治理和部署防护互补；它不是单独的安全保证</span>。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%AE%89%E5%85%A8%E4%B8%8E%E5%8F%AF%E8%A7%A3%E9%87%8A%E6%80%A7/" class="category-chain-item">安全与可解释性</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%AE%89%E5%85%A8%E4%B8%8E%E5%8F%AF%E8%A7%A3%E9%87%8A%E6%80%A7/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</div>
+      <div>https://yyhchen.github.io/2026/11/09/paper-understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年11月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy">
+                        <span class="hidden-mobile">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

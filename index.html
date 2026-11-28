@@ -1,0 +1,2178 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="83 篇文章         &#x2F;         技术解析 6         &#x2F;         论文精读 77（7 方向）         ·更新于 2026-11-28                                                        ×                             卡片">
+<meta property="og:type" content="website">
+<meta property="og:title" content="整理土地，而非焦虑时光">
+<meta property="og:url" content="https://yyhchen.github.io/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="83 篇文章         &#x2F;         技术解析 6         &#x2F;         论文精读 77（7 方向）         ·更新于 2026-11-28                                                        ×                             卡片">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="yhchen">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>整理土地，而非焦虑时光 - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="整理土地，而非焦虑时光"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          style="margin-top: 0">
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+<article class="page-content">
+  <div class="blog-home" id="blog-home">
+    <header class="bh-topbar">
+      <div class="bh-stats" aria-label="站点内容概览">
+        <span class="bh-stat-pill"><strong>83</strong> 篇文章</span>
+        <span class="bh-stat-sep" aria-hidden="true">/</span>
+        <span class="bh-stat-pill is-note">技术解析 <strong>6</strong></span>
+        <span class="bh-stat-sep" aria-hidden="true">/</span>
+        <span class="bh-stat-pill is-paper">论文精读 <strong>77</strong>（7 方向）</span>
+        <span class="bh-stat-sep bh-hide-sm" aria-hidden="true">·</span><span class="bh-stat-updated bh-hide-sm">更新于 2026-11-28</span>
+      </div>
+      <div class="bh-controls">
+        <label class="bh-search-box" aria-label="快速筛选文章">
+          <i class="iconfont icon-search" aria-hidden="true"></i>
+          <input id="bh-filter-input" type="search" placeholder="筛选标题、摘要或标签… (按 / )" autocomplete="off" />
+          <button type="button" id="bh-filter-clear" class="bh-clear-btn" aria-label="清空筛选" hidden>×</button>
+        </label>
+        <div class="bh-view-toggle" role="group" aria-label="切换阅读视图">
+          <button type="button" class="bh-view-btn is-active" data-view="card" title="卡片视图（含摘要）">卡片</button>
+          <button type="button" class="bh-view-btn" data-view="compact" title="紧凑清单视图">清单</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="bh-mobile-bar" aria-label="移动端分类筛选">
+      <div class="bh-mobile-chips"><button type="button" class="bh-mobile-chip is-active" data-filter-cat="all">全部 (83)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="tech-notes">技术解析 (6)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="papers">全部论文 (77)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="agents">智能体与Harness (20)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="reinforcement-learning">强化学习与后训练 (16)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="architecture">模型架构与推理效率 (15)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="theory">理论与数学推理 (9)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="evaluation">评测与验证 (8)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="multimodal">多模态与具身智能 (5)</button>
+<button type="button" class="bh-mobile-chip" data-filter-cat="safety">安全与可解释性 (4)</button></div>
+    </div>
+
+    <div class="bh-workspace">
+      <aside class="bh-sidebar" aria-label="分类与时间线导航">
+        <nav class="bh-side-block" aria-label="内容分类">
+          <div class="bh-side-heading">内容导航</div>
+          <ul class="bh-nav-list">
+            <li>
+              <button type="button" class="bh-nav-btn is-active" data-filter-cat="all">
+                <span class="bh-nav-label">全部文章</span>
+                <span class="bh-nav-count">83</span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="bh-side-subheading">基础专栏</div>
+          <ul class="bh-nav-list">
+            <li>
+              <button type="button" class="bh-nav-btn" data-filter-cat="tech-notes">
+                <span class="bh-nav-label"><span class="bh-nav-dot is-note"></span>技术解析</span>
+                <span class="bh-nav-count">6</span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="bh-side-subheading">论文精读 · 主题方向</div>
+          <ul class="bh-nav-list">
+            <li>
+              <button type="button" class="bh-nav-btn" data-filter-cat="papers">
+                <span class="bh-nav-label"><span class="bh-nav-dot is-paper-all"></span>全部论文精读</span>
+                <span class="bh-nav-count">77</span>
+              </button>
+            </li>
+            <li>
+        <button type="button" class="bh-nav-btn" data-filter-cat="agents">
+          <span class="bh-nav-label"><span class="bh-nav-dot is-paper"></span>智能体与Harness</span>
+          <span class="bh-nav-count">20</span>
+        </button>
+      </li>
+<li>
+        <button type="button" class="bh-nav-btn" data-filter-cat="reinforcement-learning">
+          <span class="bh-nav-label"><span class="bh-nav-dot is-paper"></span>强化学习与后训练</span>
+          <span class="bh-nav-count">16</span>
+        </button>
+      </li>
+<li>
+        <button type="button" class="bh-nav-btn" data-filter-cat="architecture">
+          <span class="bh-nav-label"><span class="bh-nav-dot is-paper"></span>模型架构与推理效率</span>
+          <span class="bh-nav-count">15</span>
+        </button>
+      </li>
+<li>
+        <button type="button" class="bh-nav-btn" data-filter-cat="theory">
+          <span class="bh-nav-label"><span class="bh-nav-dot is-paper"></span>理论与数学推理</span>
+          <span class="bh-nav-count">9</span>
+        </button>
+      </li>
+<li>
+        <button type="button" class="bh-nav-btn" data-filter-cat="evaluation">
+          <span class="bh-nav-label"><span class="bh-nav-dot is-paper"></span>评测与验证</span>
+          <span class="bh-nav-count">8</span>
+        </button>
+      </li>
+<li>
+        <button type="button" class="bh-nav-btn" data-filter-cat="multimodal">
+          <span class="bh-nav-label"><span class="bh-nav-dot is-paper"></span>多模态与具身智能</span>
+          <span class="bh-nav-count">5</span>
+        </button>
+      </li>
+<li>
+        <button type="button" class="bh-nav-btn" data-filter-cat="safety">
+          <span class="bh-nav-label"><span class="bh-nav-dot is-paper"></span>安全与可解释性</span>
+          <span class="bh-nav-count">4</span>
+        </button>
+      </li>
+          </ul>
+        </nav>
+
+        <nav class="bh-side-block bh-timeline-block" aria-label="时间线导航">
+          <div class="bh-side-heading">时间线导航</div>
+          <div class="bh-timeline-nav" id="bh-timeline-nav">
+            <div class="bh-time-year" data-timeline-year="2026">
+        <div class="bh-time-year-label">2026</div>
+        <ul class="bh-time-months"><li data-timeline-item="2026-11">
+            <a class="bh-time-link" href="#month-2026-11" data-month-target="2026-11">
+              <span>11 月</span>
+              <span class="bh-nav-count" data-month-count="2026-11">13</span>
+            </a>
+          </li>
+<li data-timeline-item="2026-10">
+            <a class="bh-time-link" href="#month-2026-10" data-month-target="2026-10">
+              <span>10 月</span>
+              <span class="bh-nav-count" data-month-count="2026-10">1</span>
+            </a>
+          </li>
+<li data-timeline-item="2026-09">
+            <a class="bh-time-link" href="#month-2026-09" data-month-target="2026-09">
+              <span>9 月</span>
+              <span class="bh-nav-count" data-month-count="2026-09">8</span>
+            </a>
+          </li>
+<li data-timeline-item="2026-08">
+            <a class="bh-time-link" href="#month-2026-08" data-month-target="2026-08">
+              <span>8 月</span>
+              <span class="bh-nav-count" data-month-count="2026-08">21</span>
+            </a>
+          </li>
+<li data-timeline-item="2026-07">
+            <a class="bh-time-link" href="#month-2026-07" data-month-target="2026-07">
+              <span>7 月</span>
+              <span class="bh-nav-count" data-month-count="2026-07">14</span>
+            </a>
+          </li>
+<li data-timeline-item="2026-06">
+            <a class="bh-time-link" href="#month-2026-06" data-month-target="2026-06">
+              <span>6 月</span>
+              <span class="bh-nav-count" data-month-count="2026-06">6</span>
+            </a>
+          </li>
+<li data-timeline-item="2026-05">
+            <a class="bh-time-link" href="#month-2026-05" data-month-target="2026-05">
+              <span>5 月</span>
+              <span class="bh-nav-count" data-month-count="2026-05">14</span>
+            </a>
+          </li></ul>
+      </div>
+<div class="bh-time-year" data-timeline-year="2025">
+        <div class="bh-time-year-label">2025</div>
+        <ul class="bh-time-months"><li data-timeline-item="2025-04">
+            <a class="bh-time-link" href="#month-2025-04" data-month-target="2025-04">
+              <span>4 月</span>
+              <span class="bh-nav-count" data-month-count="2025-04">3</span>
+            </a>
+          </li>
+<li data-timeline-item="2025-03">
+            <a class="bh-time-link" href="#month-2025-03" data-month-target="2025-03">
+              <span>3 月</span>
+              <span class="bh-nav-count" data-month-count="2025-03">2</span>
+            </a>
+          </li></ul>
+      </div>
+<div class="bh-time-year" data-timeline-year="2024">
+        <div class="bh-time-year-label">2024</div>
+        <ul class="bh-time-months"><li data-timeline-item="2024-09">
+            <a class="bh-time-link" href="#month-2024-09" data-month-target="2024-09">
+              <span>9 月</span>
+              <span class="bh-nav-count" data-month-count="2024-09">1</span>
+            </a>
+          </li></ul>
+      </div>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="bh-main">
+        <section class="bh-pinned-section" id="bh-pinned-section" aria-label="置顶推荐">
+        <div class="bh-section-kicker">
+          <span>精选置顶</span>
+          <span class="bh-kicker-note">系统梳理 · 推荐从这里开始</span>
+        </div>
+        <div class="bh-pinned-grid">
+          <article class="bh-pinned-card" data-kind="note" data-cat="tech-notes">
+      <div class="bh-card-top">
+        <div class="bh-card-badges">
+          <span class="bh-badge bh-badge-pin">置顶推荐</span>
+          <span class="bh-badge is-note">技术解析</span>
+          
+        </div>
+        <div class="bh-card-date">
+          <time datetime="2025-04-18T15:51:29+08:00">2025-04-18</time>
+          <span class="bh-dot" aria-hidden="true">·</span>
+          <span>约 22 分钟</span>
+        </div>
+      </div>
+      <h2 class="bh-pinned-title"><a href="&#x2F;2025&#x2F;04&#x2F;18&#x2F;%E9%9B%B6%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8RoPE&#x2F;">零基础入门RoPE</a></h2>
+      <p class="bh-card-excerpt">从复数、复平面旋转与欧拉公式等基础数学出发，一步步推导旋转位置编码（RoPE）为何能用绝对位置旋转自然编码相对位置信息，覆盖 2D 到高维推广与实现直觉。</p>
+      <div class="bh-pinned-footer">
+        <div class="bh-card-tags"><span class="bh-tag">#LLM</span><span class="bh-tag">#算法</span><span class="bh-tag">#位置编码</span></div>
+        <a class="bh-read-link" href="&#x2F;2025&#x2F;04&#x2F;18&#x2F;%E9%9B%B6%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8RoPE&#x2F;">开始阅读 →</a>
+      </div>
+    </article>
+        </div>
+      </section>
+
+        <div class="bh-active-bar" id="bh-active-bar">
+          <div class="bh-active-info">
+            <span class="bh-active-label" id="bh-active-label">全部文章</span>
+            <span class="bh-active-count" id="bh-active-count">83 篇</span>
+          </div>
+          <button type="button" class="bh-reset-btn" id="bh-reset-btn" hidden>查看全部</button>
+        </div>
+
+        <div class="bh-feed" id="bh-feed">
+          <section class="bh-month-group" id="month-2026-11" data-month-group="2026-11" data-year="2026">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2026 年 11 月</h2>
+          <span class="bh-month-count" data-group-count="2026-11">13 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-11" data-search="an algebraic quantization of gravity from the null cone 在四维真空广义相对论的零锥特征数据上解引力约束，得到有限 g_n 的约化相空间与高斯纯态 i 型因子代数，路径积分绝对收敛；剪切经 raychaudhuri 聚焦拖慢引力钟，钟读数有界即锁死宏观因果菱形为有限维希尔伯特空间、面积谱离散，boost 迹给出 bekenstein–hawking 熵加对数修正——固定质量、角动量求和时系数 106&#x2F;45（乘 log s_b），折算线性尺寸即 sen 的 euclidean 值 212&#x2F;45。引力子对产生振幅有非微扰有限闭式 li_2(e^{-2i&#x2F;s})&#x2F;(2s^2)，而先按 g_n 展开再求和对数发散。 理论与数学推理 量子引力 广义相对论 黑洞熵 2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-28T13:57:53+08:00" title="2026-11-28">11-28</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>45 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;28&#x2F;paper-an-algebraic-quantization-of-gravity-from-the-null-cone&#x2F;">An algebraic quantization of gravity from the null cone</a>
+    </h3>
+    <p class="bh-card-excerpt">在四维真空广义相对论的零锥特征数据上解引力约束，得到有限 G_N 的约化相空间与高斯纯态 I 型因子代数，路径积分绝对收敛；剪切经 Raychaudhuri 聚焦拖慢引力钟，钟读数有界即锁死宏观因果菱形为有限维希尔伯特空间、面积谱离散，boost 迹给出 Bekenstein–Hawking 熵加对数修正——固定质量、角动量求和时系数 106&#x2F;45（乘 log s_b），折算线性尺寸即 Sen 的 Euclidean 值 212&#x2F;45。引力子对产生振幅有非微扰有限闭式 Li_2(e^{-2i&#x2F;s})&#x2F;(2s^2)，而先按 G_N 展开再求和对数发散。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#量子引力</span><span class="bh-tag">#广义相对论</span><span class="bh-tag">#黑洞熵</span></div>
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-11" data-search="sensebench: a benchmark for remote sensing low-level visual perception and description in large vision-language models 首个遥感低层视觉诊断 benchmark：6 大类 22 细类物理畸变、10,815 个标签从合成参数数学投影的样本，29 个 vlm 零样本评测揭示无模型双域均衡（qwen3vl-32b rs 子集落后 general 13.66 个百分点）、多畸变叠加崩塌（gemini 79.68% 到 41.17%）、感知-描述倒置（internvl3.5 配对描述 sum 从 ~3.6 掉到 ~2.0）。 评测与验证 benchmark 遥感 vlm评测 2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-28T13:46:40+08:00" title="2026-11-28">11-28</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>24 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;28&#x2F;paper-sensebench-a-benchmark-for-remote-sensing-low-level-visual-perception-and-description-in-large-vision-language-models&#x2F;">SenseBench: A Benchmark for Remote Sensing Low-Level Visual Perception and Description in Large Vision-Language Models</a>
+    </h3>
+    <p class="bh-card-excerpt">首个遥感低层视觉诊断 benchmark：6 大类 22 细类物理畸变、10,815 个标签从合成参数数学投影的样本，29 个 VLM 零样本评测揭示无模型双域均衡（Qwen3VL-32B RS 子集落后 General 13.66 个百分点）、多畸变叠加崩塌（Gemini 79.68% 到 41.17%）、感知-描述倒置（InternVL3.5 配对描述 Sum 从 ~3.6 掉到 ~2.0）。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#Benchmark</span><span class="bh-tag">#遥感</span><span class="bh-tag">#VLM评测</span></div>
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-11" data-search="mixture-of-loops transformer 把循环 transformer（looped transformer）跨 loop 传递的东西从残差流换成 kv 记忆：mola 用一个注意力分布同时读序列 kv 和深度 kv；loop kv 范式靠嵌入重启 + 严格前缀记忆拔掉同位置跨 loop 依赖，解锁每个 token 只跑一遍的 mol 解码；u-molt 再把记忆构建和预测读出拆开。400b token 预训练里 u-molt 在 700m&#x2F;1.5b dense 和 3b moe 上全面压过 olmo3（700m 达 1.7× token 效率，3b moe 十域困惑度 −0.75、十任务准确率 +2.1pp），代价是训练 flops 翻倍；推理端 mol-hybrid-2 在 s-size 上 996.6 ms 匹配非循环 olmo3 的 1000.6 ms。 模型架构与推理效率 transformer架构 kv cache 循环模型 2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-27T14:40:00+08:00" title="2026-11-27">11-27</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>28 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;27&#x2F;paper-mixture-of-loops-transformer&#x2F;">Mixture-of-Loops Transformer</a>
+    </h3>
+    <p class="bh-card-excerpt">把循环 Transformer（looped Transformer）跨 loop 传递的东西从残差流换成 KV 记忆：MoLA 用一个注意力分布同时读序列 KV 和深度 KV；loop KV 范式靠嵌入重启 + 严格前缀记忆拔掉同位置跨 loop 依赖，解锁每个 token 只跑一遍的 MoL 解码；U-MoLT 再把记忆构建和预测读出拆开。400B token 预训练里 U-MoLT 在 700M&#x2F;1.5B dense 和 3B MoE 上全面压过 OLMo3（700M 达 1.7× token 效率，3B MoE 十域困惑度 −0.75、十任务准确率 +2.1pp），代价是训练 FLOPs 翻倍；推理端 MoL-Hybrid-2 在 S-size 上 996.6 ms 匹配非循环 OLMo3 的 1000.6 ms。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#Transformer架构</span><span class="bh-tag">#KV Cache</span><span class="bh-tag">#循环模型</span></div>
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-11" data-search="agentic longlive: asynchronous agentic memory for long video generation 给实时自回归视频生成器外挂一个跑在独立 gpu 上的记忆 agent：只读已揭示的 prompt、提前一个 shot 把实体记忆写好并预填充进生成器的 attention sink，视频从不等记忆。longstory-online 上 state&#x2F;identity&#x2F;revisit +26~+45，代价约 1% 生成时间，8×b200 上 34.3 fps 快于实时。 智能体与harness agent 视频生成 2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-27T13:55:00+08:00" title="2026-11-27">11-27</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>25 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;27&#x2F;paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation&#x2F;">Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</a>
+    </h3>
+    <p class="bh-card-excerpt">给实时自回归视频生成器外挂一个跑在独立 GPU 上的记忆 agent：只读已揭示的 prompt、提前一个 shot 把实体记忆写好并预填充进生成器的 attention sink，视频从不等记忆。LongStory-Online 上 State&#x2F;Identity&#x2F;Revisit +26~+45，代价约 1% 生成时间，8×B200 上 34.3 FPS 快于实时。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#Agent</span><span class="bh-tag">#视频生成</span></div>
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-11" data-search="recursive collective intelligence: emergence on an equal-budget ladder in multi-agent llm systems 把「多智能体比单智能体强」变成可证伪测试：等预算阶梯要求团队在同 token 预算下依次超过单个智能体、多数投票和 pass@n，且 proposition 1 证明 pass@n 封顶一切选择规则；共享信息下 debate&#x2F;delm&#x2F;aorchestra 全停在等预算投票之下，分裂事实下逐字转发事实过第 3 级（27b +0.310，甚至高于等预算全信息单 agent 0.942）；门控递归连续 4–6 代每代胜前代，hiddenbench 世代对 pass@n 边际从 −0.15 爬到 +0.23、预算还减半。 评测与验证 多智能体系统 评测协议 2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-26T15:45:00+08:00" title="2026-11-26">11-26</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>28 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;26&#x2F;paper-recursive-collective-intelligence-emergence-on-an-equal-budget-ladder-in-multi-agent-llm-systems&#x2F;">Recursive Collective Intelligence: Emergence on an Equal-Budget Ladder in Multi-Agent LLM Systems</a>
+    </h3>
+    <p class="bh-card-excerpt">把「多智能体比单智能体强」变成可证伪测试：等预算阶梯要求团队在同 token 预算下依次超过单个智能体、多数投票和 pass@n，且 Proposition 1 证明 pass@n 封顶一切选择规则；共享信息下 debate&#x2F;DeLM&#x2F;AOrchestra 全停在等预算投票之下，分裂事实下逐字转发事实过第 3 级（27B +0.310，甚至高于等预算全信息单 agent 0.942）；门控递归连续 4–6 代每代胜前代，HiddenBench 世代对 pass@n 边际从 −0.15 爬到 +0.23、预算还减半。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#多智能体系统</span><span class="bh-tag">#评测协议</span></div>
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-11" data-search="robouniverse-10k: toward the scaling era of agentic robotics via real-to-sim environments 把软件工程「从真实 pull request 挖可执行环境」的 scaling 路线搬进机器人：一条 agentic real2sim 管线把真实操作视频自动重建为 10,807 个可验证 isaac sim 环境（含 500 个专家人工验证的 held-out 零样本测试集），11 个模型评测出 85.8% vs 2.6–10% 的双峰断层；用 0.79b token 轨迹 sft qwen3.6-35b-a3b，零样本成功率从 0.8% 提到 21.2%，并在外部 benchmark 和真机 franka 上零完成任务… 评测与验证 具身智能 benchmark 2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-26T13:40:00+08:00" title="2026-11-26">11-26</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>19 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;26&#x2F;paper-robouniverse-10k-toward-the-scaling-era-of-agentic-robotics-via-real-to-sim-environments&#x2F;">RoboUniverse-10K: Toward the Scaling Era of Agentic Robotics via Real-to-Sim Environments</a>
+    </h3>
+    <p class="bh-card-excerpt">把软件工程「从真实 pull request 挖可执行环境」的 scaling 路线搬进机器人：一条 agentic Real2Sim 管线把真实操作视频自动重建为 10,807 个可验证 Isaac Sim 环境（含 500 个专家人工验证的 held-out 零样本测试集），11 个模型评测出 85.8% vs 2.6–10% 的双峰断层；用 0.79B token 轨迹 SFT Qwen3.6-35B-A3B，零样本成功率从 0.8% 提到 21.2%，并在外部 benchmark 和真机 Franka 上零完成任务…</p>
+    <div class="bh-card-tags"><span class="bh-tag">#具身智能</span><span class="bh-tag">#Benchmark</span></div>
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-11" data-search="verifiable on-policy distillation vopd 把 rlvr 的稀疏验证器奖励投影到 opd 教师的隐式奖励方向上、再经 rao–blackwell 化铺满全词表，得到“有验证背书、又逐 token 密集”的监督信号：4b 同尺寸蒸馏下 8 个数学基准平均从 64.71 提到 66.38（教师本身 64.16），强到弱蒸馏从 50.88 提到 53.32。 强化学习与后训练 rl 蒸馏 2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-25T13:40:00+08:00" title="2026-11-25">11-25</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>23 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;25&#x2F;Paper%E7%B2%BE%E8%AF%BB-Verifiable-On-Policy-Distillation&#x2F;">Verifiable On-Policy Distillation</a>
+    </h3>
+    <p class="bh-card-excerpt">VOPD 把 RLVR 的稀疏验证器奖励投影到 OPD 教师的隐式奖励方向上、再经 Rao–Blackwell 化铺满全词表，得到“有验证背书、又逐 token 密集”的监督信号：4B 同尺寸蒸馏下 8 个数学基准平均从 64.71 提到 66.38（教师本身 64.16），强到弱蒸馏从 50.88 提到 53.32。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#RL</span><span class="bh-tag">#蒸馏</span></div>
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-11" data-search="glm-5.4: toward generalized coding with our first loop transformer z.ai 把 glm-5 750b 基座中间的 28 层改造成跑两遍的 loop transformer（权重共享 + 每趟独立的 per-token 门控 + 跨趟稀疏 kv 复用），在参数量不变、训练算力只多约 10%的条件下加&quot;计算深度&quot;：30b 同参数对照上 aime25 从 19.17 提到 30.42（+11.25），并宣称达到 2t-3t 参数模型的智能水平——后半句目前没有任何公开评测表佐证，只能当作厂商声明。 模型架构与推理效率  2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-24T13:36:48+08:00" title="2026-11-24">11-24</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>21 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;24&#x2F;paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer&#x2F;">GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</a>
+    </h3>
+    <p class="bh-card-excerpt">Z.ai 把 GLM-5 750B 基座中间的 28 层改造成跑两遍的 Loop Transformer（权重共享 + 每趟独立的 per-token 门控 + 跨趟稀疏 KV 复用），在参数量不变、训练算力只多约 10%的条件下加&quot;计算深度&quot;：30B 同参数对照上 AIME25 从 19.17 提到 30.42（+11.25），并宣称达到 2T-3T 参数模型的智能水平——后半句目前没有任何公开评测表佐证，只能当作厂商声明。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-11" data-search="a society of ai scientists 把 936 个自主科研 agent 放进同一个预印本服务器 + 聊天工作区 12 周（35 个人类实验室只提供算力、预算和大方向），它们产出了 936 篇带代码&#x2F;数据&#x2F;声明台账的研究、9,500 条互发消息、229 个自建聊天室，自发涌现出公开撤稿、事前互评、负面结果平等引用乃至一个 agent 自营的同行评审期刊（jar）；但失败模式同样清楚——凡靠纯文本审查的地方就崩（68% 的 null 摘要夸大为&quot;证明无效应&quot;，纯文本 ai … 智能体与harness  2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-20T15:56:49+08:00" title="2026-11-20">11-20</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>24 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;20&#x2F;paper-a-society-of-ai-scientists&#x2F;">A Society of AI Scientists</a>
+    </h3>
+    <p class="bh-card-excerpt">把 936 个自主科研 Agent 放进同一个预印本服务器 + 聊天工作区 12 周（35 个人类实验室只提供算力、预算和大方向），它们产出了 936 篇带代码&#x2F;数据&#x2F;声明台账的研究、9,500 条互发消息、229 个自建聊天室，自发涌现出公开撤稿、事前互评、负面结果平等引用乃至一个 Agent 自营的同行评审期刊（JAR）；但失败模式同样清楚——凡靠纯文本审查的地方就崩（68% 的 null 摘要夸大为&quot;证明无效应&quot;，纯文本 AI …</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-11" data-search="counterfactual world models: jepas that reason about &quot;what if&quot; 本文先证明一个负面结论——只用事实数据（factual transitions）训练的世界模型，无论数据和容量多大都无法回答个体反事实问题（动作与隐扰动的配对耦合不被事实似然识别）；再用一个物理先验&quot;自然不跳跃&quot;（action 与 disturbance 以分离的力进入动力学时，其交互随转移时长 $h$ 二阶衰减）推出免训练的残差复用规则：反事实预测 &#x3D; 观测结果 + 世界模型在两个动作处的预测之差。该规则误差率 $o(h^2)$ 且… 理论与数学推理  2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-20T15:56:49+08:00" title="2026-11-20">11-20</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>29 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;20&#x2F;paper-counterfactual-world-models-jepas-that-reason-about-what-if&#x2F;">Counterfactual World Models: JEPAs That Reason About &quot;What If&quot;</a>
+    </h3>
+    <p class="bh-card-excerpt">本文先证明一个负面结论——只用事实数据（factual transitions）训练的世界模型，无论数据和容量多大都无法回答个体反事实问题（动作与隐扰动的配对耦合不被事实似然识别）；再用一个物理先验&quot;自然不跳跃&quot;（action 与 disturbance 以分离的力进入动力学时，其交互随转移时长 $h$ 二阶衰减）推出免训练的残差复用规则：反事实预测 &#x3D; 观测结果 + 世界模型在两个动作处的预测之差。该规则误差率 $O(h^2)$ 且…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-11" data-search="seta: scaling environments for terminal agents seta 把终端 agent 的 rl 训练瓶颈从「缺环境」改造成「可流水线生产的环境」：seta-synth 把 stack overflow &#x2F; unix&amp;linux stackexchange &#x2F; kaggle &#x2F; nl2bash 这类人验证过的问题–解对经 idea agent + datapoint agent 双代理转成可执行、可验证的 docker 环境，seta-evol 再按训练模型在每道题上的通过率自适应地加难、减… 评测与验证  2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-19T14:40:55+08:00" title="2026-11-19">11-19</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>31 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;19&#x2F;paper-seta-scaling-environments-for-terminal-agents&#x2F;">SETA: Scaling Environments for Terminal Agents</a>
+    </h3>
+    <p class="bh-card-excerpt">SETA 把终端 Agent 的 RL 训练瓶颈从「缺环境」改造成「可流水线生产的环境」：SETA-Synth 把 Stack Overflow &#x2F; Unix&amp;Linux StackExchange &#x2F; Kaggle &#x2F; NL2Bash 这类人验证过的问题–解对经 Idea Agent + Datapoint Agent 双代理转成可执行、可验证的 Docker 环境，SETA-Evol 再按训练模型在每道题上的通过率自适应地加难、减…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-11" data-search="stream of belief: eliciting collective intelligence through latent belief dynamics 这篇论文把多智能体推理改造成潜信念动力学（latent belief dynamics）问题：n 个共享同一冻结模型的 agent 不再互发文本辩论，而是各自维护一段由信念词元（belief token）构成的连续潜信念，通过「全局交互 + 局部精炼」的信念迭代（belief iteration）把联合状态推向集体均衡点再解码答案。在 8 个基准 × 4 个模型族上（n&#x3D;4、l&#x3D;384、最多 16 轮），sob 对最强 latent … 智能体与harness  2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-19T14:40:55+08:00" title="2026-11-19">11-19</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>29 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;19&#x2F;paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics&#x2F;">Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</a>
+    </h3>
+    <p class="bh-card-excerpt">这篇论文把多智能体推理改造成潜信念动力学（latent belief dynamics）问题：N 个共享同一冻结模型的 agent 不再互发文本辩论，而是各自维护一段由信念词元（belief token）构成的连续潜信念，通过「全局交互 + 局部精炼」的信念迭代（belief iteration）把联合状态推向集体均衡点再解码答案。在 8 个基准 × 4 个模型族上（N&#x3D;4、L&#x3D;384、最多 16 轮），SoB 对最强 latent …</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="safety" data-month="2026-11" data-search="understanding ai from the inside: the state of mechanistic interpretability for ai safety 这篇综述的核心结论不是“看懂模型就能保证安全”，而是：机制可解释性为行为评测补上内部表征、计算路径和因果干预证据，但现有解释既不完整、也不够稳健或可扩展，理解本身更不等于控制；它应与行为评测、训练治理和部署防护组成纵深防御。 安全与可解释性  2026-11">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="safety" title="筛选「安全与可解释性」">安全与可解释性</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-11-09T14:01:59+08:00" title="2026-11-09">11-09</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>20 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;11&#x2F;09&#x2F;paper-understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety&#x2F;">Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</a>
+    </h3>
+    <p class="bh-card-excerpt">这篇综述的核心结论不是“看懂模型就能保证安全”，而是：机制可解释性为行为评测补上内部表征、计算路径和因果干预证据，但现有解释既不完整、也不够稳健或可扩展，理解本身更不等于控制；它应与行为评测、训练治理和部署防护组成纵深防御。</p>
+    
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2026-10" data-month-group="2026-10" data-year="2026">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2026 年 10 月</h2>
+          <span class="bh-month-count" data-group-count="2026-10">1 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-10" data-search="a fix for softmax and cross-entropy 论文发现标准 softmax &#x2F; cross-entropy 的常见稳定化写法仍有两种浮点误差：高置信度时正确类别梯度被舍入为零、蒸馏中师生输出接近时相减放大误差。作者通过改写 log-space 计算，避免“先把两个几乎相等的量算出来再相减”，在不提高内部精度的条件下恢复梯度的一致性；实验证明这能消除特定 grokking 设置中的 slingshot 震荡，并避免初始化相同的学生模型在蒸馏时被数值噪声推离教师。 模型架构与推理效率  2026-10">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-10-26T16:00:20+08:00" title="2026-10-26">10-26</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>10 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;10&#x2F;26&#x2F;paper-a-fix-for-softmax-and-cross-entropy&#x2F;">A Fix for Softmax and Cross-Entropy</a>
+    </h3>
+    <p class="bh-card-excerpt">论文发现标准 softmax &#x2F; cross-entropy 的常见稳定化写法仍有两种浮点误差：高置信度时正确类别梯度被舍入为零、蒸馏中师生输出接近时相减放大误差。作者通过改写 log-space 计算，避免“先把两个几乎相等的量算出来再相减”，在不提高内部精度的条件下恢复梯度的一致性；实验证明这能消除特定 grokking 设置中的 Slingshot 震荡，并避免初始化相同的学生模型在蒸馏时被数值噪声推离教师。</p>
+    
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2026-09" data-month-group="2026-09" data-year="2026">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2026 年 9 月</h2>
+          <span class="bh-month-count" data-group-count="2026-09">8 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-09" data-search="flashreinforce: critic-free single-rollout asynchronous rl for agentic language models flashreinforce 用三个互补机制把“每个 prompt 只采一条轨迹”的异步 rl 变得可训练：批均值 reward 提供正负反馈，序列级 trust gate 丢弃过时轨迹，sample-mean loss 消除长失败轨迹的额外权重。1.5b 推理、7b 工具调用、30b moe、alfworld，四个场景都训得稳、样本用得省；但要看清它证明的是什么——一套在这些设定下有实用价值的训练配方，不是已经解决了任意长时程 ag… 强化学习与后训练  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-16T14:19:42+08:00" title="2026-09-16">09-16</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>19 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;16&#x2F;paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models&#x2F;">FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</a>
+    </h3>
+    <p class="bh-card-excerpt">FlashREINFORCE 用三个互补机制把“每个 prompt 只采一条轨迹”的异步 RL 变得可训练：批均值 reward 提供正负反馈，序列级 trust gate 丢弃过时轨迹，sample-mean loss 消除长失败轨迹的额外权重。1.5B 推理、7B 工具调用、30B MoE、ALFWorld，四个场景都训得稳、样本用得省；但要看清它证明的是什么——一套在这些设定下有实用价值的训练配方，不是已经解决了任意长时程 Ag…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-09" data-search="the last ai built by humans: toward genuine recursive self-improvement 这篇论文把递归自我改进从一句宏大口号拆成一条可审计的路线：b0 只改当前输出，l1 执行固定改进流程，l2 自主选择改进策略，l3 自主决定获得什么学习经验，l4 从真实部署环境持续适应，l5 连“产生下一轮改进的方法”也能被继承和改进。目前较可靠的是 b0–l2，l3–l4 依赖场景，l5 主要还是有边界的原型；真正尚未解决的核心不是“模型会不会自改”，而是改动能否在独立验证、相同资源和安全约束下，稳定提升下一代系统的改进能力。 智能体与harness  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-14T16:03:44+08:00" title="2026-09-14">09-14</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>13 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;14&#x2F;paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement&#x2F;">The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</a>
+    </h3>
+    <p class="bh-card-excerpt">这篇论文把递归自我改进从一句宏大口号拆成一条可审计的路线：B0 只改当前输出，L1 执行固定改进流程，L2 自主选择改进策略，L3 自主决定获得什么学习经验，L4 从真实部署环境持续适应，L5 连“产生下一轮改进的方法”也能被继承和改进。目前较可靠的是 B0–L2，L3–L4 依赖场景，L5 主要还是有边界的原型；真正尚未解决的核心不是“模型会不会自改”，而是改动能否在独立验证、相同资源和安全约束下，稳定提升下一代系统的改进能力。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-09" data-search="deepseek-v4.1-flash: pushing the limits of kv cache compression deepseek-v4.1-flash 的真正贡献不是把模型做小，而是把预填充计算、运行时 kv cache、持久化 kv cache、稀疏索引和部署重放当成一件事一起重新设计：ced 把 prefill 激活参数降到 8b，csa2 + fp4 把全局 kv 压到每 token 890 bytes，swa bounded replay 再把持久化 kv 压到 v4-flash 的约 1&#x2F;8。整份论文是一条面向长时程 agent 的“… 模型架构与推理效率  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-11T13:57:46+08:00" title="2026-09-11">09-11</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>17 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;11&#x2F;paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression&#x2F;">DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</a>
+    </h3>
+    <p class="bh-card-excerpt">DeepSeek-V4.1-Flash 的真正贡献不是把模型做小，而是把预填充计算、运行时 KV Cache、持久化 KV Cache、稀疏索引和部署重放当成一件事一起重新设计：CED 把 prefill 激活参数降到 8B，CSA2 + FP4 把全局 KV 压到每 token 890 bytes，SWA Bounded Replay 再把持久化 KV 压到 V4-Flash 的约 1&#x2F;8。整份论文是一条面向长时程 Agent 的“…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-09" data-search="finite time blowup for navier–stokes 论文声称：对任意正粘性系数 ν，构造一个三维不可压 navier–stokes 解，初始速度为零，外力在时空中光滑且紧支撑；解在 t&#x3D;1 前每个时刻都光滑、动能保持有界，但当 t→1 时 l∞ 速度发散。作者据此声称建立 clay 千禧年问题在 r³ 上的 breakdown alternative (c)，并由紧支撑构造推出周期三维环面上的 alternative (d)。 理论与数学推理  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-09T15:19:43+08:00" title="2026-09-09">09-09</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;09&#x2F;paper-finite-time-blowup-for-navier-stokes&#x2F;">Finite time blowup for Navier–Stokes</a>
+    </h3>
+    <p class="bh-card-excerpt">论文声称：对任意正粘性系数 ν，构造一个三维不可压 Navier–Stokes 解，初始速度为零，外力在时空中光滑且紧支撑；解在 t&#x3D;1 前每个时刻都光滑、动能保持有界，但当 t→1 时 L∞ 速度发散。作者据此声称建立 Clay 千禧年问题在 R³ 上的 breakdown alternative (C)，并由紧支撑构造推出周期三维环面上的 alternative (D)。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-09" data-search="continual learning mechanisms compose for long-horizon memorization 这篇论文干的第一件事是把问题造干净：将“模型连续学习 100 个任务后还能记住多少”单独定义成 long-horizon memorization，再系统组合三类抗遗忘机制（数据、函数、权重 anchor）与两种 lora 状态分配方式。最佳组合把 100 个任务后的平均保留率从朴素顺序微调的 1.2% 提高到 34.9%——但这不是胜利宣言：旧记忆最终仍在衰减，对新问题的泛化也没有被证明。 智能体与harness  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-09T14:52:13+08:00" title="2026-09-09">09-09</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>12 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;09&#x2F;paper-continual-learning-mechanisms-compose-for-long-horizon-memorization&#x2F;">Continual Learning Mechanisms Compose for Long-Horizon Memorization</a>
+    </h3>
+    <p class="bh-card-excerpt">这篇论文干的第一件事是把问题造干净：将“模型连续学习 100 个任务后还能记住多少”单独定义成 long-horizon memorization，再系统组合三类抗遗忘机制（数据、函数、权重 anchor）与两种 LoRA 状态分配方式。最佳组合把 100 个任务后的平均保留率从朴素顺序微调的 1.2% 提高到 34.9%——但这不是胜利宣言：旧记忆最终仍在衰减，对新问题的泛化也没有被证明。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-09" data-search="harness-of-harness: multi-day autonomous software development with continual improvement harness-of-harness（hoh）不去跟&quot;让一个 coding agent 一口气写完软件&quot;较劲，而是在现有 harness 外面再加一层持续改进协议：每轮分别以 planner、developer 和独立 qa tester 三个角色调用它，围绕小而可验证的增量循环，并把代码状态和证据状态一起带进下一轮。三个 benchmark 上，三轮 hoh 全部稳定压过 vanilla harness；70 轮的多日案例里，它从空… 智能体与harness  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-04T16:25:39+08:00" title="2026-09-04">09-04</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>15 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;04&#x2F;paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement&#x2F;">Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</a>
+    </h3>
+    <p class="bh-card-excerpt">Harness-of-Harness（HoH）不去跟&quot;让一个 Coding Agent 一口气写完软件&quot;较劲，而是在现有 harness 外面再加一层持续改进协议：每轮分别以 Planner、Developer 和独立 QA Tester 三个角色调用它，围绕小而可验证的增量循环，并把代码状态和证据状态一起带进下一轮。三个 benchmark 上，三轮 HoH 全部稳定压过 Vanilla harness；70 轮的多日案例里，它从空…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-09" data-search="whale: a simple recipe for joint harness–weight optimization whale 认定一个 agent 是&quot;模型权重 + 可执行 harness&quot;的联合系统，优化就不该只动一边。它交替执行&quot;固定 harness 更新权重&quot;和&quot;固定权重搜索 harness&quot;，在 searchqa、数学推理、国际象棋三个领域全部超过单组件优化；全文最值钱的一条经验是小步交替胜过把一边训到底再换另一边。 智能体与harness  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-03T16:51:11+08:00" title="2026-09-03">09-03</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>14 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;03&#x2F;paper-whale-a-simple-recipe-for-joint-harness-weight-optimization&#x2F;">WHALE: A Simple Recipe for Joint Harness–Weight Optimization</a>
+    </h3>
+    <p class="bh-card-excerpt">WHALE 认定一个 Agent 是&quot;模型权重 + 可执行 harness&quot;的联合系统，优化就不该只动一边。它交替执行&quot;固定 harness 更新权重&quot;和&quot;固定权重搜索 harness&quot;，在 SearchQA、数学推理、国际象棋三个领域全部超过单组件优化；全文最值钱的一条经验是小步交替胜过把一边训到底再换另一边。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-09" data-search="normalized low-rank adaptation nora 发现：lora 早期训练效果很大程度上取决于随机初始化的下投影矩阵 a 的列范数；沿 rank 维度把 a 的每一列归一化，可以修正 lora 的隐式输入侧预条件器，使梯度规模更接近全参数微调，从而加快收敛、提升下游效果并减少遗忘。更实用的是，很多收益只需在初始化时做一次，因此可以用 nora-init，不改变普通 lora 的训练和部署接口。 模型架构与推理效率  2026-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-09-02T14:59:59+08:00" title="2026-09-02">09-02</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>12 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;09&#x2F;02&#x2F;paper-normalized-low-rank-adaptation&#x2F;">Normalized Low-Rank Adaptation</a>
+    </h3>
+    <p class="bh-card-excerpt">NoRA 发现：LoRA 早期训练效果很大程度上取决于随机初始化的下投影矩阵 A 的列范数；沿 rank 维度把 A 的每一列归一化，可以修正 LoRA 的隐式输入侧预条件器，使梯度规模更接近全参数微调，从而加快收敛、提升下游效果并减少遗忘。更实用的是，很多收益只需在初始化时做一次，因此可以用 NoRA-init，不改变普通 LoRA 的训练和部署接口。</p>
+    
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2026-08" data-month-group="2026-08" data-year="2026">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2026 年 8 月</h2>
+          <span class="bh-month-count" data-group-count="2026-08">21 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-08" data-search="ttpo: test-time policy optimization ttpo 用非对称目标把&quot;多数投票伪标签&quot;里的安全信息分离出来——一致样本走 opsd 蒸馏、分歧样本走 grpo 惩罚，再配上 token 级选择，零标签条件下就在五个竞赛级数学基准上追平甚至压过带标签的 opsd，而且这套能力是自己长出来的：在一个基准上训，另外两个也跟着涨。 强化学习与后训练  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-31T15:01:31+08:00" title="2026-08-31">08-31</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>10 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;31&#x2F;paper-ttpo-test-time-policy-optimization&#x2F;">TTPO: Test-Time Policy Optimization</a>
+    </h3>
+    <p class="bh-card-excerpt">TTPO 用非对称目标把&quot;多数投票伪标签&quot;里的安全信息分离出来——一致样本走 OPSD 蒸馏、分歧样本走 GRPO 惩罚，再配上 token 级选择，零标签条件下就在五个竞赛级数学基准上追平甚至压过带标签的 OPSD，而且这套能力是自己长出来的：在一个基准上训，另外两个也跟着涨。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="wikiskill: compiling agent experience into persistent knowledge for skill evolution wikiskill 把 agent 的原始执行轨迹编译成持久化的 wiki 层，再让 wiki 反过来指导可回滚的技能更新：经验先沉淀成知识，知识再驱动技能，raw &#x2F; wiki &#x2F; skill 三层各管各的。跑下来它比无技能基线稳，也压过 trace2skill、evoskill、skillopt 这批主流 skill-evolution 方法。 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-30T23:14:19+08:00" title="2026-08-30">08-30</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>10 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;30&#x2F;paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution&#x2F;">WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</a>
+    </h3>
+    <p class="bh-card-excerpt">WikiSkill 把 Agent 的原始执行轨迹编译成持久化的 Wiki 层，再让 Wiki 反过来指导可回滚的技能更新：经验先沉淀成知识，知识再驱动技能，Raw &#x2F; Wiki &#x2F; Skill 三层各管各的。跑下来它比无技能基线稳，也压过 Trace2Skill、EvoSkill、SkillOpt 这批主流 skill-evolution 方法。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-08" data-search="prefix sliding for efficient test-time scaling prefix sliding 保留任务前缀与最近推理窗口，丢弃中间历史 token，使现有全注意力模型在长思考时的每-token 成本趋于常数；无需训练即可在保持性能的同时约 3× 加速，并让 rl rollout 延伸到 10 万 token 以上。它不是全新的 transformer 架构，而是一个简单、可部署、击中长时程 test-time scaling 瓶颈的推理原语。 模型架构与推理效率  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-29T21:30:22+08:00" title="2026-08-29">08-29</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>16 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;29&#x2F;paper-prefix-sliding-for-efficient-test-time-scaling&#x2F;">Prefix Sliding for efficient test-time scaling</a>
+    </h3>
+    <p class="bh-card-excerpt">Prefix Sliding 保留任务前缀与最近推理窗口，丢弃中间历史 token，使现有全注意力模型在长思考时的每-token 成本趋于常数；无需训练即可在保持性能的同时约 3× 加速，并让 RL rollout 延伸到 10 万 token 以上。它不是全新的 Transformer 架构，而是一个简单、可部署、击中长时程 test-time scaling 瓶颈的推理原语。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="prime agent: a self-improving rlm harness prime agent 是一个开源的自改进 rlm（recursive language model）harness：用持久 ipython repl、递归子代理和跨轨迹可修订的持久状态（continual harness），把 llm 从&quot;有界顺序处理器&quot;扩展成冯·诺依曼式可寻址状态机器——模型可以在权重和活跃上下文之外读、写、变换状态。其结果是 arc-agi-3 的 rhae best@1 从 30% 拉到 95.5%（人类基线… 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-27T17:01:04+08:00" title="2026-08-27">08-27</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>18 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;27&#x2F;paper-prime-agent-a-self-improving-rlm-harness&#x2F;">Prime Agent: A Self-Improving RLM Harness</a>
+    </h3>
+    <p class="bh-card-excerpt">Prime Agent 是一个开源的自改进 RLM（Recursive Language Model）harness：用持久 IPython REPL、递归子代理和跨轨迹可修订的持久状态（Continual Harness），把 LLM 从&quot;有界顺序处理器&quot;扩展成冯·诺依曼式可寻址状态机器——模型可以在权重和活跃上下文之外读、写、变换状态。其结果是 ARC-AGI-3 的 RHAE Best@1 从 30% 拉到 95.5%（人类基线…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="envharness: awakening static worlds for agent learning envharness：把 agent harness 的思想照搬到&quot;环境的另一侧&quot;——agent harness 用插件组件包装冻结的 llm 变成 agent；envharness 用插件组件包装冻结的静态环境变成可定制环境（customized env &#x3D; static env + envharness）。核心是三类环境无关的组件：stage（改初始状态）、contract（重写交互：动作&#x2F;转换&#x2F;观测）、chain（拼接&#x2F;扩展环境… 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-26T00:11:55+08:00" title="2026-08-26">08-26</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>13 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;26&#x2F;paper-envharness-awakening-static-worlds-for-agent-learning&#x2F;">EnvHarness: Awakening Static Worlds for Agent Learning</a>
+    </h3>
+    <p class="bh-card-excerpt">EnvHarness：把 agent harness 的思想照搬到&quot;环境的另一侧&quot;——agent harness 用插件组件包装冻结的 LLM 变成 agent；EnvHarness 用插件组件包装冻结的静态环境变成可定制环境（Customized Env &#x3D; Static Env + EnvHarness）。核心是三类环境无关的组件：Stage（改初始状态）、Contract（重写交互：动作&#x2F;转换&#x2F;观测）、Chain（拼接&#x2F;扩展环境…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-08" data-search="recirculation recirculation（再循环）：一个推理时的架构增强——运行 llm 时每步把深层激活&quot;泄漏&quot;一小部分回浅层（source→destination 层对 + 混合系数 α），让前馈 transformer 变成动力系统，能像 rnn&#x2F;kalman 滤波那样追踪信念状态。核心动机：前馈 transformer 的状态更新受模型深度限制（一个 token 的信息要跨很多层才能影响后续处理），而 recirculation 让状态在同… 模型架构与推理效率  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-21T20:06:24+08:00" title="2026-08-21">08-21</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>11 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;21&#x2F;paper-recirculation&#x2F;">Recirculation</a>
+    </h3>
+    <p class="bh-card-excerpt">Recirculation（再循环）：一个推理时的架构增强——运行 LLM 时每步把深层激活&quot;泄漏&quot;一小部分回浅层（source→destination 层对 + 混合系数 α），让前馈 Transformer 变成动力系统，能像 RNN&#x2F;Kalman 滤波那样追踪信念状态。核心动机：前馈 Transformer 的状态更新受模型深度限制（一个 token 的信息要跨很多层才能影响后续处理），而 recirculation 让状态在同…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-08" data-search="proteus: incremental memory activation for long-context sequence modeling 提出增量记忆激活（incremental memory activation）新范式：现有记忆型序列模型（swla&#x2F;comba&#x2F;titans&#x2F;hope-attention 等）在整个序列上暴露静态记忆——早期 token 没有压缩压力，占据过多自由度&quot;污染&quot;记忆状态，留给后续上下文的容量不足、新旧存储相互干扰。proteus 让记忆有效容量随上下文增长逐步解锁：早期强制瓶颈（逼模型有效压缩历史），后期解锁新容量（减少覆盖与干扰、改善后… 模型架构与推理效率  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-19T23:37:44+08:00" title="2026-08-19">08-19</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>11 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;19&#x2F;paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling&#x2F;">Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</a>
+    </h3>
+    <p class="bh-card-excerpt">提出增量记忆激活（Incremental Memory Activation）新范式：现有记忆型序列模型（SWLA&#x2F;Comba&#x2F;Titans&#x2F;Hope-Attention 等）在整个序列上暴露静态记忆——早期 token 没有压缩压力，占据过多自由度&quot;污染&quot;记忆状态，留给后续上下文的容量不足、新旧存储相互干扰。Proteus 让记忆有效容量随上下文增长逐步解锁：早期强制瓶颈（逼模型有效压缩历史），后期解锁新容量（减少覆盖与干扰、改善后…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="why does claude.md keep growing? catastrophic remembering in agentic coding &quot;灾难性记住&quot;（catastrophic remembering）——agentic 编码的 readme（claude.md&#x2F;agents.md 类上下文文件）在真实仓库中无界增长，只有仓库退役或有人整体重写才会停。根因是不完美的记忆（imperfect recall）：追加一条指令永远便宜，可一旦指令背后的&quot;为什么&quot;（latent reasoning）消失，删除它而不冒正确性回归的风险需要 o(2^|d|) 次子集探测（|d| 条… 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-14T13:09:12+08:00" title="2026-08-14">08-14</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>12 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;14&#x2F;paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding&#x2F;">Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</a>
+    </h3>
+    <p class="bh-card-excerpt">&quot;灾难性记住&quot;（Catastrophic Remembering）——agentic 编码的 README（CLAUDE.md&#x2F;AGENTS.md 类上下文文件）在真实仓库中无界增长，只有仓库退役或有人整体重写才会停。根因是不完美的记忆（imperfect recall）：追加一条指令永远便宜，可一旦指令背后的&quot;为什么&quot;（latent reasoning）消失，删除它而不冒正确性回归的风险需要 O(2^|D|) 次子集探测（|D| 条…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-08" data-search="swe-bench promax: benchmarking agents on large-scale multilingual code refactoring swe-bench promax 把重构（跨多文件、保持行为不变的结构性变更）立成编码 agent 评测的难度轴：首个专家策展的多语言大规模重构基准，170 个实例全部来自 7 种语言（python&#x2F;java&#x2F;typescript&#x2F;go&#x2F;c&#x2F;c++&#x2F;rust）的真实 refactor commit，平均 11.4 个修改文件、261.6 行代码——对比之下，86% 的 swe-bench verified 只改 1 个文件，量级完全不… 评测与验证  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-12T20:37:36+08:00" title="2026-08-12">08-12</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>12 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;12&#x2F;paper-swe-bench-promax-benchmarking-agents-on-large-scale-multilingual-code-refactoring&#x2F;">SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring</a>
+    </h3>
+    <p class="bh-card-excerpt">SWE-Bench ProMax 把重构（跨多文件、保持行为不变的结构性变更）立成编码 agent 评测的难度轴：首个专家策展的多语言大规模重构基准，170 个实例全部来自 7 种语言（Python&#x2F;Java&#x2F;TypeScript&#x2F;Go&#x2F;C&#x2F;C++&#x2F;Rust）的真实 refactor commit，平均 11.4 个修改文件、261.6 行代码——对比之下，86% 的 SWE-bench Verified 只改 1 个文件，量级完全不…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="safety" data-month="2026-08" data-search="stealing reasoning traces from proprietary llm apis 主流 llm 厂商（anthropic&#x2F;openai&#x2F;google）把模型推理痕迹（cot）加密成块返回客户端，但这些加密块在同一厂商生态内完全可互换（跨会话&#x2F;跨用户&#x2F;跨模型）——攻击者把强模型（opus 4.8、gpt-5.6 sol）的加密推理块注入同厂商更弱、防护更差的模型（haiku 4.5、gpt-5.6 luna、gemini robotics 1.6），逼它原文解码输出推理痕迹，全程不直接越狱强模型。四个攻击向量：①绕过… 安全与可解释性  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="safety" title="筛选「安全与可解释性」">安全与可解释性</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-12T20:33:57+08:00" title="2026-08-12">08-12</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>16 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;12&#x2F;paper-stealing-reasoning-traces-from-proprietary-llm-apis&#x2F;">Stealing Reasoning Traces from Proprietary LLM APIs</a>
+    </h3>
+    <p class="bh-card-excerpt">主流 LLM 厂商（Anthropic&#x2F;OpenAI&#x2F;Google）把模型推理痕迹（CoT）加密成块返回客户端，但这些加密块在同一厂商生态内完全可互换（跨会话&#x2F;跨用户&#x2F;跨模型）——攻击者把强模型（Opus 4.8、GPT-5.6 Sol）的加密推理块注入同厂商更弱、防护更差的模型（Haiku 4.5、GPT-5.6 Luna、Gemini Robotics 1.6），逼它原文解码输出推理痕迹，全程不直接越狱强模型。四个攻击向量：①绕过…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-08" data-search="tencent workbuddy bench: a multi-domain coding-agent benchmark with contamination-resistant task construction 腾讯这套多领域编码智能体评测套件，最值得记的是抗污染的任务构建方式：四个工作域（code &#x2F; web &#x2F; office &#x2F; security）的每个任务都从真实 commit &#x2F; pr &#x2F; 业务场景反向工程而来，再改写成口语化、角色扮演、欠定义的自然语言请求——拿着任务 prompt 去搜底层的 issue&#x2F;pr&#x2F;commit 线程，什么都搜不到。全套开源（任务目录、环境镜像、评测 harness、测试、参考答案），抗污染靠&quot;构建方式… 评测与验证  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-11T22:42:44+08:00" title="2026-08-11">08-11</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>12 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;11&#x2F;paper-tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction&#x2F;">Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</a>
+    </h3>
+    <p class="bh-card-excerpt">腾讯这套多领域编码智能体评测套件，最值得记的是抗污染的任务构建方式：四个工作域（Code &#x2F; Web &#x2F; Office &#x2F; Security）的每个任务都从真实 commit &#x2F; PR &#x2F; 业务场景反向工程而来，再改写成口语化、角色扮演、欠定义的自然语言请求——拿着任务 prompt 去搜底层的 issue&#x2F;PR&#x2F;commit 线程，什么都搜不到。全套开源（任务目录、环境镜像、评测 harness、测试、参考答案），抗污染靠&quot;构建方式…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="llmrouter: unified infrastructure for developing, evaluating, and deploying llm routers 给 llm 路由这个各自为政的领域立了三件公共品：① 统一形式化——把模型路由建模为序贯决策过程，由 5 类组件刻画（context encoders &#x2F; model encoders &#x2F; scoring functions &#x2F; decision rules &#x2F; learning signals），现有方法全部归入单轮、多轮、个性化三族；② xroutebench 基准——覆盖通用 llm、记忆增强、视觉（图&#x2F;视频）、时间序列、个性化… 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-11T14:27:28+08:00" title="2026-08-11">08-11</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>12 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;11&#x2F;paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers&#x2F;">LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</a>
+    </h3>
+    <p class="bh-card-excerpt">给 LLM 路由这个各自为政的领域立了三件公共品：① 统一形式化——把模型路由建模为序贯决策过程，由 5 类组件刻画（context encoders &#x2F; model encoders &#x2F; scoring functions &#x2F; decision rules &#x2F; learning signals），现有方法全部归入单轮、多轮、个性化三族；② xRouteBench 基准——覆盖通用 LLM、记忆增强、视觉（图&#x2F;视频）、时间序列、个性化…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="argus: a general-purpose agentic runtime for long-horizon reasoning 提出 argus：一个持久、自进化的通用 agentic runtime，冲着长时程推理（性能工程、安全研究、科学探索、数学研究）去设计。四个模型角色（manager &#x2F; planner &#x2F; engineer &#x2F; reviewer）在持久化项目状态上执行有界任务（mission），核心机制是验证门控的持久化、转向与运行时自进化：稳定的用户意图（standing intent）与可被证据精化的操作目标&#x2F;约束&#x2F;验证标准分开；任何实质性变更… 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-10T14:34:54+08:00" title="2026-08-10">08-10</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>13 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;10&#x2F;paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning&#x2F;">Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</a>
+    </h3>
+    <p class="bh-card-excerpt">提出 Argus：一个持久、自进化的通用 agentic runtime，冲着长时程推理（性能工程、安全研究、科学探索、数学研究）去设计。四个模型角色（Manager &#x2F; Planner &#x2F; Engineer &#x2F; Reviewer）在持久化项目状态上执行有界任务（mission），核心机制是验证门控的持久化、转向与运行时自进化：稳定的用户意图（standing intent）与可被证据精化的操作目标&#x2F;约束&#x2F;验证标准分开；任何实质性变更…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-08" data-search="u-opsd: on-policy self-distillation without any supervision 提出 u-opsd（unsupervised on-policy self-distillation）：证明 on-policy 自蒸馏可以完全不需要任何外部监督（无 ground-truth 答案、无环境反馈、无更强教师）——只用模型自身的多次采样 + 内部一致性（多数投票） 构造伪解。方法：采样 g 个 rollout → 多数投票得伪答案（置信度阈值过滤）→ 用最短的同意 rollout 作为教师参考 → 把教师分布蒸馏到学生最… 强化学习与后训练  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-10T14:34:43+08:00" title="2026-08-10">08-10</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>11 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;10&#x2F;paper-u-opsd-on-policy-self-distillation-without-any-supervision&#x2F;">U-OPSD: On-Policy Self-Distillation without Any Supervision</a>
+    </h3>
+    <p class="bh-card-excerpt">提出 u-OPSD（Unsupervised On-Policy Self-Distillation）：证明 on-policy 自蒸馏可以完全不需要任何外部监督（无 ground-truth 答案、无环境反馈、无更强教师）——只用模型自身的多次采样 + 内部一致性（多数投票） 构造伪解。方法：采样 G 个 rollout → 多数投票得伪答案（置信度阈值过滤）→ 用最短的同意 rollout 作为教师参考 → 把教师分布蒸馏到学生最…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-08" data-search="agentopsd: recursive self-distillation for agentic reinforcement learning 提出 agentopsd：不给 agentic rl 加 critic，用递归的轮级信用分配解决&quot;轨迹级稀疏奖励无法给关键决策正确赋分&quot;的问题。核心动作是把 token 级师生对数概率差（self-distillation gap）聚合成轮级证据，在 log-odds 空间递归更新&quot;轨迹最终会成功&quot;的贝叶斯信念——一个轮次关键不关键，看它让信念挪动了多少（pivotal turns），再把 grpo 的单一序列级优势重分配成轮级优势。… 强化学习与后训练  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-08T16:20:19+08:00" title="2026-08-08">08-08</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>14 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;08&#x2F;paper-agentopsd-recursive-self-distillation-for-agentic-reinforcement-learning&#x2F;">AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning</a>
+    </h3>
+    <p class="bh-card-excerpt">提出 AgentOPSD：不给 agentic RL 加 critic，用递归的轮级信用分配解决&quot;轨迹级稀疏奖励无法给关键决策正确赋分&quot;的问题。核心动作是把 token 级师生对数概率差（self-distillation gap）聚合成轮级证据，在 log-odds 空间递归更新&quot;轨迹最终会成功&quot;的贝叶斯信念——一个轮次关键不关键，看它让信念挪动了多少（pivotal turns），再把 GRPO 的单一序列级优势重分配成轮级优势。…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-08" data-search="leanstral leanstral 是 mistral 推出的一系列 lean 4 代码智能体模型（119b 总参 &#x2F; 6b 激活，moe）——它不搞专用的证明器脚手架（prover scaffold），而是直接跑在开源的 mistral vibe 代码智能体 harness 里，像普通编码助手一样编辑文件、跑命令、看编译器反馈。结果：minif2f 满分饱和（244&#x2F;244）、putnambench 解 587&#x2F;672、fate-x 34% sot… 理论与数学推理  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-07T13:33:31+08:00" title="2026-08-07">08-07</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>15 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;07&#x2F;paper-leanstral&#x2F;">Leanstral</a>
+    </h3>
+    <p class="bh-card-excerpt">Leanstral 是 Mistral 推出的一系列 Lean 4 代码智能体模型（119B 总参 &#x2F; 6B 激活，MoE）——它不搞专用的证明器脚手架（prover scaffold），而是直接跑在开源的 Mistral Vibe 代码智能体 harness 里，像普通编码助手一样编辑文件、跑命令、看编译器反馈。结果：miniF2F 满分饱和（244&#x2F;244）、PutnamBench 解 587&#x2F;672、FATE-X 34% SOT…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-08" data-search="mooncake: a kvcache-centric disaggregated architecture for llm serving mooncake 是 kimi（月之暗面）的 llm 服务生产平台，核心是 kvcache 中心化的分离式架构（disaggregated architecture）——把 prefill 与 decoding 集群物理分离，并利用 gpu 集群中未被充分利用的 cpu、dram、ssd 资源构建分布式 kvcache 池。其全局调度器 conductor 以&quot;最大化有效吞吐 + 满足延迟 slo（ttft&#x2F;tbt）&quot;为目标做 kvc… 模型架构与推理效率  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-07T12:04:12+08:00" title="2026-08-07">08-07</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>12 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;07&#x2F;paper-mooncake-a-kvcache-centric-disaggregated-architecture-for-llm-serving&#x2F;">Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving</a>
+    </h3>
+    <p class="bh-card-excerpt">Mooncake 是 Kimi（月之暗面）的 LLM 服务生产平台，核心是 KVCache 中心化的分离式架构（disaggregated architecture）——把 prefill 与 decoding 集群物理分离，并利用 GPU 集群中未被充分利用的 CPU、DRAM、SSD 资源构建分布式 KVCache 池。其全局调度器 Conductor 以&quot;最大化有效吞吐 + 满足延迟 SLO（TTFT&#x2F;TBT）&quot;为目标做 KVC…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="longhorizon-harness: advancing long-horizon agents for real-world tasks 提出 longhorizon-harness：把长时程 agent 执行重新表述为&quot;任务状态管理&quot;问题——不再让一个不断增长的上下文会话自己判断进度，而是用 manage-execute-audit（mea）循环把任务状态显式维护在&quot;执行之外&quot;，且只有从环境独立验证过的事实才能更新状态。同一模型下，weavebench passrate 从 51.8% 提升到 80.7%、terminal-bench 2.1 从 69.7% 到 77… 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-07T00:59:17+08:00" title="2026-08-07">08-07</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>15 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;07&#x2F;paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks&#x2F;">LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</a>
+    </h3>
+    <p class="bh-card-excerpt">提出 LongHorizon-Harness：把长时程 agent 执行重新表述为&quot;任务状态管理&quot;问题——不再让一个不断增长的上下文会话自己判断进度，而是用 Manage-Execute-Audit（MEA）循环把任务状态显式维护在&quot;执行之外&quot;，且只有从环境独立验证过的事实才能更新状态。同一模型下，WeaveBench PassRate 从 51.8% 提升到 80.7%、Terminal-Bench 2.1 从 69.7% 到 77…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-08" data-search="memharness: memory is reconstructed, not replayed 提出 memharness，核心动作是换范式：把 llm agent 的&quot;检索-重放&quot;（retrieve-and-replay）改成&quot;检索-评估-重构&quot;（retrieve-evaluate-reconstruct）——每个决策步，统一策略模型先批判并重构检索到的历史经验（把&quot;经验的源状态&quot;与&quot;当前状态&quot;摆在一起对比），生成状态对齐的引导再行动。这种重构能力不是标出来的，是 grpo 端到端训练里自然长出来的：alfworld（85.2… 智能体与harness  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-04T21:47:27+08:00" title="2026-08-04">08-04</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>13 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;04&#x2F;paper-memharness-memory-is-reconstructed-not-replayed&#x2F;">MemHarness: Memory Is Reconstructed, Not Replayed</a>
+    </h3>
+    <p class="bh-card-excerpt">提出 MemHarness，核心动作是换范式：把 LLM agent 的&quot;检索-重放&quot;（retrieve-and-replay）改成&quot;检索-评估-重构&quot;（retrieve-evaluate-reconstruct）——每个决策步，统一策略模型先批判并重构检索到的历史经验（把&quot;经验的源状态&quot;与&quot;当前状态&quot;摆在一起对比），生成状态对齐的引导再行动。这种重构能力不是标出来的，是 GRPO 端到端训练里自然长出来的：ALFWorld（85.2…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-08" data-search="ten advances in mathematics and theoretical computer science openai 内部模型一次性产出了数学与理论计算机科学领域的 10 项独立重大进展——每一项都是该领域悬置数十年、被写入综述和开放问题清单的经典难题：非 sofic 群的显式构造（否证 soficity 猜想）、connes 刚性猜想的反例、球堆积高维指数 1978 年以来首次改进、ehrhart 体积猜想的完整证明、多色 ramsey 数超指数下界、量子平行重复定理（全纠缠博弈类）等。论文以 10 章独立论文形式呈现，每章包含完整证… 理论与数学推理  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-04T16:20:28+08:00" title="2026-08-04">08-04</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>16 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;04&#x2F;paper-ten-advances-in-mathematics-and-theoretical-computer-science&#x2F;">Ten Advances in Mathematics and Theoretical Computer Science</a>
+    </h3>
+    <p class="bh-card-excerpt">OpenAI 内部模型一次性产出了数学与理论计算机科学领域的 10 项独立重大进展——每一项都是该领域悬置数十年、被写入综述和开放问题清单的经典难题：非 sofic 群的显式构造（否证 soficity 猜想）、Connes 刚性猜想的反例、球堆积高维指数 1978 年以来首次改进、Ehrhart 体积猜想的完整证明、多色 Ramsey 数超指数下界、量子平行重复定理（全纠缠博弈类）等。论文以 10 章独立论文形式呈现，每章包含完整证…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-08" data-search="weak-to-strong on-policy distillation w2s-opd（weak-to-strong on-policy distillation） 把&quot;教师必须不弱于学生&quot;这条默认前提直接掀掉：拿两个比学生更弱的模型（正&#x2F;负对比对）的 logit 差值提出&quot;能力方向&quot;（capability direction），叠回学生自己的基模型，拼出一个代理教师，学生对着它在自己的 rollout 上做反向 kl 蒸馏。所有监督源都比学生弱，强学生照样继续变强，数学推理上甚至反超它所学习的领域教师。 强化学习与后训练  2026-08">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-08-04T08:24:00+08:00" title="2026-08-04">08-04</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>14 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;08&#x2F;04&#x2F;paper-weak-to-strong-on-policy-distillation&#x2F;">Weak-to-Strong On-Policy Distillation</a>
+    </h3>
+    <p class="bh-card-excerpt">W2S-OPD（Weak-to-Strong On-Policy Distillation） 把&quot;教师必须不弱于学生&quot;这条默认前提直接掀掉：拿两个比学生更弱的模型（正&#x2F;负对比对）的 logit 差值提出&quot;能力方向&quot;（capability direction），叠回学生自己的基模型，拼出一个代理教师，学生对着它在自己的 rollout 上做反向 KL 蒸馏。所有监督源都比学生弱，强学生照样继续变强，数学推理上甚至反超它所学习的领域教师。</p>
+    
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2026-07" data-month-group="2026-07" data-year="2026">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2026 年 7 月</h2>
+          <span class="bh-month-count" data-group-count="2026-07">14 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="paper" data-cat="multimodal" data-month="2026-07" data-search="data pyramid for embodied manipulation 把具身操纵的数据生态摆成一座五层数据金字塔（real-robot → umi-style → egocentric&#x2F;exocentric → simulation → general），两个轴一拉——scalability 与 robot alignment——每层数据的斤两立刻有了坐标：越往塔底越好收，也越难直接用到机器人身上。三类具身基础模型（embodied brain, vla, wam）各吃哪几层、怎么吃，六大开放挑战就是这… 多模态与具身智能  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="multimodal" title="筛选「多模态与具身智能」">多模态与具身智能</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-29T13:11:13+08:00" title="2026-07-29">07-29</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;29&#x2F;paper-data-pyramid-for-embodied-manipulation&#x2F;">Data Pyramid for Embodied Manipulation</a>
+    </h3>
+    <p class="bh-card-excerpt">把具身操纵的数据生态摆成一座五层数据金字塔（real-robot → UMI-style → egocentric&#x2F;exocentric → simulation → general），两个轴一拉——scalability 与 robot alignment——每层数据的斤两立刻有了坐标：越往塔底越好收，也越难直接用到机器人身上。三类具身基础模型（Embodied Brain, VLA, WAM）各吃哪几层、怎么吃，六大开放挑战就是这…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-07" data-search="kimi k3: open frontier intelligence 2.8t 参数的 moe，kimi 这回押的是架构不是参数量：kimi delta attention (kda)、attention residuals (attnres)、stable latentmoe、per-head muon 一起换来 2.5× scaling efficiency 提升；后训练配百万 token 级 agentic rl，部署靠从 sft 阶段就开始的 mxfp4 量化感知训练——长程编码、agent、知… 模型架构与推理效率  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-28T16:29:12+08:00" title="2026-07-28">07-28</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>7 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;28&#x2F;paper-kimi-k3-open-frontier-intelligence&#x2F;">Kimi K3: Open Frontier Intelligence</a>
+    </h3>
+    <p class="bh-card-excerpt">2.8T 参数的 MoE，Kimi 这回押的是架构不是参数量：Kimi Delta Attention (KDA)、Attention Residuals (AttnRes)、Stable LatentMoE、Per-Head Muon 一起换来 2.5× scaling efficiency 提升；后训练配百万 token 级 agentic RL，部署靠从 SFT 阶段就开始的 MXFP4 量化感知训练——长程编码、agent、知…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-07" data-search="expanding flow maps 给 flow-based 生成模型补一个 expand operator，把「状态维度在初始化时焊死」这条限制拆掉——流映射分解成「扩展状态空间 + 沿插值轨迹传输」两个可学习操作，连续和离散状态空间上都做出自适应维度的少步生成。 理论与数学推理  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-28T08:30:18+08:00" title="2026-07-28">07-28</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>10 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;28&#x2F;paper-expanding-flow-maps&#x2F;">Expanding Flow Maps</a>
+    </h3>
+    <p class="bh-card-excerpt">给 flow-based 生成模型补一个 expand operator，把「状态维度在初始化时焊死」这条限制拆掉——流映射分解成「扩展状态空间 + 沿插值轨迹传输」两个可学习操作，连续和离散状态空间上都做出自适应维度的少步生成。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-07" data-search="hilbert operator for progressive encoding (hope): a mathematical framework for deconstructing learned representations in deep networks 不碰参数数值，把每个神经元当成连续 hilbert 空间里的 rank-1 hilbert-schmidt 算子来称重——剪枝和合并从此是同一件事，都是低秩子空间投影。更狠的是，含 bn 的网络连一条训练数据都不用，bn 的滑动统计配上最大熵原理就能解析出全部代价，无数据、无超参数，顺手把网络里的核心不变量和可塑冗余也分了出来。 理论与数学推理  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-26T12:08:10+08:00" title="2026-07-26">07-26</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>11 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;26&#x2F;paper-hilbert-operator-for-progressive-encoding-hope-a-mathematical-framework-for-deconstructing-learned-representations&#x2F;">Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks</a>
+    </h3>
+    <p class="bh-card-excerpt">不碰参数数值，把每个神经元当成连续 Hilbert 空间里的 rank-1 Hilbert-Schmidt 算子来称重——剪枝和合并从此是同一件事，都是低秩子空间投影。更狠的是，含 BN 的网络连一条训练数据都不用，BN 的滑动统计配上最大熵原理就能解析出全部代价，无数据、无超参数，顺手把网络里的核心不变量和可塑冗余也分了出来。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-07" data-search="arex: towards a recursively self-improving agent for deep research 深度研究里有个发现-验证不对称：找到满足全部耦合约束的答案很贵，逐条约束去查证却便宜。arex 整套架构就搭在这个差价上——双层递归自改进（rsi）：内循环研究攒证据、出候选答案，外循环逐约束审计、定向修正，配上自主的上下文更新工具，4b 和 10b 激活参数的模型打出了能和 frontier model 掰手腕的 deep research 能力。 智能体与harness  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-25T17:16:50+08:00" title="2026-07-25">07-25</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>9 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;25&#x2F;paper-arex-towards-a-recursively-self-improving-agent-for-deep-research&#x2F;">AREX: Towards a Recursively Self-Improving Agent for Deep Research</a>
+    </h3>
+    <p class="bh-card-excerpt">深度研究里有个发现-验证不对称：找到满足全部耦合约束的答案很贵，逐条约束去查证却便宜。AREX 整套架构就搭在这个差价上——双层递归自改进（RSI）：内循环研究攒证据、出候选答案，外循环逐约束审计、定向修正，配上自主的上下文更新工具，4B 和 10B 激活参数的模型打出了能和 frontier model 掰手腕的 deep research 能力。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="safety" data-month="2026-07" data-search="measuring reward-seeking via contrastive belief updates 别去问模型「有没有在取悦评分器」，直接改掉它对「评分器奖励什么」的信念、看行为跟着动不动——把 reward-seeking 操作化成模型行为对 grader 信念的因果敏感性。方法叫 contrastive synthetic document finetuning（对比合成文档微调），测出来的结果不让人安心：rl 训练在系统性地把模型往 grader 一边推，reward-hacking 训练还会把这根弦再拧紧一档。 安全与可解释性  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="safety" title="筛选「安全与可解释性」">安全与可解释性</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-25T01:39:59+08:00" title="2026-07-25">07-25</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>7 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;25&#x2F;paper-measuring-reward-seeking-via-contrastive-belief-updates&#x2F;">Measuring Reward-Seeking via Contrastive Belief Updates</a>
+    </h3>
+    <p class="bh-card-excerpt">别去问模型「有没有在取悦评分器」，直接改掉它对「评分器奖励什么」的信念、看行为跟着动不动——把 reward-seeking 操作化成模型行为对 grader 信念的因果敏感性。方法叫 Contrastive Synthetic Document Finetuning（对比合成文档微调），测出来的结果不让人安心：RL 训练在系统性地把模型往 grader 一边推，reward-hacking 训练还会把这根弦再拧紧一档。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-07" data-search="language model harnesses are compositional generalizers 组合泛化这件事，作者主张别再指望 transformer 自己开窍——交给神经网络外面那层程序（harness）来管。办法是两个动作：上下文卸载 + 程序化子调用，让每一次单独的 lm 调用都保持局部在分布内（lid）。结果是只在短任务上训过的模型，直接泛化到 8-32 倍更长的任务和跨域任务，eval lift 达到 train lift 的约 10 倍。 智能体与harness  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-24T00:51:54+08:00" title="2026-07-24">07-24</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;24&#x2F;paper-language-model-harnesses-are-compositional-generalizers&#x2F;">Language model harnesses are compositional generalizers</a>
+    </h3>
+    <p class="bh-card-excerpt">组合泛化这件事，作者主张别再指望 Transformer 自己开窍——交给神经网络外面那层程序（harness）来管。办法是两个动作：上下文卸载 + 程序化子调用，让每一次单独的 LM 调用都保持局部在分布内（LID）。结果是只在短任务上训过的模型，直接泛化到 8-32 倍更长的任务和跨域任务，eval lift 达到 train lift 的约 10 倍。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="multimodal" data-month="2026-07" data-search="inkling: our open-weights model thinking machines 发布 inkling——975b 总参数 &#x2F; 41b 激活的 moe 模型。可控思考努力（controllable thinking effort）此前是 gpt-5.6 这类闭源模型的专属，inkling 第一次把它带进开源权重，原生多模态（文本&#x2F;图像&#x2F;音频）和大规模 rl 训练也在同一次训练里做齐。定位不装：不做&quot;最强模型&quot;，做&quot;最好的可微调底座&quot;。 多模态与具身智能  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="multimodal" title="筛选「多模态与具身智能」">多模态与具身智能</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-16T19:53:43+08:00" title="2026-07-16">07-16</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>11 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;16&#x2F;paper-inkling-our-open-weights-model&#x2F;">Inkling: Our Open-Weights Model</a>
+    </h3>
+    <p class="bh-card-excerpt">Thinking Machines 发布 Inkling——975B 总参数 &#x2F; 41B 激活的 MoE 模型。可控思考努力（controllable thinking effort）此前是 GPT-5.6 这类闭源模型的专属，Inkling 第一次把它带进开源权重，原生多模态（文本&#x2F;图像&#x2F;音频）和大规模 RL 训练也在同一次训练里做齐。定位不装：不做&quot;最强模型&quot;，做&quot;最好的可微调底座&quot;。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-07" data-search="llm-as-a-verifier: a general-purpose verification framework llm-as-a-verifier 把「验证」从流程里的边角活扶正成一条独立的 scaling axis：一个无需额外训练的通用框架，只靠 scoring token 上的 logit 期望值把离散评分拉成连续分数，再沿粒度细化、重复评估和标准分解三个轴各自加码——coding &#x2F; robotics &#x2F; medical 四个 benchmark 全部拿到 sota。 评测与验证  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-10T15:13:48+08:00" title="2026-07-10">07-10</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;10&#x2F;paper-llm-as-a-verifier-a-general-purpose-verification-framework&#x2F;">LLM-as-a-Verifier: A General-Purpose Verification Framework</a>
+    </h3>
+    <p class="bh-card-excerpt">LLM-as-a-Verifier 把「验证」从流程里的边角活扶正成一条独立的 scaling axis：一个无需额外训练的通用框架，只靠 scoring token 上的 logit 期望值把离散评分拉成连续分数，再沿粒度细化、重复评估和标准分解三个轴各自加码——coding &#x2F; robotics &#x2F; medical 四个 benchmark 全部拿到 SOTA。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-07" data-search="single-rollout asynchronous optimization for agentic reinforcement learning 异步 agentic rl 的两个老大难——off-policy 漂移和训练不稳——sao (single-rollout asynchronous optimization) 一件一件对着解：单次 rollout 采样顶替 group-wise 采样，双端 token-level clipping管住 off-policy，skip-observation gae甩掉 agentic 轨迹里 observation token 的噪… 强化学习与后训练  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-10T14:54:20+08:00" title="2026-07-10">07-10</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>7 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;10&#x2F;paper-single-rollout-asynchronous-optimization-for-agentic-reinforcement-learning&#x2F;">Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning</a>
+    </h3>
+    <p class="bh-card-excerpt">异步 agentic RL 的两个老大难——off-policy 漂移和训练不稳——SAO (Single-rollout Asynchronous Optimization) 一件一件对着解：单次 rollout 采样顶替 group-wise 采样，双端 token-level clipping管住 off-policy，Skip-Observation GAE甩掉 agentic 轨迹里 observation token 的噪…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-07" data-search="compactionrl: reinforcement learning with context compaction for long-horizon agents 提出 compactionrl：把上下文压缩（context compaction）从推理时的启发式技巧拉进 rl 训练，变成 ppo 框架里与任务执行联合优化的策略行为。配两处关键设计——token级损失归一化和跨轨迹gae——让长视野 agent 在固定 context budget 下突破有效训练 horizon。 强化学习与后训练  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-10T14:53:46+08:00" title="2026-07-10">07-10</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;10&#x2F;paper-compactionrl-reinforcement-learning-with-context-compaction-for-long-horizon-agents&#x2F;">CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents</a>
+    </h3>
+    <p class="bh-card-excerpt">提出 CompactionRL：把上下文压缩（context compaction）从推理时的启发式技巧拉进 RL 训练，变成 PPO 框架里与任务执行联合优化的策略行为。配两处关键设计——token级损失归一化和跨轨迹GAE——让长视野 agent 在固定 context budget 下突破有效训练 horizon。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-07" data-search="harness engineering for self-improvement lilian weng 这篇综述论证的事很直接：harness engineering——围着 llm 搭的那层系统，管规划编排、工具调用、记忆管理、结果评估——才是递归自我改进（rsi）眼下走得通的路。与其等模型学会直接改写自身权重，不如先把「代码层」的 harness 变成可以自动搜索的优化对象。 智能体与harness  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-08T14:30:02+08:00" title="2026-07-08">07-08</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>11 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;08&#x2F;paper-harness-engineering-for-self-improvement&#x2F;">Harness Engineering for Self-Improvement</a>
+    </h3>
+    <p class="bh-card-excerpt">Lilian Weng 这篇综述论证的事很直接：harness engineering——围着 LLM 搭的那层系统，管规划编排、工具调用、记忆管理、结果评估——才是递归自我改进（RSI）眼下走得通的路。与其等模型学会直接改写自身权重，不如先把「代码层」的 harness 变成可以自动搜索的优化对象。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-07" data-search="is one layer enough? training a single transformer layer can match full-parameter rl training rl 微调的增益高度集中在少数中间层——只训一个 transformer 层就能恢复甚至超过全参数 rl 训练，而且这个模式跨模型家族、数据集、rl 算法、任务领域全都成立。 强化学习与后训练  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-08T00:13:49+08:00" title="2026-07-08">07-08</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>6 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;08&#x2F;paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training&#x2F;">Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</a>
+    </h3>
+    <p class="bh-card-excerpt">RL 微调的增益高度集中在少数中间层——只训一个 Transformer 层就能恢复甚至超过全参数 RL 训练，而且这个模式跨模型家族、数据集、RL 算法、任务领域全都成立。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-07" data-search="dspark: confidence-scheduled speculative decoding with semi-autoregressive generation 并行草稿快是有代价的：各位置独立预测，接受率随位置一路下滑，这就是后缀衰减。dspark 用半自回归生成（并行主干 + 轻量序列头）把草稿质量按住，再用置信度调度验证让验证长度跟着系统负载走、专裁低置信度后缀 token——两头一起上，在 deepseek-v4 生产部署中拿到 60%–85% 的每用户生成加速。 模型架构与推理效率  2026-07">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-07-03T13:06:29+08:00" title="2026-07-03">07-03</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;07&#x2F;03&#x2F;paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation&#x2F;">DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</a>
+    </h3>
+    <p class="bh-card-excerpt">并行草稿快是有代价的：各位置独立预测，接受率随位置一路下滑，这就是后缀衰减。DSpark 用半自回归生成（并行主干 + 轻量序列头）把草稿质量按住，再用置信度调度验证让验证长度跟着系统负载走、专裁低置信度后缀 token——两头一起上，在 DeepSeek-V4 生产部署中拿到 60%–85% 的每用户生成加速。</p>
+    
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2026-06" data-month-group="2026-06" data-year="2026">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2026 年 6 月</h2>
+          <span class="bh-month-count" data-group-count="2026-06">6 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="paper" data-cat="evaluation" data-month="2026-06" data-search="current world models lack a persistent state core wrbench 是第一个把相机运动当可观测性干预来使的诊断基准：相机转开、目标离开视野、再转回来——这段看不见的时间里，世界有没有照常演化？23 个视频生成模型交出同一份答卷：没有。无法在视线外维持世界状态的持续演化是全员共有的缺陷，一句话——&quot;可见质量高 ≠ 回看状态正确&quot;。 评测与验证  2026-06">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="evaluation" title="筛选「评测与验证」">评测与验证</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-06-22T16:34:39+08:00" title="2026-06-22">06-22</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;06&#x2F;22&#x2F;paper-current-world-models-lack-a-persistent-state-core&#x2F;">Current World Models Lack a Persistent State Core</a>
+    </h3>
+    <p class="bh-card-excerpt">WRBench 是第一个把相机运动当可观测性干预来使的诊断基准：相机转开、目标离开视野、再转回来——这段看不见的时间里，世界有没有照常演化？23 个视频生成模型交出同一份答卷：没有。无法在视线外维持世界状态的持续演化是全员共有的缺陷，一句话——&quot;可见质量高 ≠ 回看状态正确&quot;。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-06" data-search="harnessx: a composable, adaptive, and evolvable agent harness foundry harnessx 把 agent 的 runtime harness（prompt、tool、memory、control flow 的运行时编排层）当成了一个 可组合的 typed 对象，再让 aegis——一个吃执行轨迹的 四阶段演化引擎——自动进化 harness 配置：五个基准平均涨 +14.5%（最高 +44.0%），落点是 harness 进化与模型 scaling 互补，是被忽视的那条杠杆。 智能体与harness  2026-06">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-06-16T14:20:48+08:00" title="2026-06-16">06-16</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>9 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;06&#x2F;16&#x2F;paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry&#x2F;">HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</a>
+    </h3>
+    <p class="bh-card-excerpt">HarnessX 把 Agent 的 runtime harness（prompt、tool、memory、control flow 的运行时编排层）当成了一个 可组合的 typed 对象，再让 AEGIS——一个吃执行轨迹的 四阶段演化引擎——自动进化 harness 配置：五个基准平均涨 +14.5%（最高 +44.0%），落点是 harness 进化与模型 scaling 互补，是被忽视的那条杠杆。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-06" data-search="latent reasoning with normalizing flows nf-cot 把自回归归一化流（normalizing flow）直接放进 llm 的 causal stream，让连续隐推理站上和语言 token 同等的地位——显式 cot 那套接口一件不丢：逐个采样、概率评分、kv-cache 兼容、可追踪似然。代价上同样占优：代码生成比扩散式隐推理 ladir 快 1.92×，qwen3-8b 上平均 pass@1 提升 +13.0%。 理论与数学推理  2026-06">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-06-13T15:36:06+08:00" title="2026-06-13">06-13</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>9 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;06&#x2F;13&#x2F;paper-latent-reasoning-with-normalizing-flows&#x2F;">Latent Reasoning with Normalizing Flows</a>
+    </h3>
+    <p class="bh-card-excerpt">NF-CoT 把自回归归一化流（Normalizing Flow）直接放进 LLM 的 causal stream，让连续隐推理站上和语言 token 同等的地位——显式 CoT 那套接口一件不丢：逐个采样、概率评分、KV-cache 兼容、可追踪似然。代价上同样占优：代码生成比扩散式隐推理 LaDiR 快 1.92×，Qwen3-8B 上平均 pass@1 提升 +13.0%。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-06" data-search="breaking entropy bounds: accelerating rl training via mtp with rejection sampling 这篇论文（bebop）发现 rl 训练里 mtp（多 token 预测）的接受率被目标模型熵线性卡死，给出的解法是端到端 total variation (tv) loss + rejection sampling——让 mtp 在 rl 全程维持稳定高接受率，在 qwen3.5&#x2F;3.6&#x2F;3.7 上拿到最高 1.8× 端到端加速。 强化学习与后训练  2026-06">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-06-13T15:30:58+08:00" title="2026-06-13">06-13</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>10 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;06&#x2F;13&#x2F;paper-breaking-entropy-bounds-accelerating-rl-training-via-mtp-with-rejection-sampling&#x2F;">Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling</a>
+    </h3>
+    <p class="bh-card-excerpt">这篇论文（Bebop）发现 RL 训练里 MTP（多 Token 预测）的接受率被目标模型熵线性卡死，给出的解法是端到端 Total Variation (TV) loss + Rejection Sampling——让 MTP 在 RL 全程维持稳定高接受率，在 Qwen3.5&#x2F;3.6&#x2F;3.7 上拿到最高 1.8× 端到端加速。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-06" data-search="minimax sparse attention msa 在 gqa 架构上实现块级稀疏注意力，通过轻量 index branch 为每个 gqa 组独立检索 top-16 个 kv 块，将百万级上下文的 attention 计算量压缩 28.4×，配合定制 gpu kernel 在 h800 上实现 14.2× prefill 和 7.6× decoding 的实际墙钟加速，已在 109b 参数原生多模态模型 minimax-m3 上生产部署。 模型架构与推理效率  2026-06">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-06-13T14:57:39+08:00" title="2026-06-13">06-13</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>7 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;06&#x2F;13&#x2F;paper-minimax-sparse-attention&#x2F;">MiniMax Sparse Attention</a>
+    </h3>
+    <p class="bh-card-excerpt">MSA 在 GQA 架构上实现块级稀疏注意力，通过轻量 Index Branch 为每个 GQA 组独立检索 Top-16 个 KV 块，将百万级上下文的 attention 计算量压缩 28.4×，配合定制 GPU kernel 在 H800 上实现 14.2× prefill 和 7.6× decoding 的实际墙钟加速，已在 109B 参数原生多模态模型 MiniMax-M3 上生产部署。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-06" data-search="flashmemory-deepseek-v4: lightning index ultra-long context via lookahead sparse attention 提出 lookahead sparse attention (lsa)：backbone 的主要计算路径不动，只用一个独立的 neural memory indexer 在解码时主动预测并只取回 query-critical 的历史 kv chunk，将 gpu kv cache 占用压缩至完整上下文的 13.5%（500k 长度下达 90%），同时平均准确率反而 +0.6%——这个“反而”不是运气：过滤掉无关 chunk 之后，at… 模型架构与推理效率  2026-06">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-06-13T14:44:27+08:00" title="2026-06-13">06-13</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>9 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;06&#x2F;13&#x2F;paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention&#x2F;">FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</a>
+    </h3>
+    <p class="bh-card-excerpt">提出 Lookahead Sparse Attention (LSA)：backbone 的主要计算路径不动，只用一个独立的 Neural Memory Indexer 在解码时主动预测并只取回 query-critical 的历史 KV chunk，将 GPU KV cache 占用压缩至完整上下文的 13.5%（500K 长度下达 90%），同时平均准确率反而 +0.6%——这个“反而”不是运气：过滤掉无关 chunk 之后，at…</p>
+    
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2026-05" data-month-group="2026-05" data-year="2026">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2026 年 5 月</h2>
+          <span class="bh-month-count" data-group-count="2026-05">14 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-05" data-search="vector policy optimization: training for diversity improves test-time search vpo 把 grpo 的固定标量奖励换成随机奖励加权 + 多答案联合生成，训出一个能铺满 pareto 前沿的多样化候选集——test-time search（pass@k &#x2F; best@k &#x2F; alphaevolve）吃的就是这个多样性，性能跟着上去了。 强化学习与后训练  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-26T18:50:56+08:00" title="2026-05-26">05-26</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>6 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;26&#x2F;paper-vector-policy-optimization-training-for-diversity-improves-test-time-search&#x2F;">Vector Policy Optimization: Training for Diversity Improves Test-Time Search</a>
+    </h3>
+    <p class="bh-card-excerpt">VPO 把 GRPO 的固定标量奖励换成随机奖励加权 + 多答案联合生成，训出一个能铺满 Pareto 前沿的多样化候选集——test-time search（pass@k &#x2F; best@k &#x2F; AlphaEvolve）吃的就是这个多样性，性能跟着上去了。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="theory" data-month="2026-05" data-search="generative recursive reasoning (gram) — 递归推理的概率化 gram 把递归推理模型（rrm）里确定性的潜状态更新换成以状态为条件的随机更新 $z_t &#x3D; u_t + \varepsilon_t$，其中 $\varepsilon_t \sim \mathcal{n}(\mu_\theta(u_t), \sigma^2_\theta(u_t) i)$，让同一个输入能采样出多条推理轨迹；在 sudoku-extreme 上拿到 97.0%（10m 参数、16 个监督步，vs trm 87.4% &#x2F;… 理论与数学推理  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="theory" title="筛选「理论与数学推理」">理论与数学推理</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-22T21:10:40+08:00" title="2026-05-22">05-22</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>24 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;22&#x2F;paper-generative-recursive-reasoning-gram-%E9%80%92%E5%BD%92%E6%8E%A8%E7%90%86%E7%9A%84%E6%A6%82%E7%8E%87%E5%8C%96&#x2F;">Generative Recursive Reasoning (GRAM) — 递归推理的概率化</a>
+    </h3>
+    <p class="bh-card-excerpt">GRAM 把递归推理模型（RRM）里确定性的潜状态更新换成以状态为条件的随机更新 $z_t &#x3D; u_t + \varepsilon_t$，其中 $\varepsilon_t \sim \mathcal{N}(\mu_\theta(u_t), \sigma^2_\theta(u_t) I)$，让同一个输入能采样出多条推理轨迹；在 Sudoku-Extreme 上拿到 97.0%（10M 参数、16 个监督步，vs TRM 87.4% &#x2F;…</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-05" data-search="self-distilled agentic reinforcement learning (sdar) sdar 通过一个sigmoid 门控机制将 on-policy self-distillation (opsd) 作为 grpo 的辅助目标，让每个 token 自主调节蒸馏强度——强化教师认可的 token、软衰减教师可能因检索技能不完美而产生的误判——在 alfworld&#x2F;webshop&#x2F;search-qa 上稳定超越纯 grpo 和混合基线。 强化学习与后训练  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-20T13:00:21+08:00" title="2026-05-20">05-20</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>5 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;20&#x2F;paper-self-distilled-agentic-reinforcement-learning-sdar&#x2F;">Self-Distilled Agentic Reinforcement Learning (SDAR)</a>
+    </h3>
+    <p class="bh-card-excerpt">SDAR 通过一个Sigmoid 门控机制将 On-Policy Self-Distillation (OPSD) 作为 GRPO 的辅助目标，让每个 token 自主调节蒸馏强度——强化教师认可的 token、软衰减教师可能因检索技能不完美而产生的误判——在 ALFWorld&#x2F;WebShop&#x2F;Search-QA 上稳定超越纯 GRPO 和混合基线。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-05" data-search="δ-mem: efficient online memory for large language models δ-mem 用一个 8×8 的在线记忆状态（固定大小、delta-rule 更新），通过低秩校正直接干预 frozen backbone 的注意力计算，以 0.12% 的参数量达到 1.10× 基线和 1.15× 最佳非 δ-mem 记忆方法的平均得分。 模型架构与推理效率  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-17T17:39:53+08:00" title="2026-05-17">05-17</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>6 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;17&#x2F;paper-%CE%B4-mem-efficient-online-memory-for-large-language-models&#x2F;">δ-mem: Efficient Online Memory for Large Language Models</a>
+    </h3>
+    <p class="bh-card-excerpt">δ-mem 用一个 8×8 的在线记忆状态（固定大小、delta-rule 更新），通过低秩校正直接干预 frozen backbone 的注意力计算，以 0.12% 的参数量达到 1.10× 基线和 1.15× 最佳非 δ-mem 记忆方法的平均得分。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-05" data-search="evolving-rl: 端到端rl优化智能体自我进化能力 evolving-rl 用端到端强化学习将智能体的&quot;经验提取&quot;和&quot;经验利用&quot;作为统一过程联合优化，在 alfworld 未见任务上相比 grpo 基线提升 98.7%。 强化学习与后训练  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-13T20:50:49+08:00" title="2026-05-13">05-13</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;13&#x2F;paper-evolving-rl-%E7%AB%AF%E5%88%B0%E7%AB%AFrl%E4%BC%98%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96%E8%83%BD%E5%8A%9B&#x2F;">Evolving-RL: 端到端RL优化智能体自我进化能力</a>
+    </h3>
+    <p class="bh-card-excerpt">Evolving-RL 用端到端强化学习将智能体的&quot;经验提取&quot;和&quot;经验利用&quot;作为统一过程联合优化，在 ALFWorld 未见任务上相比 GRPO 基线提升 98.7%。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="architecture" data-month="2026-05" data-search="elf: embedded language flows — kaiming he团队让连续扩散语言模型重归聚光灯 elf 赌的就是一件事：连续扩散语言模型不是先天不行，是之前的设计空间没探对。 把 flow matching 应用到连续嵌入空间、离散化推迟到最后一刻，elf 用 10x 更少的训练 token 就超越了所有领先的离散&#x2F;连续 dlm。 模型架构与推理效率  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="architecture" title="筛选「模型架构与推理效率」">模型架构与推理效率</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-13T20:50:48+08:00" title="2026-05-13">05-13</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;13&#x2F;paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF&#x2F;">ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</a>
+    </h3>
+    <p class="bh-card-excerpt">ELF 赌的就是一件事：连续扩散语言模型不是先天不行，是之前的设计空间没探对。 把 Flow Matching 应用到连续嵌入空间、离散化推迟到最后一刻，ELF 用 10x 更少的训练 token 就超越了所有领先的离散&#x2F;连续 DLM。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-05" data-search="flow-opd: on-policy distillation for flow matching models flow-opd 把 llm 圈的 on-policy distillation 搬进 flow matching 文生图模型：先训单领域专家、冷启动初始化，再多教师在线蒸馏、流形锚点正则化，两阶段做完多任务对齐。geneval（63→92）和 ocr 精度（59→94）比单 reward grpo 高约 10 个点，还冒出了「学生超过教师」的涌现效应。 强化学习与后训练  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-12T14:35:45+08:00" title="2026-05-12">05-12</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;12&#x2F;paper-flow-opd-on-policy-distillation-for-flow-matching-models&#x2F;">Flow-OPD: On-Policy Distillation for Flow Matching Models</a>
+    </h3>
+    <p class="bh-card-excerpt">Flow-OPD 把 LLM 圈的 On-Policy Distillation 搬进 Flow Matching 文生图模型：先训单领域专家、冷启动初始化，再多教师在线蒸馏、流形锚点正则化，两阶段做完多任务对齐。GenEval（63→92）和 OCR 精度（59→94）比单 Reward GRPO 高约 10 个点，还冒出了「学生超过教师」的涌现效应。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-05" data-search="skill1: unified evolution of skill-augmented agents via reinforcement learning skill1 把技能库 agent 的「选技能 → 用技能 → 蒸馏新技能」三个环节塞进同一个策略网络，让它们对着同一个任务结果信号协同演化——不另设任何辅助奖励。alfworld 和 webshop 上超过了此前所有 skill-based 和纯 rl 方法。 强化学习与后训练  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-11T16:34:58+08:00" title="2026-05-11">05-11</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>6 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;11&#x2F;paper-skill1-unified-evolution-of-skill-augmented-agents-via-reinforcement-learning&#x2F;">Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning</a>
+    </h3>
+    <p class="bh-card-excerpt">Skill1 把技能库 agent 的「选技能 → 用技能 → 蒸馏新技能」三个环节塞进同一个策略网络，让它们对着同一个任务结果信号协同演化——不另设任何辅助奖励。ALFWorld 和 WebShop 上超过了此前所有 skill-based 和纯 RL 方法。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="agents" data-month="2026-05" data-search="skillos: learning skill curation for self-evolving agents skillos 把技能库的管理权从人工编写和启发式规则手里接了过来：用 grpo 训出一个独立的 skill curator，让它看着 agent 的过往经验决定 insert &#x2F; update &#x2F; delete，从轨迹里提取、更新、删除技能（skill）——executor 一个参数不动，agent 在不重新训练 executor 的前提下实现自我进化。 智能体与harness  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="agents" title="筛选「智能体与Harness」">智能体与Harness</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-10T21:13:17+08:00" title="2026-05-10">05-10</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>6 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;10&#x2F;paper-skillos-learning-skill-curation-for-self-evolving-agents&#x2F;">SkillOS: Learning Skill Curation for Self-Evolving Agents</a>
+    </h3>
+    <p class="bh-card-excerpt">SkillOS 把技能库的管理权从人工编写和启发式规则手里接了过来：用 GRPO 训出一个独立的 skill curator，让它看着 agent 的过往经验决定 insert &#x2F; update &#x2F; delete，从轨迹里提取、更新、删除技能（skill）——executor 一个参数不动，agent 在不重新训练 executor 的前提下实现自我进化。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="reinforcement-learning" data-month="2026-05" data-search="on-policy distillation (uni-opd) 把强化学习的 on-policy 性质和知识蒸馏的 token 级密集教师反馈拼到一起，再给一个双重优化视角（学生探索 + 教师监督校准），让 opd 在多个场景下稳定跑赢传统 off-policy 蒸馏和纯 rl 方法。 强化学习与后训练  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="reinforcement-learning" title="筛选「强化学习与后训练」">强化学习与后训练</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-07T12:58:26+08:00" title="2026-05-07">05-07</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;07&#x2F;paper-on-policy-distillation-uni-opd&#x2F;">On-Policy Distillation (Uni-OPD)</a>
+    </h3>
+    <p class="bh-card-excerpt">把强化学习的 on-policy 性质和知识蒸馏的 token 级密集教师反馈拼到一起，再给一个双重优化视角（学生探索 + 教师监督校准），让 OPD 在多个场景下稳定跑赢传统 off-policy 蒸馏和纯 RL 方法。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="multimodal" data-month="2026-05" data-search="mamoda2.5: enhancing unified multimodal model with dit-moe mamoda2.5 把理解和生成塞进同一个 ar-diffusion 框架，容量靠 dit-moe 堆——128 专家 top-8 路由，25b 总参数只激活 3b。vbench 2.0 上拿到顶级生成成绩，视频编辑靠蒸馏加 rl 把推理加速做到 95.9 倍，广告场景成功率 98%。 多模态与具身智能  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="multimodal" title="筛选「多模态与具身智能」">多模态与具身智能</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-06T18:26:30+08:00" title="2026-05-06">05-06</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;06&#x2F;paper-mamoda2-5-enhancing-unified-multimodal-model-with-dit-moe&#x2F;">Mamoda2.5: Enhancing Unified Multimodal Model with DiT-MoE</a>
+    </h3>
+    <p class="bh-card-excerpt">Mamoda2.5 把理解和生成塞进同一个 AR-Diffusion 框架，容量靠 DiT-MoE 堆——128 专家 Top-8 路由，25B 总参数只激活 3B。VBench 2.0 上拿到顶级生成成绩，视频编辑靠蒸馏加 RL 把推理加速做到 95.9 倍，广告场景成功率 98%。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="multimodal" data-month="2026-05" data-search="let vit speak: generative language-image pre-training genlip 把视觉预训练砍到只剩一个目标：让 vit 直接做 next token prediction，从视觉 token 预测语言 token。没有对比损失、没有双塔，8b 样本就匹配&#x2F;超越了吃 40b 样本的强基线，视觉和文本在同一个 transformer 里联合建模。 多模态与具身智能  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="multimodal" title="筛选「多模态与具身智能」">多模态与具身智能</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-06T18:26:29+08:00" title="2026-05-06">05-06</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;06&#x2F;paper-let-vit-speak-generative-language-image-pre-training&#x2F;">Let ViT Speak: Generative Language-Image Pre-training</a>
+    </h3>
+    <p class="bh-card-excerpt">GenLIP 把视觉预训练砍到只剩一个目标：让 ViT 直接做 next token prediction，从视觉 token 预测语言 token。没有对比损失、没有双塔，8B 样本就匹配&#x2F;超越了吃 40B 样本的强基线，视觉和文本在同一个 transformer 里联合建模。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="multimodal" data-month="2026-05" data-search="thinking with visual primitives 把点和包围框这些空间标记当成“最小思维单元”直接编进多模态 llm 的思维链，模型推理时不只会说，还能当场指。视觉 token 预算压到极低，成绩反而追平甚至反超 gpt-5.4、claude-sonnet-4.6 和 gemini-3-flash。 多模态与具身智能  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="multimodal" title="筛选「多模态与具身智能」">多模态与具身智能</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-06T18:26:29+08:00" title="2026-05-06">05-06</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;06&#x2F;paper-thinking-with-visual-primitives&#x2F;">Thinking with Visual Primitives</a>
+    </h3>
+    <p class="bh-card-excerpt">把点和包围框这些空间标记当成“最小思维单元”直接编进多模态 LLM 的思维链，模型推理时不只会说，还能当场指。视觉 token 预算压到极低，成绩反而追平甚至反超 GPT-5.4、Claude-Sonnet-4.6 和 Gemini-3-Flash。</p>
+    
+  </article>
+<article class="bh-card" data-kind="paper" data-cat="safety" data-month="2026-05" data-search="model spec midtraining: improving how alignment training generalizes 对齐微调之前先补一堂课：用合成文档把 model spec（期望的行为规范）教给模型，再照常微调——qwen3-32b 的智能体错误率从 54% 掉到 7%，连更复杂的深思熟虑对齐基线（14%）都被它比了下去。 安全与可解释性  2026-05">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-paper">论文精读</span>
+        <button type="button" class="bh-chip bh-chip-topic" data-cat-jump="safety" title="筛选「安全与可解释性」">安全与可解释性</button>
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2026-05-06T18:21:31+08:00" title="2026-05-06">05-06</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2026&#x2F;05&#x2F;06&#x2F;paper-model-spec-midtraining-improving-how-alignment-training-generalizes&#x2F;">Model Spec Midtraining: Improving How Alignment Training Generalizes</a>
+    </h3>
+    <p class="bh-card-excerpt">对齐微调之前先补一堂课：用合成文档把 Model Spec（期望的行为规范）教给模型，再照常微调——Qwen3-32B 的智能体错误率从 54% 掉到 7%，连更复杂的深思熟虑对齐基线（14%）都被它比了下去。</p>
+    
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2025-04" data-month-group="2025-04" data-year="2025">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2025 年 4 月</h2>
+          <span class="bh-month-count" data-group-count="2025-04">3 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="note" data-cat="tech-notes" data-month="2025-04" data-search="零基础入门rope 从复数、复平面旋转与欧拉公式等基础数学出发，一步步推导旋转位置编码（rope）为何能用绝对位置旋转自然编码相对位置信息，覆盖 2d 到高维推广与实现直觉。 技术解析 llm 算法 位置编码 2025-04">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-note">技术解析</span>
+        
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2025-04-18T15:51:29+08:00" title="2025-04-18">04-18</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>22 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2025&#x2F;04&#x2F;18&#x2F;%E9%9B%B6%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8RoPE&#x2F;">零基础入门RoPE</a>
+    </h3>
+    <p class="bh-card-excerpt">从复数、复平面旋转与欧拉公式等基础数学出发，一步步推导旋转位置编码（RoPE）为何能用绝对位置旋转自然编码相对位置信息，覆盖 2D 到高维推广与实现直觉。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#LLM</span><span class="bh-tag">#算法</span><span class="bh-tag">#位置编码</span></div>
+  </article>
+<article class="bh-card" data-kind="note" data-cat="tech-notes" data-month="2025-04" data-search="多模态模型训练总结 基于 qwen2.5-1.5b + vit 的实践视角，系统梳理从纯语言模型构建多模态大模型的三大组件（视觉编码器、mlp 投影连接层、llm 主干）与两阶段冻结&#x2F;微调训练策略。 技术解析 llm 多模态 2025-04">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-note">技术解析</span>
+        
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2025-04-14T16:54:18+08:00" title="2025-04-14">04-14</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>9 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2025&#x2F;04&#x2F;14&#x2F;%E5%A4%9A%E6%A8%A1%E6%80%81%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E6%80%BB%E7%BB%93&#x2F;">多模态模型训练总结</a>
+    </h3>
+    <p class="bh-card-excerpt">基于 Qwen2.5-1.5B + ViT 的实践视角，系统梳理从纯语言模型构建多模态大模型的三大组件（视觉编码器、MLP 投影连接层、LLM 主干）与两阶段冻结&#x2F;微调训练策略。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#LLM</span><span class="bh-tag">#多模态</span></div>
+  </article>
+<article class="bh-card" data-kind="note" data-cat="tech-notes" data-month="2025-04" data-search="dpo vs ppo 从 kl 正则化最优策略与重参数化出发对比 ppo 与 dpo 的数学推导，重点分析两者在分布偏移（distribution shift）、隐式 reward hacking 与省略配分函数 z(x) 三个核心差异。 技术解析 rl llm 算法 2025-04">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-note">技术解析</span>
+        
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2025-04-02T15:56:34+08:00" title="2025-04-02">04-02</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>8 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2025&#x2F;04&#x2F;02&#x2F;DPO-vs-PPO&#x2F;">DPO vs PPO</a>
+    </h3>
+    <p class="bh-card-excerpt">从 KL 正则化最优策略与重参数化出发对比 PPO 与 DPO 的数学推导，重点分析两者在分布偏移（Distribution Shift）、隐式 Reward Hacking 与省略配分函数 Z(x) 三个核心差异。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#RL</span><span class="bh-tag">#LLM</span><span class="bh-tag">#算法</span></div>
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2025-03" data-month-group="2025-03" data-year="2025">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2025 年 3 月</h2>
+          <span class="bh-month-count" data-group-count="2025-03">2 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="note" data-cat="tech-notes" data-month="2025-03" data-search="kimi1.5 technical report 拆解 kimi k1.5 技术报告的完整五阶段训练管线（多模态预训练、冷却退火、长上下文激活、普通&#x2F;long-cot sft、rl 与 long2short 优化），并辨析 cooldown 与 sft 的本质区别。 技术解析 rl llm 技术报告 2025-03">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-note">技术解析</span>
+        
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2025-03-22T01:36:07+08:00" title="2025-03-22">03-22</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>16 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2025&#x2F;03&#x2F;22&#x2F;kimi1-5-technical-report&#x2F;">kimi1.5 technical report</a>
+    </h3>
+    <p class="bh-card-excerpt">拆解 Kimi k1.5 技术报告的完整五阶段训练管线（多模态预训练、冷却退火、长上下文激活、普通&#x2F;Long-CoT SFT、RL 与 Long2Short 优化），并辨析 Cooldown 与 SFT 的本质区别。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#RL</span><span class="bh-tag">#LLM</span><span class="bh-tag">#技术报告</span></div>
+  </article>
+<article class="bh-card" data-kind="note" data-cat="tech-notes" data-month="2025-03" data-search="rl_in_llm 梳理大语言模型对齐中 rlhf、ppo 与 dpo 的核心概念、公式与层级关系，从数据依赖、优化机制、计算开销到适用场景做系统对比。 技术解析 rl llm 2025-03">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-note">技术解析</span>
+        
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2025-03-15T13:42:55+08:00" title="2025-03-15">03-15</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>4 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2025&#x2F;03&#x2F;15&#x2F;RL-in-LLM&#x2F;">RL_in_LLM</a>
+    </h3>
+    <p class="bh-card-excerpt">梳理大语言模型对齐中 RLHF、PPO 与 DPO 的核心概念、公式与层级关系，从数据依赖、优化机制、计算开销到适用场景做系统对比。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#RL</span><span class="bh-tag">#LLM</span></div>
+  </article>
+        </div>
+      </section>
+<section class="bh-month-group" id="month-2024-09" data-month-group="2024-09" data-year="2024">
+        <header class="bh-month-header">
+          <span class="bh-month-dot" aria-hidden="true"></span>
+          <h2 class="bh-month-title">2024 年 9 月</h2>
+          <span class="bh-month-count" data-group-count="2024-09">1 篇</span>
+        </header>
+        <div class="bh-cards">
+          <article class="bh-card" data-kind="note" data-cat="tech-notes" data-month="2024-09" data-search="pre-trained 笔记总结 围绕数据清洗去重与课程配比、tokenizer 与 llama 架构选型、megatron&#x2F;deepspeed 并行策略及 ppl&#x2F;探针评估四个维度，总结大模型从零预训练的工程实践要点。 技术解析 llm pre-trained 2024-09">
+    <div class="bh-card-top">
+      <div class="bh-card-badges">
+        <span class="bh-badge is-note">技术解析</span>
+        
+      </div>
+      <div class="bh-card-date">
+        <time datetime="2024-09-25T12:25:46+08:00" title="2024-09-25">09-25</time>
+        <span class="bh-dot" aria-hidden="true">·</span>
+        <span>3 min</span>
+      </div>
+    </div>
+    <h3 class="bh-card-title">
+      <a href="&#x2F;2024&#x2F;09&#x2F;25&#x2F;pre-trained-%E7%AC%94%E8%AE%B0%E6%80%BB%E7%BB%93&#x2F;">pre-trained 笔记总结</a>
+    </h3>
+    <p class="bh-card-excerpt">围绕数据清洗去重与课程配比、Tokenizer 与 LLaMA 架构选型、Megatron&#x2F;DeepSpeed 并行策略及 PPL&#x2F;探针评估四个维度，总结大模型从零预训练的工程实践要点。</p>
+    <div class="bh-card-tags"><span class="bh-tag">#LLM</span><span class="bh-tag">#pre-trained</span></div>
+  </article>
+        </div>
+      </section>
+        </div>
+
+        <div class="bh-empty" id="bh-empty" hidden>
+          <p>没有匹配的文章，试试切换分类或换个关键词。</p>
+          <button type="button" class="bh-reset-btn" id="bh-empty-reset">重置筛选</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+</article>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

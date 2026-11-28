@@ -1,0 +1,1206 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Evolving-RL 用端到端强化学习将智能体的&quot;经验提取&quot;和&quot;经验利用&quot;作为统一过程联合优化，在 ALFWorld 未见任务上相比 GRPO 基线提升 98.7%。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力">
+<meta property="og:url" content="https://yyhchen.github.io/2026/05/13/paper-evolving-rl-%E7%AB%AF%E5%88%B0%E7%AB%AFrl%E4%BC%98%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96%E8%83%BD%E5%8A%9B/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="Evolving-RL 用端到端强化学习将智能体的&quot;经验提取&quot;和&quot;经验利用&quot;作为统一过程联合优化，在 ALFWorld 未见任务上相比 GRPO 基线提升 98.7%。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_3bcacde7c3ea90a6b0dfc90d382f4eb3d504888f9f5eae3b454e42d75aba3080.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_b4f2748730cd7a128c2a5c65cca33c92ecfc2b39ea9becb04965fd6efaaf1c9c.png">
+<meta property="article:published_time" content="2026-05-13T12:50:49.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_3bcacde7c3ea90a6b0dfc90d382f4eb3d504888f9f5eae3b454e42d75aba3080.png">
+  
+  
+  
+  <title>Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力 - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-13 20:50" pubdate>
+          2026-05-13 20:50:49
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          13 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="强化学习与后训练"
+        id="heading-29da1621cfec405f671ce94f3f329a14" role="tab" data-toggle="collapse" href="#collapse-29da1621cfec405f671ce94f3f329a14"
+        aria-expanded="true"
+      >
+        强化学习与后训练
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-29da1621cfec405f671ce94f3f329a14"
+           role="tabpanel" aria-labelledby="heading-29da1621cfec405f671ce94f3f329a14">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/25/Paper%E7%B2%BE%E8%AF%BB-Verifiable-On-Policy-Distillation/" title="Paper精读｜Verifiable On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Verifiable On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/" title="Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/31/paper-ttpo-test-time-policy-optimization/" title="Paper精读｜TTPO: Test-Time Policy Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜TTPO: Test-Time Policy Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-u-opsd-on-policy-self-distillation-without-any-supervision/" title="Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/08/paper-agentopsd-recursive-self-distillation-for-agentic-reinforcement-learning/" title="Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-weak-to-strong-on-policy-distillation/" title="Paper精读｜Weak-to-Strong On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Weak-to-Strong On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-single-rollout-asynchronous-optimization-for-agentic-reinforcement-learning/" title="Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-compactionrl-reinforcement-learning-with-context-compaction-for-long-horizon-agents/" title="Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training/" title="Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-breaking-entropy-bounds-accelerating-rl-training-via-mtp-with-rejection-sampling/" title="Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/26/paper-vector-policy-optimization-training-for-diversity-improves-test-time-search/" title="Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/20/paper-self-distilled-agentic-reinforcement-learning-sdar/" title="Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-evolving-rl-%E7%AB%AF%E5%88%B0%E7%AB%AFrl%E4%BC%98%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96%E8%83%BD%E5%8A%9B/" title="Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/12/paper-flow-opd-on-policy-distillation-for-flow-matching-models/" title="Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/11/paper-skill1-unified-evolution-of-skill-augmented-agents-via-reinforcement-learning/" title="Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/07/paper-on-policy-distillation-uni-opd/" title="Paper精读｜On-Policy Distillation (Uni-OPD)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜On-Policy Distillation (Uni-OPD)</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;reinforcement-learning">强化学习与后训练</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读evolving-rl-端到端rl优化智能体自我进化能力"><a class="markdownIt-Anchor" href="#paper精读evolving-rl-端到端rl优化智能体自我进化能力"></a> Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><h2 id="evolving-rl-用端到端强化学习将智能体的经验提取和经验利用span-classmark-strong作为统一过程联合优化span在-alfworld-未见任务上相比-grpo-基线提升-987"><a class="markdownIt-Anchor" href="#evolving-rl-用端到端强化学习将智能体的经验提取和经验利用span-classmark-strong作为统一过程联合优化span在-alfworld-未见任务上相比-grpo-基线提升-987"></a> <strong>Evolving-RL 用端到端强化学习将智能体的&quot;经验提取&quot;和&quot;经验利用&quot;<span class="mark-strong">作为统一过程联合优化</span>，在 ALFWorld 未见任务上相比 GRPO 基线提升 98.7%。</strong></h2>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：** Evolving-RL: End-to-End Optimization of Experience-Driven Self-Evolving Capability within Agents</li>
+<li><strong>arXiv</strong>：** 2605.10663</li>
+<li><strong>链接</strong>：** <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2605.10663">https://arxiv.org/abs/2605.10663</a></li>
+<li><strong>作者</strong>：** Zhiyuan Fan, Wenwei Jin, Feng Zhang, Bin Li, Yihong Dong, Yao Hu, Jiawei Li (小红书 &amp; 北京大学)</li>
+<li><strong>日期</strong>：** 2026-05-11</li>
+<li><strong>标签</strong>：** #自我进化智能体 #强化学习 #RL #经验驱动 #小红书 #AIAgent</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>现有经验驱动的自我进化智能体存在一个根本性缺陷：<strong>提取（extraction）和利用（utilization）是解耦的。</strong></p>
+<ul>
+<li>
+<p>大多数研究只关注系统层面的设计（如何表示经验、如何管理记忆）</p>
+</li>
+<li>
+<p>少量 RL-based 工作也只优化利用阶段，提取阶段依赖外部更强的模型或手工规则</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">但两者其实是互相制约的</span>：</strong> 如果提取的经验质量差，策略会学会&quot;忽略&quot;这些经验（因为 bypass 不可靠引导比尝试利用它更稳定）</p>
+</li>
+</ul>
+<p>结果是——自我退化的死结。</p>
+<hr />
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="ed-quote">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p>提取和利用不是两个分开的能力——<span class="mark-strong">它们是一个共同进化的闭环</span>。</p>
+</div></div><p>Evolving-RL 的设计基于一个核心观察：<span class="mark-strong">下游任务上的经验注入效果可以成为提取能力的监督信号</span>。提取 -&gt; 评估 -&gt; 利用 -&gt; 再提取，形成一个完整的反馈闭环。</p>
+<hr />
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="架构"><a class="markdownIt-Anchor" href="#架构"></a> 架构</h3>
+<p><img src="/img/paper-reading/img_3bcacde7c3ea90a6b0dfc90d382f4eb3d504888f9f5eae3b454e42d75aba3080.png" srcset="/img/loading.gif" lazyload alt="图 2｜Evolving-RL 的在线技能提取与下游执行框架" /></p>
+<p><em>图 2｜Evolving-RL 的在线技能提取与下游执行框架。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2605.10663v1/#S3.F2">来源</a></em></p>
+<ul>
+<li>
+<p><strong>单策略双角色：</strong> extractor 和 solver 共享同一组策略参数 pi_theta</p>
+</li>
+<li>
+<p><strong>Extractor：</strong> 给定源任务的交互轨迹 -&gt; 生成 N 个候选技能（textual skill）</p>
+</li>
+<li>
+<p><strong>Solver：</strong> 给定目标任务 + 注入技能 -&gt; 产生动作轨迹</p>
+</li>
+</ul>
+<h3 id="训练流程单次迭代"><a class="markdownIt-Anchor" href="#训练流程单次迭代"></a> 训练流程（单次迭代）</h3>
+<ol>
+<li>
+<p><strong>源任务求解：</strong> solver 在源任务上无技能交互，得到轨迹 tau</p>
+</li>
+<li>
+<p><strong>经验提取：</strong> extractor 基于 (x_src, tau, r_src) 生成 N 个候选技能</p>
+</li>
+<li>
+<p><strong>下游评估：</strong> retriever 拉取 K 个语义相关的下游任务，对每个 (skill, task) 对让 solver 做条件 rollout</p>
+</li>
+<li>
+<p><strong>双重信号回传：</strong></p>
+</li>
+</ol>
+<ul>
+<li>
+<p>聚合下游奖励 -&gt; 优化 extractor（提取更好技能）</p>
+</li>
+<li>
+<p>技能条件轨迹 -&gt; 优化 solver（更好利用技能）</p>
+</li>
+</ul>
+<h3 id="双重监督信号"><a class="markdownIt-Anchor" href="#双重监督信号"></a> 双重监督信号</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>信号</strong></th>
+<th><strong>来源</strong></th>
+<th><strong>优化目标</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>提取奖励 R_skill(e)</td>
+<td>技能的 N 个候选在 K 个下游任务上的聚合表现</td>
+<td>提升 extractor：技能对下游通用性的度量</td>
+</tr>
+<tr>
+<td>利用轨迹</td>
+<td>技能条件 rollout 采集的轨迹</td>
+<td>提升 solver：更好利用技能完成任务</td>
+</tr>
+</tbody>
+</table></div>
+<p>两者通过 GRPO 进行优化。所有收集的轨迹都被充分利用。</p>
+<hr />
+<hr />
+<h2 id="实验"><a class="markdownIt-Anchor" href="#实验"></a> 实验</h2>
+<h3 id="基准"><a class="markdownIt-Anchor" href="#基准"></a> 基准</h3>
+<ul>
+<li>
+<p><strong>ALFWorld</strong>（文本家居任务）：Qwen2.5-7B-Instruct</p>
+</li>
+<li>
+<p><strong>Mind2Web</strong>（网页导航）：Qwen2.5-7B-Instruct</p>
+</li>
+</ul>
+<h3 id="基线方法"><a class="markdownIt-Anchor" href="#基线方法"></a> 基线方法</h3>
+<ul>
+<li>
+<p>提示工程类：ExpeL, Memento, ReasoningBank</p>
+</li>
+<li>
+<p>RL 类：GRPO, SkillRL</p>
+</li>
+</ul>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<p><img src="/img/paper-reading/img_b4f2748730cd7a128c2a5c65cca33c92ecfc2b39ea9becb04965fd6efaaf1c9c.png" srcset="/img/loading.gif" lazyload alt="图 1｜学习到的技能向其他策略迁移及其效果" /></p>
+<p><em>图 1｜学习到的技能向其他策略迁移及其效果。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2605.10663v1/#S1.F1">来源</a></em></p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>基准</strong></th>
+<th><strong>指标</strong></th>
+<th><strong>Evolving-RL</strong></th>
+<th><strong>GRPO 基线</strong></th>
+<th><strong>相对提升</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ALFWorld (未见任务)</td>
+<td>成功率</td>
+<td>96.0%</td>
+<td>~48%</td>
+<td><strong>+98.7%</strong></td>
+</tr>
+<tr>
+<td>Mind2Web</td>
+<td>动作准确率</td>
+<td>明显提升</td>
+<td>—</td>
+<td><strong>+35.8%</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>消融实验的关键发现：</strong></p>
+<ul>
+<li>
+<p>只有 extractor 和 solver <strong><span class="mark-strong">联合训练</span></strong>（co-evolution）才能解锁全部收益</p>
+</li>
+<li>
+<p>单独优化 solver 且使用固定/外部 skill 库 -&gt; 收益有限甚至为负</p>
+</li>
+<li>
+<p>Evolving-RL 不仅在 test-time 有技能注入时有效，<strong>去掉技能后仍然明显强过 GRPO</strong>——说明<span class="mark-strong">可复用的过程模式已经内化到模型参数中</span></p>
+</li>
+</ul>
+<hr />
+<hr />
+<h2 id="理论贡献"><a class="markdownIt-Anchor" href="#理论贡献"></a> 理论贡献</h2>
+<p>Appendix A 用中心极限定理分析了技能评估的可靠性。当候选技能数量 K 适中时，排序正确的概率近似为：</p>
+<p>P(correct ranking) is approx Phi(Delta_ab / sigma_ab)</p>
+<p>其中 Delta_ab 是真实性能差距，sigma_ab 是估计方差。三条推论直接跟着出来：</p>
+<ul>
+<li>
+<p><strong>性能差距越大，评估越可靠</strong></p>
+</li>
+<li>
+<p><strong>采样方差越小，评估越可靠</strong></p>
+</li>
+<li>
+<p>当 reward 有界时，可以给出保守下界</p>
+</li>
+</ul>
+<hr />
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>贡献：</strong></p>
+<ol>
+<li>
+<p><strong>统一视角：</strong> 首次将经验提取和利用纳入一个端到端优化框架，而非分开处理</p>
+</li>
+<li>
+<p><strong>闭环不用外加燃料：</strong> 下游评估产生的双重信号，天然就够两个能力共同进化用</p>
+</li>
+<li>
+<p><strong>实验结果强硬：</strong> 98.7% 的提升数字很震撼，且消融实验设计严谨（联合训练 vs 分开训练的对比）</p>
+</li>
+<li>
+<p><strong>理论支撑：</strong> 有公式化的可靠性分析，不是纯实验 paper</p>
+</li>
+</ol>
+<p><strong>拿不准的地方：</strong></p>
+<ul>
+<li>
+<p>实验只用了 7B 模型，在更大模型（70B+）上是否仍然有效？</p>
+</li>
+<li>
+<p>技能管理（检索、存储）采用了较简单的策略，正如作者自己承认的</p>
+</li>
+<li>
+<p>评估机制引入的估计噪声在某些情况下可能导致训练不稳定</p>
+</li>
+</ul>
+<hr />
+<hr />
+<h2 id="局限与展望"><a class="markdownIt-Anchor" href="#局限与展望"></a> 局限与展望</h2>
+<ol>
+<li>
+<p><strong>简单的技能管理：</strong> 当前用了较朴素的检索和存储策略，未来可集成更复杂的进化机制</p>
+</li>
+<li>
+<p><strong>评估噪声：</strong> 有限采样下的评估误差可能注入训练噪声，需要更强的鲁棒性设计</p>
+</li>
+<li>
+<p><strong>跨模态/跨领域迁移：</strong> 只在文本家居和网页导航上验证，能否迁移到代码、数学等场景？</p>
+</li>
+<li>
+<p><strong>部署后适应：</strong> 当前聚焦训练阶段，部署后的持续进化是作者提到的未来方向</p>
+</li>
+</ol>
+<hr />
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>提取和利用必须一起训练——分开就是死路。</strong> 先有好技能，才能好好用技能，而好技能来自对&quot;用得好不好&quot;的反馈</p>
+</li>
+<li>
+<p><strong>98.7% 的未见任务提升来自 RL 闭环，不是 prompt 工程。</strong> 自我进化能力是能被训练出来的，不是只能靠系统设计</p>
+</li>
+<li>
+<p><strong>即使推理时不注入技能，Evolving-RL 训练的模型也更强。</strong> 过程模式内化到了参数里，这是&quot;经验增强型 RL&quot;的重要证据</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/" class="category-chain-item">强化学习与后训练</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</div>
+      <div>https://yyhchen.github.io/2026/05/13/paper-evolving-rl-端到端rl优化智能体自我进化能力/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/" title="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/13/paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF/" title="Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯">
+                        <span class="hidden-mobile">Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

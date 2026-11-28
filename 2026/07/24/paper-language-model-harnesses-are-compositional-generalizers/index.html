@@ -1,0 +1,1278 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="组合泛化这件事，作者主张别再指望 Transformer 自己开窍——交给神经网络外面那层程序（harness）来管。办法是两个动作：上下文卸载 + 程序化子调用，让每一次单独的 LM 调用都保持局部在分布内（LID）。结果是只在短任务上训过的模型，直接泛化到 8-32 倍更长的任务和跨域任务，eval lift 达到 train lift 的约 10 倍。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Language model harnesses are compositional generalizers">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="组合泛化这件事，作者主张别再指望 Transformer 自己开窍——交给神经网络外面那层程序（harness）来管。办法是两个动作：上下文卸载 + 程序化子调用，让每一次单独的 LM 调用都保持局部在分布内（LID）。结果是只在短任务上训过的模型，直接泛化到 8-32 倍更长的任务和跨域任务，eval lift 达到 train lift 的约 10 倍。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_24b2465cc8ae9d0f5d4889c34dc823354fa443ee81617f3c313b6e24fa16a1b6.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_bdbb698f0c99ee2544ac1ea3de5ae889e0d1301b10ee101605f43c12d0745edc.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_cdd954c8ca83444e173328919aa7a86ed1e6208e7b63961ad8f622cafe3a19c1.png">
+<meta property="article:published_time" content="2026-07-23T16:51:54.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_24b2465cc8ae9d0f5d4889c34dc823354fa443ee81617f3c313b6e24fa16a1b6.png">
+  
+  
+  
+  <title>Paper精读｜Language model harnesses are compositional generalizers - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Language model harnesses are compositional generalizers</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-24 00:51" pubdate>
+          2026-07-24 00:51:54
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          22 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Language model harnesses are compositional generalizers</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读language-model-harnesses-are-compositional-generalizers"><a class="markdownIt-Anchor" href="#paper精读language-model-harnesses-are-compositional-generalizers"></a> Paper精读｜Language model harnesses are compositional generalizers</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>组合泛化这件事，作者主张别再指望 Transformer 自己开窍——交给神经网络外面那层程序（harness）来管。办法是两个动作：上下文卸载 + 程序化子调用，让每一次单独的 LM 调用都保持<span class="mark-strong">局部在分布内（LID）</span>。结果是只在短任务上训过的模型，直接<span class="mark-strong">泛化到 8-32 倍更长的任务和跨域任务</span>，eval lift 达到 train lift 的约 <span class="mark-number">10 倍</span>。</strong></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Language model harnesses are compositional generalizers</li>
+<li><strong>arXiv</strong>：无（博客原文，作者个人站点发布）</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://alexzhang13.github.io/blog/2026/harness/">https://alexzhang13.github.io/blog/2026/harness/</a></li>
+<li><strong>作者</strong>：Alex Zhang, Omar Khattab</li>
+<li><strong>机构</strong>：MIT / Chroma</li>
+<li><strong>日期</strong>：2026-07-20</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>现在的 post-training 是在暴力堆料：策划更长的训练环境、更长的 rollout 轨迹，一轮接着一轮。为什么要这么堆？因为前沿 Transformer 在<strong>组合泛化</strong>上实在不行——学过的知识拼不出新问题的解，每个新领域都得重新投一笔数据和训练，扩展的回报持续递减。</p>
+<p>作者戳破的窗户纸是：chain-of-thought、tool use 这些 scaffolding 看着热闹，但<span class="mark-strong">泛化能力的提升完全被交给了底层神经网络及其 2017 年级别的 token 级归纳偏置</span>——harness 只管编排，从没为泛化负责过。问题的根子是结构性的：Transformer 的可微操作设计空间太窄，装不下高层的抽象归纳偏置。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">三条核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong><span class="mark-strong">Harness 应承担高层归纳偏置</span></strong>：harness 是外部世界和神经网络之间的那层程序，本职是把任意复杂状态 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">s</span></span></span></span> 编码成一个或多个 LM 消化得了的局部在分布观察 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>o</mi></mrow><annotation encoding="application/x-tex">o</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">o</span></span></span></span>——陌生的大问题，进门先被拆成熟悉的小问题的组合。</p>
+</li>
+<li>
+<p><span class="mark-strong">局部在分布（LID）原则</span>：整条任务轨迹可以 OOD，但每个 Transformer call 看到的 prompt 必须留在训练分布内。做法是让 harness 在任务状态集合 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">T</mi></mrow><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.25417em;">T</span></span></span></span></span> 上<strong>诱导等价关系</strong> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mo>∼</mo><mi>H</mi></msub></mrow><annotation encoding="application/x-tex">\sim_H</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5168699999999999em;vertical-align:-0.15em;"></span><span class="mrel"><span class="mrel">∼</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.08125em;">H</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>——结构相似的任务归进同一个等价类，主上下文看到的是几乎相同的 token 序列。</p>
+</li>
+<li>
+<p><span class="mark-strong">RLM 的组合泛化来源于同构</span>：Recursive Language Model (RLM) 靠<strong>上下文卸载</strong>（输入特定的信息走符号变量，不走 prompt 前缀）和<strong>程序化子代理调用</strong>（子代理/工具就是 REPL 里的函数），让完全不同的任务在 root LM 的上下文窗口里<span class="mark-strong">看起来 token-for-token 相同</span>——旧任务上学到的本事，就这样搬进结构相似的新任务。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_24b2465cc8ae9d0f5d4889c34dc823354fa443ee81617f3c313b6e24fa16a1b6.png" srcset="/img/loading.gif" lazyload alt="Figure 2: RLM 在同构任务上的轨迹同构" /></p>
+<p><em>图注：BrowseComp-Plus 和 OOLONG 两个不同任务在 RLM 的 root LM 上下文中看到几乎相同的 token 序列——特定查询被延迟到子调用，信息经 REPL 变量传递。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="recursive-language-model-rlm-harness"><a class="markdownIt-Anchor" href="#recursive-language-model-rlm-harness"></a> Recursive Language Model (RLM) Harness</h3>
+<p>RLM 是把上面三条洞察落成的一个 harness 设计，赌注摆得很清楚：任务分解这活儿 Transformer 干不了，程序来干：</p>
+<ul>
+<li>
+<p><span class="mark-strong">上下文卸载</span>：输入特定上下文不作为 LM prompt 的前缀传入，而是作为符号变量传递，root LM 不直接看到内容——于是不管问题差多远，第一步在 root LM 眼里长得都差不多。</p>
+</li>
+<li>
+<p><span class="mark-strong">程序化子代理调用</span>：子代理和工具被实现为 REPL 函数，输出直接存入变量而非返回给主上下文。Root LM 只看到抽象化的结果（如聚合统计值），原始数据碰都不碰。</p>
+</li>
+<li>
+<p><span class="mark-strong">递归性</span>：每个子代理自己也可以是一个 RLM 实例，一层套一层，LID 在每一层都成立。</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_bdbb698f0c99ee2544ac1ea3de5ae889e0d1301b10ee101605f43c12d0745edc.png" srcset="/img/loading.gif" lazyload alt="Figure 4: 上下文卸载与程序化子调用的机制对比" /></p>
+<p><em>图注：标准方法将全部上下文和工具输出塞入前缀导致 context rot；RLM 通过上下文卸载 + 程序化子调用让 root LM 视角下两个完全不同的问题看起来同构。</em></p>
+<h3 id="训练方式"><a class="markdownIt-Anchor" href="#训练方式"></a> 训练方式</h3>
+<ul>
+<li>
+<p>使用 <strong>prime-rl</strong>（Decoupled PPO + GRPO-like advantages + KL loss）进行 RL 训练</p>
+</li>
+<li>
+<p>模型：Qwen3-30B-A3B-Instruct-2507</p>
+</li>
+<li>
+<p>训练数据：<span class="mark-strong">仅在短任务上训练</span>（各环境不同的 short split）， batch size 64, 4 rollouts/sample, 150 steps</p>
+</li>
+<li>
+<p>可选&quot;分解提示&quot;（nudge to decompose）：在 user message 中加入鼓励模型显式分解的提示——这是防捷径的保险栓，模型偷懒学个不可泛化的捷径，长任务上就会现形</p>
+</li>
+</ul>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<p>这笔账作者算得很清楚：只要 harness 诱导的等价类 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo stretchy="false">[</mo><msup><mi>τ</mi><mo mathvariant="normal">′</mo></msup><mo stretchy="false">]</mo><mo>=</mo><mo stretchy="false">{</mo><mi>τ</mi><mo>∈</mo><mi mathvariant="script">T</mi><mo>:</mo><msup><mi>τ</mi><mo mathvariant="normal">′</mo></msup><mo>∼</mo><mi>τ</mi><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">[τ&#x27;] = \{τ \in \mathcal{T}: τ&#x27; \sim τ\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.25417em;">T</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mclose">}</span></span></span></span> 成立，root LM 看到的轨迹就跟任务长度、任务领域整体解耦，RLM 学到的自然是一个<span class="mark-strong">与长度和领域无关的分解策略</span>——短任务上练的分解，长任务直接照用。</p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<p><strong>长度泛化（6 个 benchmark）</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>Benchmark</strong></th>
+<th><strong>短任务范围</strong></th>
+<th><strong>长任务范围</strong></th>
+<th><strong>变化轴</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MRCRv2</td>
+<td>64K, 2-needle</td>
+<td>2M, 8-needle</td>
+<td>输入长度</td>
+</tr>
+<tr>
+<td>GraphWalks</td>
+<td>&lt;128K</td>
+<td>&gt;1M</td>
+<td>输入长度</td>
+</tr>
+<tr>
+<td>LongBenchPro</td>
+<td>32K</td>
+<td>256K</td>
+<td>输入长度</td>
+</tr>
+<tr>
+<td>OOLONG</td>
+<td>32K</td>
+<td>256K</td>
+<td>输入长度</td>
+</tr>
+<tr>
+<td>OOLONG-Pairs</td>
+<td>8K in / 7K out</td>
+<td>32K in / 146K out</td>
+<td>输入+输出长度</td>
+</tr>
+<tr>
+<td>Ada-LEval</td>
+<td>8K</td>
+<td>128K</td>
+<td>输入长度</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>策略/跨域泛化（3 个 benchmark）</strong>：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>训练域</strong></th>
+<th><strong>测试域</strong></th>
+<th><strong>共享策略</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OOLONG (TREC)</td>
+<td>OOLONG (SPAM/HAM)</td>
+<td>聚合统计</td>
+</tr>
+<tr>
+<td>OBLIQ-Bench (写作作者)</td>
+<td>OBLIQ-Bench (数学推理)</td>
+<td>相似性搜索</td>
+</tr>
+<tr>
+<td>OBLIQ-Bench (Twitter stance)</td>
+<td>OBLIQ-Bench (Wildchat errors)</td>
+<td>过滤搜索</td>
+</tr>
+</tbody>
+</table></div>
+<p>对比基线：base Transformer (+YaRN)、base RLM、RLM + 分解提示</p>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<p><em>（原图未能本地化：Figure 1: 训练 lift vs eval lift；IMA 媒体接口没有可用媒体编号）</em></p>
+<p><em>图注：在 6 个长度泛化和 3 个策略泛化实验中，RLM 的 eval lift（在未见过的长任务/不同域上）匹配甚至超过了 train lift（在短任务上），而 base Transformer 的 eval lift 几乎不增长。</em></p>
+<p><img src="/img/paper-reading/img_cdd954c8ca83444e173328919aa7a86ed1e6208e7b63961ad8f622cafe3a19c1.png" srcset="/img/loading.gif" lazyload alt="Figure 5: 长度泛化学习曲线" /></p>
+<p><em>图注：以 MRCRv2 为例，RLM 在短任务上的训练 reward 稳步上升，同时在 8-32x 更长的 eval split 上的 reward 几乎同步增长；base Transformer 训练 reward 增长但 eval reward 平坦。</em></p>
+<p><strong>关键发现</strong>：</p>
+<ol>
+<li>
+<p>RLM 在 MRCRv2、GraphWalks、OOLONG、OOLONG-Pairs 上训练后，eval 性能接近甚至超过使用 frontier model (GPT-5.5) 的 RLM</p>
+</li>
+<li>
+<p>长度泛化里最硬的一条：RLM 的 eval lift 约等于 train lift，而 base Transformer 的 eval lift ≈ 0——短任务上练出来的东西，原样带进了长任务</p>
+</li>
+<li>
+<p>跨域泛化中 token 分布完全不同、仅共享潜在结构，RLM 依然大幅优于 base Transformer</p>
+</li>
+<li>
+<p>轨迹相似度分析（Figure 8）：RLM eval 轨迹与训练轨迹的平均距离明显小于 base Transformer——LID 不停留在口号上，轨迹层面量得出来</p>
+</li>
+</ol>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<ul>
+<li>
+<p>RL 框架：prime-rl, Decoupled PPO with GRPO-like advantages + KL loss</p>
+</li>
+<li>
+<p>训练步数：150 steps</p>
+</li>
+<li>
+<p>Batch size：64, 4 rollouts/sample</p>
+</li>
+<li>
+<p>评估频率：长度泛化每 10 步，策略泛化每 20 步</p>
+</li>
+<li>
+<p>计算资源：8xH100（Laude Institute Slingshots program）</p>
+</li>
+<li>
+<p>RLM 额外开销：训练时间 1.5-3x base Transformer（多步采样 + 子调用等待）</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p>把 harness 的角色重新定义了——从工具调用的编排器升格为<span class="mark-strong">泛化能力的承载者</span>。LID 原则最实用的地方是它可检查：一个 harness 好不好，就看它能不能把每个 call 拉回分布内</p>
+</li>
+<li>
+<p>实验铺得开也压得住：6 个长度泛化 + 3 个策略泛化 + 轨迹距离多种度量，方向全部一致——短任务上练的，长任务和别的域直接能用</p>
+</li>
+<li>
+<p>全部在开源模型（Qwen3-30B-A3B）上做，不需要 frontier model 就能检验，这条对后来者是实打实的门槛降低</p>
+</li>
+<li>
+<p>没有藏代价：RLM 的额外计算开销、以及模型学到不可泛化捷径导致长度泛化失败的情况，都摆在台面上</p>
+</li>
+<li>
+<p>把 harness 设计和 scaling law 接上了：更好的归纳偏置抬的是&quot;扩展系数&quot;本身，不是曲线上的一个点</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：这是篇博客（RLM 系列工作的 companion），不是带几十页附录的正式论文，实验收在一个模型上，我理解这个选择。但理解归理解，该提的还是要提：</p>
+<ol>
+<li>
+<p>只在 Qwen3-30B-A3B 单一模型上验证，更大规模、其他架构一个没碰——LID 到底是普适原则还是 Qwen 的特性，现在分不清</p>
+</li>
+<li>
+<p>短→长的泛化默认&quot;分解策略在长短任务间相同&quot;，需要全局信息的长任务可能不满足这条</p>
+</li>
+<li>
+<p>RLM 的额外计算开销（1.5-3x）在更复杂任务上的 scaling 特性没有探索</p>
+</li>
+<li>
+<p>未与更现代的 harness 设计（如 Claude Code 的 managed agents）做直接对比</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p>仅在 Qwen3-30B-A3B 上验证，需在更大模型（70B+）和其他架构（MoE、其他 LLM 家族）上复现</p>
+</li>
+<li>
+<p>长度泛化失败的情况（如 MRCRv2 中模型学到非可泛化捷径）需要更系统的研究和解决方案</p>
+</li>
+<li>
+<p>RLM 训练开销的 scaling 特性——是否在更复杂任务上依然相对可控</p>
+</li>
+<li>
+<p>与 Claude Code managed agents 等现代 harness 的对比实验</p>
+</li>
+<li>
+<p>探索 harness 设计空间：除了 RLM，是否还有其他满足 LID 原则的 harness 架构</p>
+</li>
+<li>
+<p>理论层面：需要更严格的&quot;局部在分布&quot;定义和&quot;等价类诱导&quot;的形式化证明</p>
+</li>
+<li>
+<p>扩展到多模态和具身智能场景</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇博客把一个行业默认翻了面：post-training 拼命堆长轨迹的时候，组合泛化其实一直没人负责——作者把责任主体点名了，是 harness。RLM 用上下文卸载和程序化子调用守住每个 call 的局部在分布，&quot;训短任务、用长任务&quot;和&quot;训一个域、用另一个域&quot;两条都跑通了。我最买账的是 LID 这个判据本身：它把&quot;harness 设计得好不好&quot;从手感问题变成可检查的问题。<strong><span class="mark-strong">也许扩展的瓶颈不在于数据量，而在于我们如何将数据喂给模型</span></strong>。最想看到的下一步是 70B+ 和其他架构上的复现——LID 若只在 Qwen3-30B-A3B 上灵，它是一个好用的设计；在哪都灵，它才配叫原则。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">Harness 应承担组合泛化的责任</span>：把复杂问题归约为简单子问题的组合，让每个 LM call 保持局部在分布（LID），而不是等 Transformer 自己学会泛化。</p>
+</li>
+<li>
+<p><span class="mark-strong">RLM 的上下文卸载 + 程序化子调用</span>：输入特定信息存入符号变量、子代理输出经 REPL 传递而非返回主上下文，不同任务在 root LM 视角下 token-for-token 同构。</p>
+</li>
+<li>
+<p><span class="mark-strong">训练短任务即可泛化到 8-32x 更长任务和跨域任务</span>：eval lift 匹配 train lift，base Transformer 的 eval lift 几乎为零——回报递减不是堆料的宿命，换种喂法可能就解了。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Language model harnesses are compositional generalizers</div>
+      <div>https://yyhchen.github.io/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月24日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/25/paper-measuring-reward-seeking-via-contrastive-belief-updates/" title="Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/16/paper-inkling-our-open-weights-model/" title="Paper精读｜Inkling: Our Open-Weights Model">
+                        <span class="hidden-mobile">Paper精读｜Inkling: Our Open-Weights Model</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

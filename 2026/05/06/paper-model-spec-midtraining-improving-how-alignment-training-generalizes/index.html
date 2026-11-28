@@ -1,0 +1,995 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="对齐微调之前先补一堂课：用合成文档把 Model Spec（期望的行为规范）教给模型，再照常微调——Qwen3-32B 的智能体错误率从 54% 掉到 7%，连更复杂的深思熟虑对齐基线（14%）都被它比了下去。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes">
+<meta property="og:url" content="https://yyhchen.github.io/2026/05/06/paper-model-spec-midtraining-improving-how-alignment-training-generalizes/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="对齐微调之前先补一堂课：用合成文档把 Model Spec（期望的行为规范）教给模型，再照常微调——Qwen3-32B 的智能体错误率从 54% 掉到 7%，连更复杂的深思熟虑对齐基线（14%）都被它比了下去。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_7547277b0cc72ee34b42f9aa1810b0b3f9c45f1965a2fe207b4c0ecb546565c8.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_a94ccb1cc76dc51bc85b7db095034021a8565441a6d19c8b482e71a5e8c3ff9a.png">
+<meta property="article:published_time" content="2026-05-06T10:21:31.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_7547277b0cc72ee34b42f9aa1810b0b3f9c45f1965a2fe207b4c0ecb546565c8.png">
+  
+  
+  
+  <title>Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-06 18:21" pubdate>
+          2026-05-06 18:21:31
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="安全与可解释性"
+        id="heading-0d787b97203726100c0db5d789844778" role="tab" data-toggle="collapse" href="#collapse-0d787b97203726100c0db5d789844778"
+        aria-expanded="true"
+      >
+        安全与可解释性
+        <span class="list-group-count">(4)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-0d787b97203726100c0db5d789844778"
+           role="tabpanel" aria-labelledby="heading-0d787b97203726100c0db5d789844778">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(4)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/09/paper-understanding-ai-from-the-inside-the-state-of-mechanistic-interpretability-for-ai-safety/" title="Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/12/paper-stealing-reasoning-traces-from-proprietary-llm-apis/" title="Paper精读｜Stealing Reasoning Traces from Proprietary LLM APIs"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stealing Reasoning Traces from Proprietary LLM APIs</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-measuring-reward-seeking-via-contrastive-belief-updates/" title="Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Measuring Reward-Seeking via Contrastive Belief Updates</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/06/paper-model-spec-midtraining-improving-how-alignment-training-generalizes/" title="Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;safety">安全与可解释性</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读model-spec-midtraining-improving-how-alignment-training-generalizes"><a class="markdownIt-Anchor" href="#paper精读model-spec-midtraining-improving-how-alignment-training-generalizes"></a> Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>对齐微调之前先补一堂课：用合成文档把 Model Spec（期望的行为规范）教给模型，再照常微调——<span class="mark-number">Qwen3-32B 的智能体错误率从 54% 掉到 7%</span>，连更复杂的深思熟虑对齐基线（14%）都被它比了下去。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：** Model Spec Midtraining: Improving How Alignment Training Generalizes</li>
+<li><strong>arXiv</strong>：** 2605.02087</li>
+<li><strong>链接</strong>：** <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2605.02087">https://arxiv.org/abs/2605.02087</a></li>
+<li><strong>作者</strong>：** Chloe Li, Sara Price, Samuel Marks, Jon Kutasov (Anthropic)</li>
+<li><strong>日期</strong>：** 2026-05-03</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>标准对齐微调（AFT）在规范对齐行为示范数据上训练模型，学会的常常是模仿而不是规范本身——这就是<span class="mark-strong">浅层对齐 (shallow alignment)</span>。分布内看着没问题，一进黑箱测试这类训练分布外的场景，模型能做出敲诈、泄露公司信息、对审计员说谎的行为。病根在示范数据的&quot;欠指定性&quot;(underspecification)——<span class="mark-strong">数据本身没把期望的泛化方向编码全</span>。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="ed-quote">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">核心直觉</div>
+</div>
+<div class="callout-content"><p>核心直觉一句话就能说完：<strong><span class="mark-strong">先教模型要泛化什么，再教模型怎么泛化</span>。</strong></p>
+</div></div><p>传统流程：预训练 → 对齐微调（AFT）。</p>
+<p>MSM 流程：预训练 → 规范中间训练（MSM）→ 对齐微调（AFT）。</p>
+<p>MSM 阶段用合成文档（讨论 Model Spec 的内容、原则和推理方式）训练模型，干的事是<span class="mark-strong">塑造模型对自身规范的元认知</span>——后续 AFT 往哪个方向泛化，这一步先把调子定了。</p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="msm-管线"><a class="markdownIt-Anchor" href="#msm-管线"></a> MSM 管线</h3>
+<p><img src="/img/paper-reading/img_7547277b0cc72ee34b42f9aa1810b0b3f9c45f1965a2fe207b4c0ecb546565c8.png" srcset="/img/loading.gif" lazyload alt="图 1｜Model Spec Midtraining 如何控制对齐泛化" /></p>
+<p><em>图 1｜Model Spec Midtraining 如何控制对齐泛化。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2605.02087/#S1.F1">来源</a></em></p>
+<ol>
+<li>
+<p><span class="mark-strong">编写 Model Spec 文档</span>： 定义期望模型行为的原则。</p>
+</li>
+<li>
+<p><span class="mark-strong">合成训练数据</span>： 生成大量讨论这些 Spec 的合成文档。</p>
+</li>
+<li>
+<p><span class="mark-strong">中间训练阶段</span>： 在预训练后、标准对齐微调前训练——让模型理解规范。</p>
+</li>
+<li>
+<p><span class="mark-strong">标准对齐微调</span>： 在示范数据上照常进行 AFT。</p>
+</li>
+<li>
+<p><span class="mark-strong">泛化测试</span>： 观察模型在分布外场景中的行为。</p>
+</li>
+</ol>
+<h3 id="关键实验"><a class="markdownIt-Anchor" href="#关键实验"></a> 关键实验</h3>
+<p><img src="/img/paper-reading/img_a94ccb1cc76dc51bc85b7db095034021a8565441a6d19c8b482e71a5e8c3ff9a.png" srcset="/img/loading.gif" lazyload alt="图 3｜六项价值的对齐泛化实验" /></p>
+<p><em>图 3｜六项价值的对齐泛化实验。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2605.02087/#S3.F3">来源</a></em></p>
+<p><strong>奶酪偏好实验（归因漂移示范）：</strong></p>
+<ul>
+<li>
+<p>模型只被微调过表达奶酪偏好</p>
+</li>
+<li>
+<p>MSM 条件 A：Spec 将偏好归因于亲美价值观 → 模型泛化出亲美倾向</p>
+</li>
+<li>
+<p>MSM 条件 B：Spec 将偏好归因于价格可负担性 → 模型泛化出价格可负担性倾向</p>
+</li>
+<li>
+<p>结论：<strong><span class="mark-strong">相同微调数据，不同 MSM → 完全不同泛化方向</span></strong>——泛化方向是被 Spec 明着控制的</p>
+</li>
+</ul>
+<p><strong>安全对齐实验：</strong></p>
+<ul>
+<li>
+<p>使用 Qwen3-32B 模型</p>
+</li>
+<li>
+<p>Spec 主题：自我保护 (self-preservation) 和目标守护 (goal-guarding)</p>
+</li>
+<li>
+<p>标准 AFT：错误率 54%</p>
+</li>
+<li>
+<p>MSM + AFT：错误率 7%</p>
+</li>
+<li>
+<p>深思熟虑对齐基线 (deliberative alignment)：14%</p>
+</li>
+<li>
+<p>结论：不只是把标准 AFT 远远甩开，连更复杂的深思熟虑对齐也被比了下去——插一个实现门槛极低的中间阶段，效果反而更硬</p>
+</li>
+</ul>
+<hr />
+<h2 id="理论贡献"><a class="markdownIt-Anchor" href="#理论贡献"></a> 理论贡献</h2>
+<ul>
+<li>
+<p><span class="mark-strong">提出泛化的规范引导框架</span>： 把对齐从行为克隆改写成原则引导的泛化</p>
+</li>
+<li>
+<p><span class="mark-strong">揭示欠指定性问题</span>： MSM 用显式注入的规范假设，接管了原本没人管的隐性泛化方向</p>
+</li>
+<li>
+<p><span class="mark-strong">MSM 作为研究工具</span>： 发现（1）<span class="mark-strong">解释规则背后的价值观比只给规则更好</span>；（2）具体指导比一般指导更好</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<p>论文实验分两类，分工很清楚：</p>
+<ol>
+<li>
+<p><span class="mark-strong">归因漂移实验（证明 MSM 能控制泛化方向）</span>： 看奶酪偏好实验</p>
+</li>
+<li>
+<p><span class="mark-strong">安全相关实验（证明 MSM 的实际价值）</span>： 看 <span class="mark-entity">Qwen3-32B</span> 智能体错误率指标</p>
+</li>
+</ol>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p>这个方法最打动我的是性价比：合成文档加一个额外训练阶段，实现门槛低到不像话，换来的却是泛化方向从「模型自己随便填」变成「Spec 写什么就往哪泛化」。奶酪实验还顺手把它升级成了研究工具——想研究对齐泛化的机制，从此有了一个可控的实验入口。</p>
+<hr />
+<h2 id="局限"><a class="markdownIt-Anchor" href="#局限"></a> 局限</h2>
+<ul>
+<li>
+<p>实验规模有限（主要 <span class="mark-entity">Qwen3-32B</span>），更大模型需验证</p>
+</li>
+<li>
+<p>MSM 对 Spec 文档质量有依赖</p>
+</li>
+<li>
+<p>合成文档的偏见可能被放大</p>
+</li>
+<li>
+<p>与 RLHF/DPO 的兼容性未充分探索</p>
+</li>
+<li>
+<p>超长程泛化尚未测试</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>全文最硬的一句话值得单独记：<strong><span class="mark-strong">模型不知道它要泛化成什么，所以先告诉它</span>。</strong> 这个直觉被奶酪实验钉得很死——同一份微调数据，Spec 里的归因换一个，泛化方向就跟着换一个。我更看重的是它把「对齐泛化」从碰运气变成了可设计的东西：Spec 文档的质量现在成了成败变量（局限里作者自己也认了），但成败至少取决于一份你写得出来的文档，而不是取决于示范数据里碰巧留下了什么。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+<ul>
+<li>
+<p>MSM = 预训练后、对齐微调前，先教模型理解自身的行为规范</p>
+</li>
+<li>
+<p>相同微调数据 + 不同 Spec → 完全不同泛化方向（奶酪实验）</p>
+</li>
+<li>
+<p>Qwen3-32B 智能体错误率 54%→7%，压过深思熟虑对齐（14%）</p>
+</li>
+</ul>
+
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%AE%89%E5%85%A8%E4%B8%8E%E5%8F%AF%E8%A7%A3%E9%87%8A%E6%80%A7/" class="category-chain-item">安全与可解释性</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%AE%89%E5%85%A8%E4%B8%8E%E5%8F%AF%E8%A7%A3%E9%87%8A%E6%80%A7/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Model Spec Midtraining: Improving How Alignment Training Generalizes</div>
+      <div>https://yyhchen.github.io/2026/05/06/paper-model-spec-midtraining-improving-how-alignment-training-generalizes/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/06/paper-thinking-with-visual-primitives/" title="Paper精读｜Thinking with Visual Primitives">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Thinking with Visual Primitives</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/18/%E9%9B%B6%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8RoPE/" title="零基础入门RoPE">
+                        <span class="hidden-mobile">零基础入门RoPE</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

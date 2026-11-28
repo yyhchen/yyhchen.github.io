@@ -1,0 +1,1215 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="LLM-as-a-Verifier 把「验证」从流程里的边角活扶正成一条独立的 scaling axis：一个无需额外训练的通用框架，只靠 scoring token 上的 logit 期望值把离散评分拉成连续分数，再沿粒度细化、重复评估和标准分解三个轴各自加码——coding &#x2F; robotics &#x2F; medical 四个 benchmark 全部拿到 SOTA。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/10/paper-llm-as-a-verifier-a-general-purpose-verification-framework/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="LLM-as-a-Verifier 把「验证」从流程里的边角活扶正成一条独立的 scaling axis：一个无需额外训练的通用框架，只靠 scoring token 上的 logit 期望值把离散评分拉成连续分数，再沿粒度细化、重复评估和标准分解三个轴各自加码——coding &#x2F; robotics &#x2F; medical 四个 benchmark 全部拿到 SOTA。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_d81bb472dccc70d8e677a75b28aa33dc3bbe917c4d58990522cb7b1413e5522c.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_d15dd0e13bebbc5d96f651b814a499b4fad62132e2bb6e0a169b92924af824e0.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_e83f5f62ad739a0ee21e843420a9f71882712361c5c53d6177ec1dec52ea6e73.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_d80f61a075f9c1c57ac19a933ebbf0d5e5952c72283bf698c58f5cf15275a177.png">
+<meta property="article:published_time" content="2026-07-10T07:13:48.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_d81bb472dccc70d8e677a75b28aa33dc3bbe917c4d58990522cb7b1413e5522c.png">
+  
+  
+  
+  <title>Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-10 15:13" pubdate>
+          2026-07-10 15:13:48
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          19 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="评测与验证"
+        id="heading-8ba97f6ce629a655d313673047092d7b" role="tab" data-toggle="collapse" href="#collapse-8ba97f6ce629a655d313673047092d7b"
+        aria-expanded="true"
+      >
+        评测与验证
+        <span class="list-group-count">(8)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-8ba97f6ce629a655d313673047092d7b"
+           role="tabpanel" aria-labelledby="heading-8ba97f6ce629a655d313673047092d7b">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(8)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/28/paper-sensebench-a-benchmark-for-remote-sensing-low-level-visual-perception-and-description-in-large-vision-language-models/" title="Paper精读｜SenseBench: A Benchmark for Remote Sensing Low-Level Visual Perception and Description in Large Vision-Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SenseBench: A Benchmark for Remote Sensing Low-Level Visual Perception and Description in Large Vision-Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/26/paper-recursive-collective-intelligence-emergence-on-an-equal-budget-ladder-in-multi-agent-llm-systems/" title="Paper精读｜Recursive Collective Intelligence: Emergence on an Equal-Budget Ladder in Multi-Agent LLM Systems"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recursive Collective Intelligence: Emergence on an Equal-Budget Ladder in Multi-Agent LLM Systems</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/26/paper-robouniverse-10k-toward-the-scaling-era-of-agentic-robotics-via-real-to-sim-environments/" title="Paper精读｜RoboUniverse-10K: Toward the Scaling Era of Agentic Robotics via Real-to-Sim Environments"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜RoboUniverse-10K: Toward the Scaling Era of Agentic Robotics via Real-to-Sim Environments</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-seta-scaling-environments-for-terminal-agents/" title="Paper精读｜SETA: Scaling Environments for Terminal Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SETA: Scaling Environments for Terminal Agents</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/12/paper-swe-bench-promax-benchmarking-agents-on-large-scale-multilingual-code-refactoring/" title="Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-tencent-workbuddy-bench-a-multi-domain-coding-agent-benchmark-with-contamination-resistant-task-construction/" title="Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Tencent WorkBuddy Bench: A Multi-Domain Coding-Agent Benchmark with Contamination-Resistant Task Construction</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-llm-as-a-verifier-a-general-purpose-verification-framework/" title="Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/22/paper-current-world-models-lack-a-persistent-state-core/" title="Paper精读｜Current World Models Lack a Persistent State Core"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Current World Models Lack a Persistent State Core</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;evaluation">评测与验证</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读llm-as-a-verifier-a-general-purpose-verification-framework"><a class="markdownIt-Anchor" href="#paper精读llm-as-a-verifier-a-general-purpose-verification-framework"></a> Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>LLM-as-a-Verifier</strong> 把「验证」从流程里的边角活扶正成一条独立的 scaling axis：一个<span class="mark-strong">无需额外训练的通用框架</span>，只靠 scoring token 上的 <strong>logit 期望值</strong>把离散评分拉成连续分数，再沿<span class="mark-strong">粒度细化、重复评估和标准分解</span>三个轴各自加码——coding / robotics / medical 四个 benchmark 全部拿到 SOTA。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：LLM-as-a-Verifier: A General-Purpose Verification Framework</li>
+<li><strong>arXiv</strong>：2607.05391</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2607.05391">https://arxiv.org/abs/2607.05391</a></li>
+<li><strong>作者</strong>：Jacky Kwok, Shulu Li, Pranav Atreya, Yuejiang Liu, Yixing Jiang, Chelsea Finn, Marco Pavone, Ion Stoica, Azalia Mirhoseini</li>
+<li><strong>机构</strong>：Stanford University / UC Berkeley / NVIDIA Research</li>
+<li><strong>日期</strong>：2026-07-06</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>pre-training、post-training、test-time compute——generation 的三条 scaling axis 被翻来覆去研究了个遍，但<strong>验证</strong>（verification，判断一个解法到底对不对）从来没被当成独立的 scaling axis 正经研究过。</p>
+<p>现有两条路都糙在分辨率上：</p>
+<ul>
+<li>
+<p><span class="mark-strong">标准 LM judges</span> 输出离散分数（如 1-5 分），质量相近的 complex solutions 一比就给同样的分——tie rate 高达 <span class="mark-number">27%</span>，等于没区分</p>
+</li>
+<li>
+<p><span class="mark-strong">Learned reward models</span> 被训练分布焊死，换个领域就失灵</p>
+</li>
+</ul>
+<p>两条路的共同病灶：<span class="mark-strong">评分分辨率低</span>，喂不进 agentic 任务需要的细粒度反馈信号。</p>
+<p>于是核心问题来了：验证自己能不能也变成一条可加码的 axis，在 generation scaling 之外开出第二条增长曲线？</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">验证是一个被低估的 scaling axis</span>：在 Terminal-Bench V2 上，如果模型拥有 oracle verifier，能将 pass@5 从 83.1% 提升到 92.1%，甚至跨模型池的 oracle pass@K 能到 98.9%——生成端其实已经攒够了候选，卡脖子的是&quot;<span class="mark-strong">选择能力</span>&quot;。</p>
+</li>
+<li>
+<p><span class="mark-strong">从离散到连续的范式转变</span>：标准 judge 只取 logit 最高的那个 token 就交卷，这篇偏要给全部 scoring token 按概率做加权。分数从 {1,…,G} 的离散集合变成连续的 [0,1] 区间，<span class="mark-number">tie rate 从 26.7% 降到 0</span>。</p>
+</li>
+<li>
+<p><span class="mark-strong">三轴独立缩放，互补不冗余</span>：</p>
+</li>
+</ol>
+<ul>
+<li>
+<p><span class="mark-strong">粒度缩放（G）</span>：增加 scoring token 数量 → 提升 SNR → 更好区分正/负解</p>
+</li>
+<li>
+<p><span class="mark-strong">重复评估（K）</span>：蒙特卡洛平均 → 方差以 O(1/K) 下降 → 去噪</p>
+</li>
+<li>
+<p><span class="mark-strong">标准分解（C）</span>：将&quot;正确性&quot;拆解为 Specification / Output / Errors → 减少单一标准的 prompt bias</p>
+</li>
+</ul>
+<ol start="4">
+<li>
+<p><strong><span class="mark-strong">验证信号 = 任务进度估计器</span></strong>：LLM-as-a-Verifier 的分数与 agent 执行步骤高度相关（Spearman VOC = 0.848 on successful trajectories），同一个 verifier 拿去当 ranking monitor 还是 early-warning system 都能用。</p>
+</li>
+<li>
+<p><span class="mark-strong">可直接当 RL 的 dense reward</span>：连续的验证分数塞进 off-policy (SAC) 和 on-policy (GRPO) 都行，sample efficiency ≈1.8× 加速（LIBERO）。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_d81bb472dccc70d8e677a75b28aa33dc3bbe917c4d58990522cb7b1413e5522c.png" srcset="/img/loading.gif" lazyload alt="Figure 1: 各 benchmark SOTA 性能" /></p>
+<p><em>图1：LLM-as-a-Verifier 在 coding、robotics、medical 三个领域四个 benchmark 上全面达到 SOTA：Terminal-Bench V2 (86.5%)、SWE-Bench Verified (78.2%)、RoboRewardBench (87.4%)、MedAgentBench (73.3%)。（来自 Figure 1）</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1fine-grained-reward-estimation"><a class="markdownIt-Anchor" href="#组件1fine-grained-reward-estimation"></a> 组件1：Fine-grained Reward Estimation</h3>
+<p>整篇框架压在这一条式子上（Eq. 3.1）——不挑 logit 最大的那个 token，而是让每个 scoring token 按自己的概率对分数做贡献：</p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>τ</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mi>C</mi><mi>K</mi></mrow></mfrac><msubsup><mo>∑</mo><mrow><mi>c</mi><mo>=</mo><mn>1</mn></mrow><mi>C</mi></msubsup><msubsup><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></msubsup><msubsup><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></msubsup><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi>v</mi><mi>g</mi></msub><mi mathvariant="normal">∣</mi><mi>x</mi><mo separator="true">,</mo><mi>c</mi><mo separator="true">,</mo><mi>τ</mi><mo stretchy="false">)</mo><mo>⋅</mo><mi>ϕ</mi><mo stretchy="false">(</mo><msub><mi>v</mi><mi>g</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(x,\tau) = \frac{1}{CK} \sum_{c=1}^{C} \sum_{k=1}^{K} \sum_{g=1}^{G} p_\theta(v_g | x, c, \tau) \cdot \phi(v_g)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.417049em;vertical-align:-0.43581800000000004em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">K</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.981231em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">c</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29971000000000003em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.981231em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">K</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29971000000000003em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.981231em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">g</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">G</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.43581800000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord mathdefault">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">c</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathdefault">ϕ</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></p>
+<p>三个设计各有各的算计：</p>
+<ul>
+<li>
+<p>用字母（A-J 对应 1-10，或更多）代替数字当 scoring token——理由很实际：单个字母 token 可以提取 logprobs</p>
+</li>
+<li>
+<p>评分尺度开到 1-20（而非传统的 1-5）——刻度越密，logit 期望的连续化才越平滑</p>
+</li>
+<li>
+<p>最终归一化到 [0,1]，再通过 Bradley-Terry 模型转成 pairwise preference</p>
+</li>
+</ul>
+<h3 id="组件2probabilistic-pivot-tournament高效排名算法"><a class="markdownIt-Anchor" href="#组件2probabilistic-pivot-tournament高效排名算法"></a> 组件2：Probabilistic Pivot Tournament（高效排名算法）</h3>
+<p>排名这头另有一个工程问题：候选有 N 个时，传统 Round-Robin 要 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 次比较，烧不起。作者的解法是五阶段 pipeline：Ring Pass → Pivot Selection → Pivot Rounds → Aggregation → Champion——预算从 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 压到 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mi>k</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(Nk)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mclose">)</span></span></span></span>，固定预算下逼近最优 accuracy。</p>
+<p><img src="/img/paper-reading/img_d15dd0e13bebbc5d96f651b814a499b4fad62132e2bb6e0a169b92924af824e0.png" srcset="/img/loading.gif" lazyload alt="Figure 6: Probabilistic Pivot Tournament" /></p>
+<p><em>图6：五阶段 pipeline —— (1) Ring Pass：随机 Hamiltonian cycle 消除位置偏差；(2) Pivot Selection：选 top-k 作为支点；(3) Pivot Rounds：仅比较 pivot vs 所有其他候选；(4) Aggregation：汇总胜负；(5) Champion：选出最优。将比较次数从 O(N²) 降为 O(Nk)。（来自 Figure 6）</em></p>
+<h3 id="组件3criteria-decomposition"><a class="markdownIt-Anchor" href="#组件3criteria-decomposition"></a> 组件3：Criteria Decomposition</h3>
+<p>把&quot;整体正确性&quot;拆成 3 个独立子标准，各自单独打分再合：</p>
+<ul>
+<li>
+<p><span class="mark-strong">Specification</span>：是否满足所有任务需求</p>
+</li>
+<li>
+<p><span class="mark-strong">Output</span>：最终输出格式是否符合预期</p>
+</li>
+<li>
+<p><span class="mark-strong">Errors</span>：logs/tool outputs 中是否无错误信号</p>
+</li>
+</ul>
+<p>任一单独标准约 75-76% 准确率，ensemble 后到 <span class="mark-number">78.3%</span>——拆开比不拆强，和三轴缩放是同一个逻辑。</p>
+<h3 id="优势估计"><a class="markdownIt-Anchor" href="#优势估计"></a> 优势估计</h3>
+<ul>
+<li>
+<p>不依赖额外训练——同一个框架原样搬进 coding / robotics / medical 直接部署</p>
+</li>
+<li>
+<p>logit 拿不到的 frontier models 也有路（Appendix B.6 的两阶段 workaround）</p>
+</li>
+<li>
+<p>candidate pool 里混着不同模型产出的轨迹（heterogeneous pool），照样能排</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_e83f5f62ad739a0ee21e843420a9f71882712361c5c53d6177ec1dec52ea6e73.png" srcset="/img/loading.gif" lazyload alt="Figure 4: Verification Scaling 三轴缩放" /></p>
+<p><em>图4：验证准确率在三个独立轴上均呈单调上升趋势——粒度 G=1→20 从 73.1% 升至 77.5%；重复评估 K=1→16 从 74.7% 升至 77.5%；标准分解 ensemble 三个标准后达 78.3%。三轴互补不冗余。（来自 Figure 4）</em></p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>Benchmark</strong></th>
+<th><strong>领域</strong></th>
+<th><strong>Agent Harness</strong></th>
+<th><strong>生成模型</strong></th>
+<th><strong>Verifier</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terminal-Bench V2</td>
+<td>Shell coding</td>
+<td>Capy</td>
+<td>GPT-5.5</td>
+<td>Gemini 2.5 Flash</td>
+</tr>
+<tr>
+<td>SWE-Bench Verified</td>
+<td>GitHub issue</td>
+<td>mini-swe-agent</td>
+<td>Opus 4.5 / G3 Flash / M2.5</td>
+<td>Gemini 2.5 Flash</td>
+</tr>
+<tr>
+<td>RoboRewardBench</td>
+<td>Robotics</td>
+<td>VLM-based</td>
+<td>Qwen 3.6 35B</td>
+<td>—</td>
+</tr>
+<tr>
+<td>MedAgentBench</td>
+<td>Medical EHR</td>
+<td>AgentBench</td>
+<td>Opus 4.8</td>
+<td>Gemini 2.5 Flash</td>
+</tr>
+</tbody>
+</table></div>
+<p>统一参数：G=20, K=8, 三标准分解。</p>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>Benchmark</strong></th>
+<th><strong>Pass@1</strong></th>
+<th><strong>Oracle Pass@N</strong></th>
+<th><strong>LLM-as-a-Verifier</strong></th>
+<th><strong>提升</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terminal-Bench V2</td>
+<td>83.1%</td>
+<td>92.1%</td>
+<td><strong>86.5%</strong></td>
+<td>+3.4</td>
+</tr>
+<tr>
+<td>SWE-Bench Verified</td>
+<td>76.1%</td>
+<td>84.4%</td>
+<td><strong>78.2%</strong></td>
+<td>+2.1</td>
+</tr>
+<tr>
+<td>RoboRewardBench</td>
+<td>—</td>
+<td>—</td>
+<td><strong>87.4%</strong> (vs 81.4% best)</td>
+<td>+6.0</td>
+</tr>
+<tr>
+<td>MedAgentBench</td>
+<td>70.2%</td>
+<td>75.0%</td>
+<td><strong>73.3%</strong></td>
+<td>+3.1</td>
+</tr>
+</tbody>
+</table></div>
+<p><img src="/img/paper-reading/img_d80f61a075f9c1c57ac19a933ebbf0d5e5952c72283bf698c58f5cf15275a177.png" srcset="/img/loading.gif" lazyload alt="Figure 7: Verifier vs Judge 对比" /></p>
+<p><em>图7：左——Pairwise verification accuracy：Verifier 在 k=1 时即达 74.7%，k=16 时达 77.5%，全程优于 Judge。右——Tie rate：Judge 在 k=1 时产生 26.7% 的 tie，Verifier 始终为 0%。（来自 Figure 7）</em></p>
+<h3 id="rl-效果额外实验"><a class="markdownIt-Anchor" href="#rl-效果额外实验"></a> RL 效果（额外实验）</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>环境</strong></th>
+<th><strong>Reward type</strong></th>
+<th><strong>Baseline</strong></th>
+<th><strong>+Verifier reward</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LIBERO (robotics)</td>
+<td>Off-policy SAC</td>
+<td>69%</td>
+<td>76% (≈1.8× fewer steps)</td>
+</tr>
+<tr>
+<td>MATH (reasoning)</td>
+<td>On-policy GRPO</td>
+<td>baseline</td>
+<td>≈1.1× 加速</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="训练细节"><a class="markdownIt-Anchor" href="#训练细节"></a> 训练细节</h3>
+<ul>
+<li>
+<p>粒度这条轴：G=1→20 时 SNR 从 0.775 升到 0.799（Table 1），边际递减但一直是正的</p>
+</li>
+<li>
+<p>重复评估这条轴：K=1→16 时 accuracy 从 74.7%→77.5%，收益递减来得很快</p>
+</li>
+<li>
+<p>最有意思的一条：单 pass verifier (K=1) 就追平了 heavily ensembled judge (K=16)——粒度比堆重复次数划算</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><span class="mark-strong">验证被正儿八经立成第四条 axis</span>：三轴缩放给了可操作的加码路径——不是又一个 benchmark hack，是方法论层面的新条目</p>
+</li>
+<li>
+<p><span class="mark-strong">letter-based scoring 是全文性价比最高的一手</span>：拿字母当 scoring token 换回 logprobs 访问权，再对全部 token 取期望，零训练成本换到连续分数</p>
+</li>
+<li>
+<p><span class="mark-strong">跨域不改一行框架</span>：coding、robotics、medical 三个异质领域同一套跑通，起作用的是机制本身而非某家的 domain knowledge</p>
+</li>
+<li>
+<p><span class="mark-strong">一个信号三处复用</span>：ranking（verifier）之外还伸到 task progress estimation（VOC）和 dense RL reward——selection → monitoring → training 一条链全占了</p>
+</li>
+<li>
+<p><span class="mark-strong">每个主张都有配套解释</span>：SNR 分析说清粒度为什么有效，tie rate 27%→0 说清连续为什么赢离散，不是纯经验堆数字</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：整套方法吃的就是 logit，这个依赖是机制本身，不是设计失误。但理解归理解，代价摆在那：</p>
+<ol>
+<li>
+<p>Claude 系列通过 API 拿不到 logprobs，只能走两阶段 workaround——直接适用范围被砍掉一块</p>
+</li>
+<li>
+<p>三轴配置全是 handmade（手动设计标准、固定 G=20/K=8），没有&quot;什么时候该往哪个轴加码&quot;的自适应调度策略</p>
+</li>
+<li>
+<p>RL 实验只在 single-turn 设置里做过，multi-turn RL（long-horizon agentic rollouts with per-step rewards）一个字没碰</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><span class="mark-strong">自适应三轴调度</span>：根据 verifier 自身的不确定性动态分配 G/K/C compute</p>
+</li>
+<li>
+<p><span class="mark-strong">Learned Criteria Decomposition</span>：标准分解目前是 hand-crafted，可尝试 per-domain 自动分解</p>
+</li>
+<li>
+<p><span class="mark-strong">Multi-turn RL dense rewards</span>：将验证信号扩展到多轮 agentic 场景的 credit assignment</p>
+</li>
+<li>
+<p><span class="mark-strong">Best-of-N 与 generation scaling 的耦合</span>：generation + verification 的联合 scaling law 尚未建立</p>
+</li>
+<li>
+<p><span class="mark-strong">Infrastructure 应用</span>：Claude Code / Codex extension 是产品级落地基石，可进一步公开 user study</p>
+</li>
+<li>
+<p><span class="mark-strong">与 self-improvement 闭环</span>：验证器自身能否通过 verification signal 做 meta-learning，持续优化自身打分能力</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇最值钱的判断，是把「验证」从 generation 的附属品升格成独立的 scaling axis：pre-training / post-training / test-time compute 三条老轴全在 scaling 生成端，这篇证明<span class="mark-strong">验证能力</span>自己也能加码，而且收益独立于生成端。四个 benchmark 全 SOTA 说明不是挑对了领域；VOC 0.848 和 RL ≈1.8× 加速说明这条验证信号不止能选答案。</p>
+<p>要说最虚的地方：三轴配置全靠手工（G=20、K=8、标准手写），调度逻辑没给——框架立住了，账还没算明白。下一步最该补的，是按 verifier 自身的不确定性动态分配 G/K/C 的策略。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><span class="mark-strong">从离散到连续</span>：用 logit 期望值替代单一 scoring token，将 tie rate 从 27% 降到 0%，同时释放了沿 G/K/C 三个轴独立缩放验证能力的空间</p>
+</li>
+<li>
+<p><span class="mark-strong">验证是第四轴</span>：pre-training、post-training、test-time compute 都在 scaling generation，而 LLM-as-a-Verifier 首次系统论证了 verification scaling 是一条独立且可量化的能力提升路径</p>
+</li>
+<li>
+<p><span class="mark-strong">一个框架三个用途</span>：trajectory ranking（SOTA results）、task progress estimation（VOC=0.848）、dense RL reward（sample efficiency ≈1.8×）——验证信号的价值远超&quot;选最好的&quot;</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AF%84%E6%B5%8B%E4%B8%8E%E9%AA%8C%E8%AF%81/" class="category-chain-item">评测与验证</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E8%AF%84%E6%B5%8B%E4%B8%8E%E9%AA%8C%E8%AF%81/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜LLM-as-a-Verifier: A General-Purpose Verification Framework</div>
+      <div>https://yyhchen.github.io/2026/07/10/paper-llm-as-a-verifier-a-general-purpose-verification-framework/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/16/paper-inkling-our-open-weights-model/" title="Paper精读｜Inkling: Our Open-Weights Model">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Inkling: Our Open-Weights Model</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/10/paper-single-rollout-asynchronous-optimization-for-agentic-reinforcement-learning/" title="Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning">
+                        <span class="hidden-mobile">Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

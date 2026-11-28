@@ -1,0 +1,1582 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Harness-of-Harness（HoH）不去跟&quot;让一个 Coding Agent 一口气写完软件&quot;较劲，而是在现有 harness 外面再加一层持续改进协议：每轮分别以 Planner、Developer 和独立 QA Tester 三个角色调用它，围绕小而可验证的增量循环，并把代码状态和证据状态一起带进下一轮。三个 benchmark 上，三轮 HoH 全部稳定压过 Vanilla har">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement">
+<meta property="og:url" content="https://yyhchen.github.io/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="Harness-of-Harness（HoH）不去跟&quot;让一个 Coding Agent 一口气写完软件&quot;较劲，而是在现有 harness 外面再加一层持续改进协议：每轮分别以 Planner、Developer 和独立 QA Tester 三个角色调用它，围绕小而可验证的增量循环，并把代码状态和证据状态一起带进下一轮。三个 benchmark 上，三轮 HoH 全部稳定压过 Vanilla har">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_fa51c9255edbe8f9e48182bdb75c626ceaf21c6d3486947340fa27529a281f2e.svg">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_3850e194831e0789cdb84383c67a26affd9d0df3b751b8326d23f2969583b57f.svg">
+<meta property="article:published_time" content="2026-09-04T08:25:39.000Z">
+<meta property="article:modified_time" content="2026-11-19T15:59:34.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_fa51c9255edbe8f9e48182bdb75c626ceaf21c6d3486947340fa27529a281f2e.svg">
+  
+  
+  
+  <title>Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-09-04 16:25" pubdate>
+          2026-09-04 16:25:39
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          41 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement"><a class="markdownIt-Anchor" href="#paper精读harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement"></a> Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>**Harness-of-Harness（HoH）不去跟&quot;让一个 Coding Agent 一口气写完软件&quot;较劲，而是在现有 harness 外面再加一层持续改进协议：每轮分别以 Planner、Developer 和独立 QA Tester 三个角色调用它，围绕小而可验证的增量循环，并<span class="mark-strong">把代码状态和证据状态一起带进下一轮</span>。**三个 benchmark 上，三轮 HoH 全部稳定压过 Vanilla harness；70 轮的多日案例里，它从空目录自主建出了一个能玩的第一人称射击游戏。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</li>
+<li><strong>arXiv</strong>：2609.01481v1</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.01481">https://arxiv.org/abs/2609.01481</a></li>
+<li><strong>代码</strong>：<a target="_blank" rel="noopener" href="https://github.com/Flesymeb/HarnessOfHarness">https://github.com/Flesymeb/HarnessOfHarness</a></li>
+<li><strong>项目主页</strong>：<a target="_blank" rel="noopener" href="https://flesymeb.github.io/HarnessOfHarness/">https://flesymeb.github.io/HarnessOfHarness/</a></li>
+<li><strong>作者</strong>：Haoyang Yan, Min-Le Su, Hangfan Zhang, Zhanhao Li, Chen Zhang, Shao Zhang, Yang Chen, Lei Bai, Shuyue Hu</li>
+<li><strong>机构</strong>：上海人工智能实验室</li>
+<li><strong>日期</strong>：2026-09-01</li>
+</ul>
+</div></details><hr />
+<h2 id="论文分类标注"><a class="markdownIt-Anchor" href="#论文分类标注"></a> 论文分类标注</h2>
+<ul>
+<li>
+<p><strong>研究类型</strong>：Agent 系统方法论文 + 长时程自主软件开发实验</p>
+</li>
+<li>
+<p><strong>领域归属</strong>：LLM Agent &gt; Coding Agent &gt; Harness Engineering &gt; 持续迭代与证据驱动开发</p>
+</li>
+<li>
+<p><strong>方法学标签</strong>：多角色编排、迭代增量开发、独立 QA、跨轮次状态管理、版本化项目记忆</p>
+</li>
+<li>
+<p><strong>主要对象</strong>：不修改底层 coding harness，而是在其外层构建一个&quot;管理 harness 的 harness&quot;</p>
+</li>
+<li>
+<p><strong>与相关工作的关系</strong>：承接 SWE-Agent、OpenHands、MetaGPT、AgentCoder、Meta-Harness、Self-Harness 等工作，但重点从&quot;一次任务完成&quot;转向&quot;多轮、跨天、持续改进的完整软件构建&quot;</p>
+</li>
+</ul>
+<hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>现有的 Coding Agent，干&quot;解决一个 issue&quot;&quot;完成一次 bounded episode&quot;这类活没问题。可一旦让它长时间从零构建一个完整软件，几乎注定失控：早期需求被遗忘，局部修复跟别的模块打架；同一个问题反复检查；已有的能力又生成一遍；功能还没齐就早早宣布完成。</p>
+<p>难点不在让模型执行更久，在让它在这段时间里持续保持**<span class="mark-strong">方向、连续性和可验证性</span>**。软件开发里还缠着三种不同的判断：下一步做什么、具体怎么实现、实现完是不是真的满足要求——这三种判断需要不同的视角和权限，全塞给同一个 Agent，等于让开发者自己验收自己的代码。</p>
+<p>HoH 的基本想法很直接：把现有 coding agent 当成一个可调用的 harness，用另一个外层协议来组织它。外层协议不规定 Agent 每一步必须怎么想，只规定它必须交付什么可验证的中间产物，再让独立 QA 根据证据定下一轮的优先级。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>Harness-of-Harness 是管理 harness 的外层控制回路。</strong> 底层 harness 照旧管文件读写、终端、编译和工具调用；HoH 管的是另几件事——什么时候重新调用它、以什么角色调用、喂它哪些跨轮次状态、以及怎么判断这轮是不是真有进展。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">软件状态不等于开发知识</span>。</strong> 当前代码只回答&quot;现在有什么&quot;，回答不了&quot;哪些需求验证过、哪些 bug 出现过、哪些修复后来又回归了&quot;。所以 HoH 把两份账分开记：artifact state（代码/资源/配置）和 evidence state（验证过的行为、未解决的缺口、回归风险）。</p>
+</li>
+<li>
+<p><strong>持续改进必须同时处理 repair 和 capability growth。</strong> 每轮只修 bug，系统在局部修补里打转；每轮只加功能，缺陷和回归越攒越多。Planner 的做法是把&quot;优先修复阻塞问题&quot;和&quot;新增一个小而完整的能力&quot;放进同一轮的有界目标。</p>
+</li>
+<li>
+<p><strong>约束可验证产物，而不是规定工作流。</strong> Planner、Developer、QA 都有结构化输出契约，输出不合 schema 就触发重试；但怎么分析、怎么调工具、怎么实现，Agent 自己定。这是在可靠性和自主性之间各让一步。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="1-形式化从需求到持续演化的-artifact"><a class="markdownIt-Anchor" href="#1-形式化从需求到持续演化的-artifact"></a> 1. 形式化：从需求到持续演化的 artifact</h3>
+<p>先把整件事钉成一个映射——给定软件规格 S、初始项目 A₀、固定模型 M 和固定底层 harness H，HoH 要在 T 轮之后交出完整软件 Aᵀ：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">HoH(M,H): S → A<br></code></pre></td></tr></table></div></figure>
+<p>每一轮拆成三个角色的调用：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Dₜ = Plan_H(S, Eₜ₋₁)<br>Aₜ = Dev_H(Aₜ₋₁ ; S, Dₜ)<br>Eₜ = Test_H(Aₜ ; S, Dₜ)<br></code></pre></td></tr></table></div></figure>
+<p>符号含义：</p>
+<ul>
+<li>
+<p><code>S</code>：公开产品需求或 benchmark specification；</p>
+</li>
+<li>
+<p><code>Aₜ</code>：第 t 轮后的项目 artifact，包括源代码、配置、资源和项目元数据；</p>
+</li>
+<li>
+<p><code>Dₜ</code>：本轮开发文档，描述下一步有限目标、要保留的行为和验收条件；</p>
+</li>
+<li>
+<p><code>Eₜ</code>：本轮 QA 产生的证据包；</p>
+</li>
+<li>
+<p><code>H</code>：底层 coding-agent harness；</p>
+</li>
+<li>
+<p><code>Plan_H / Dev_H / Test_H</code>：用同一个底层模型/harness，但以不同角色、不同权限和不同输入分别调用。</p>
+</li>
+</ul>
+<p>跨轮次的状态转移就一行：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">(Aₜ₋₁, Eₜ₋₁) --loop t--&gt; (Aₜ, Eₜ)<br></code></pre></td></tr></table></div></figure>
+<p>两份状态各管一件事：<code>A</code> 保证开发不用每轮从头来，<code>E</code> 保证下一轮不是只盯着当前代码猜历史。缺哪一条，循环都转不起来。</p>
+<h3 id="2-project-planner决定下一步做什么"><a class="markdownIt-Anchor" href="#2-project-planner决定下一步做什么"></a> 2. Project Planner：决定&quot;下一步做什么&quot;</h3>
+<p>Planner 读三样东西：</p>
+<ul>
+<li>
+<p>原始 PRD/任务规格 S；</p>
+</li>
+<li>
+<p>上一轮 QA 的 evidence bundle Eₜ₋₁；</p>
+</li>
+<li>
+<p>当前 artifact Aₜ₋₁ 的只读实现上下文。</p>
+</li>
+</ul>
+<p>它没有生产代码的写权限，产出只有一份开发文档 Dₜ，文档被要求：</p>
+<ul>
+<li>
+<p>选择最多三个有序优先级；</p>
+</li>
+<li>
+<p>优先处理阻塞问题和回归；</p>
+</li>
+<li>
+<p>选择一个有界但局部完整的增量；</p>
+</li>
+<li>
+<p>写明哪些已经验证的功能必须保留；</p>
+</li>
+<li>
+<p>写明本轮可以观察到的验收条件。</p>
+</li>
+</ul>
+<p>&quot;有界&quot;在这里不是数文件个数，而是框定一个可独立验证的行为单元——比如&quot;加入完整的敌人战斗循环&quot;可能牵扯多个脚本、UI 和资源，但它们同属一个可观察目标；无关的架构重构则被挡在本轮之外。</p>
+<h3 id="3-developer单写入者实现增量"><a class="markdownIt-Anchor" href="#3-developer单写入者实现增量"></a> 3. Developer：单写入者实现增量</h3>
+<p>Developer 从 Aₜ₋₁ warm-start，不是每次从空项目起跳。生产 artifact 的写权限在它手里，底层 harness 的文件、shell、构建、运行和测试工具随便用。</p>
+<p>HoH 管的是结果，不是过程：</p>
+<ul>
+<li>
+<p>不能用一个更小的重写项目替代已有项目；</p>
+</li>
+<li>
+<p>要保留已验证的功能；</p>
+</li>
+<li>
+<p>要让项目保持可构建、可运行；</p>
+</li>
+<li>
+<p>每个声称完成的机制都要有可重放的运行记录。</p>
+</li>
+</ul>
+<p>它内部走 shift-left 的 baseline–change–retest：先立目标行为基线，每次重要改动后立刻重跑相关路径和邻近回归面。注意这套测试只是开发自检，顶不了最终验收。</p>
+<h3 id="4-qa-tester只读-独立-证据绑定"><a class="markdownIt-Anchor" href="#4-qa-tester只读-独立-证据绑定"></a> 4. QA Tester：只读、独立、证据绑定</h3>
+<p>QA Tester 拿到的是冻结后的 Aₜ、S、Dₜ，外加确定性的 build/runtime 检查结果。它碰不了生产代码，能动用的只有：</p>
+<ul>
+<li>
+<p>black-box 测试：输入、交互、渲染结果、状态变化和端到端流程；</p>
+</li>
+<li>
+<p>white-box 检查：源代码、配置、资源绑定、runtime state 和日志；</p>
+</li>
+<li>
+<p>截图、视频、replay trace 等公开证据。</p>
+</li>
+</ul>
+<p>&quot;代码里有这个函数&quot;在 QA 这里不算功能证据——它要看到实际行为。每条 claim 都要绑上对应的执行记录，最后归成两堆：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Eₜ = Eᵥₑᵣ ∪ Egap<br></code></pre></td></tr></table></div></figure>
+<ul>
+<li>
+<p><code>Eᵥₑᵣ</code>：有证据支持的 verified records，下一轮必须保护；</p>
+</li>
+<li>
+<p><code>Egap</code>：失败、回归、未满足需求或证据不足，下一轮转化为修复目标。</p>
+</li>
+</ul>
+<p>这个分工治的是个老毛病：Developer 最熟自己写了什么，也最容易把&quot;实现了&quot;当成&quot;完成了&quot;；QA 只认冻结 artifact 上的可观察证据，没这层人情可讲。</p>
+<h3 id="5-progressive-disclosure不用专门-memory-module-的记忆方案"><a class="markdownIt-Anchor" href="#5-progressive-disclosure不用专门-memory-module-的记忆方案"></a> 5. Progressive Disclosure：不用专门 Memory Module 的记忆方案</h3>
+<p>HoH 没把&quot;记忆&quot;做成向量数据库，也没让上下文无限膨胀，而是用文件系统做渐进式披露：</p>
+<ul>
+<li>
+<p>详细计划、报告、历史和运行记录持久化到项目目录；</p>
+</li>
+<li>
+<p>先向下一轮展示简洁、分类的索引；</p>
+</li>
+<li>
+<p>只有相关内容才被进一步读取；</p>
+</li>
+<li>
+<p>skills 以轻量 Markdown 提供按需指导；</p>
+</li>
+<li>
+<p>工具按角色暴露，避免每个角色看到全部工具。</p>
+</li>
+</ul>
+<p>这套设计真正防的是上下文膨胀。长时程 Agent 最危险的不是没历史，是历史太多——真正要紧的东西被淹在里头。</p>
+<h3 id="6-versioned-project-history代码与证据一起版本化"><a class="markdownIt-Anchor" href="#6-versioned-project-history代码与证据一起版本化"></a> 6. Versioned Project History：代码与证据一起版本化</h3>
+<p>每轮都留档：</p>
+<ul>
+<li>
+<p>当前 workspace；</p>
+</li>
+<li>
+<p>development document；</p>
+</li>
+<li>
+<p>issue ledger；</p>
+</li>
+<li>
+<p>QA 报告；</p>
+</li>
+<li>
+<p>evidence packet；</p>
+</li>
+<li>
+<p>Git commit 和 issue history。</p>
+</li>
+</ul>
+<p>一旦出现重大回归，可以退回之前验证过的项目状态，把那时的回归记录重新交给 Planner，而不是让模型对着当前代码逆推一切。</p>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<p>作者用了三个 benchmark、三种 harness–model 组合：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>Benchmark</strong></th>
+<th><strong>任务类型</strong></th>
+<th><strong>规模</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GameCraft-Bench</td>
+<td>从自然语言规格构建可玩的 Godot 游戏</td>
+<td>45 个任务，覆盖 15 个游戏族</td>
+</tr>
+<tr>
+<td>FrontierSWE</td>
+<td>从零实现、性能优化和研究型软件任务</td>
+<td>15 个任务</td>
+</tr>
+<tr>
+<td>ProgramBench</td>
+<td>根据编译程序和文档重建行为等价的程序</td>
+<td>论文主表报告平均 hidden test pass rate</td>
+</tr>
+</tbody>
+</table></div>
+<p>三种组合：</p>
+<ul>
+<li>
+<p>Codex CLI 0.142.5 + GPT-5.5 High；</p>
+</li>
+<li>
+<p>OpenCode 1.14.30 + DeepSeek-V4-Pro；</p>
+</li>
+<li>
+<p>Pi Coding Agent 0.80.10 + MiniMax-M3。</p>
+</li>
+</ul>
+<p>Vanilla 是底层 harness 普通跑一遍开发；HoH@T 是经过 T 次 Planner–Developer–QA 循环后的 artifact。主实验取 T=3，HoH 的中间结果被留在开发环路外，只在完整运行后评估——免得 benchmark 分数漏给后续 Planner。</p>
+<h3 id="核心结果"><a class="markdownIt-Anchor" href="#核心结果"></a> 核心结果</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>配置</strong></th>
+<th><strong>GameCraft Vanilla → HoH@3</strong></th>
+<th><strong>FrontierSWE 关键指标</strong></th>
+<th><strong>ProgramBench Vanilla → HoH@3</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Codex + GPT-5.5</td>
+<td>49.58 → <strong>71.52</strong>（+21.93）</td>
+<td>Dominance 44% → <strong>71%</strong></td>
+<td>60.41 → <strong>66.50</strong></td>
+</tr>
+<tr>
+<td>OpenCode + DeepSeek-V4-Pro</td>
+<td>26.90 → <strong>48.98</strong>（+22.08）</td>
+<td>Dominance 25% → <strong>44%</strong></td>
+<td>45.27 → <strong>57.56</strong></td>
+</tr>
+<tr>
+<td>Pi + MiniMax-M3</td>
+<td>42.16 → <strong>58.78</strong>（+16.62）</td>
+<td>Dominance 35% → <strong>64%</strong></td>
+<td>35.83 → <strong>52.68</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>FrontierSWE 的平均 reward 分别从 0.31→0.54、0.23→0.31、0.26→0.55。收益不挑模型：起点最强的 Codex 还能再涨，起点较弱的 OpenCode 和 Pi 也各有明显改善。</p>
+<p><img src="/img/paper-reading/img_fa51c9255edbe8f9e48182bdb75c626ceaf21c6d3486947340fa27529a281f2e.svg" srcset="/img/loading.gif" lazyload alt="Figure 4：GameCraft-Bench 四个质量维度的提升" /></p>
+<p><em>图注：GameCraft-Bench 将完整软件质量拆成 Core Mechanics、Content Depth、Functional Visuals、Art and Presentation。HoH@3 在三个 harness–model 配置上四个维度都提升，说明收益不只是&quot;能跑起来&quot;，还包含内容、可视反馈和呈现质量。</em></p>
+<h3 id="多轮不是简单重复调用"><a class="markdownIt-Anchor" href="#多轮不是简单重复调用"></a> 多轮不是简单重复调用</h3>
+<p>为了堵住&quot;多给几次调用机会也能涨&quot;这个解释，作者加了 Vanilla Continuation：每轮只发一句&quot;继续开发和测试当前游戏&quot;，没有 Planner 文档，也没有独立 QA 证据。</p>
+<p>在 Codex + GPT-5.5 上：</p>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方案</strong></th>
+<th><strong>Pass 数</strong></th>
+<th><strong>GameCraft 分数</strong></th>
+<th><strong>平均累计 tokens</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vanilla</td>
+<td>1</td>
+<td>49.58</td>
+<td>2.59M</td>
+</tr>
+<tr>
+<td>Vanilla Continuation</td>
+<td>2</td>
+<td>54.99</td>
+<td>4.56M</td>
+</tr>
+<tr>
+<td>Vanilla Continuation</td>
+<td>3</td>
+<td>58.24</td>
+<td>6.33M</td>
+</tr>
+<tr>
+<td>HoH</td>
+<td>1</td>
+<td>59.71</td>
+<td>2.88M</td>
+</tr>
+<tr>
+<td>HoH</td>
+<td>2</td>
+<td>64.84</td>
+<td>5.67M</td>
+</tr>
+<tr>
+<td>HoH</td>
+<td>3</td>
+<td><strong>71.52</strong></td>
+<td>8.41M</td>
+</tr>
+</tbody>
+</table></div>
+<p>HoH@2 用 5.67M tokens 就过了 Vanilla Continuation 三轮的 58.24 分，后者花了 6.33M tokens。账很清楚：收益来自**<span class="mark-strong">重新规划、独立验收、证据反馈组成的结构</span>**，不是让同一个会话多写几次代码。</p>
+<h3 id="消融实验三种跨轮状态都不可缺"><a class="markdownIt-Anchor" href="#消融实验三种跨轮状态都不可缺"></a> 消融实验：三种跨轮状态都不可缺</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>变体</strong></th>
+<th><strong>GameCraft 分数</strong></th>
+<th><strong>相对 Full HoH</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full HoH@3</td>
+<td><strong>71.52</strong></td>
+<td>—</td>
+<td>更新计划 + evidence feedback + warm-start</td>
+</tr>
+<tr>
+<td>w/o Plan Update</td>
+<td>63.39</td>
+<td>−8.13</td>
+<td>后续轮次复用第一轮计划</td>
+</tr>
+<tr>
+<td>w/o Evidence Feedback</td>
+<td>65.23</td>
+<td>−6.28</td>
+<td>Planner 看不到上一轮 QA 证据</td>
+</tr>
+<tr>
+<td>w/o Warm-Start</td>
+<td>63.67</td>
+<td>−7.85</td>
+<td>每轮从空初始项目重建</td>
+</tr>
+</tbody>
+</table></div>
+<p>去掉 warm-start 后，平均 token 消耗从 <strong><span class="mark-number">8.41M</span></strong> 涨到 <strong><span class="mark-number">11.12M</span></strong>——Agent 在一遍遍重复重建。三个消融各打一个机制：</p>
+<ul>
+<li>
+<p>Plan Update 没了，循环不知道下一步该往哪转；</p>
+</li>
+<li>
+<p>Evidence Feedback 没了，Planner 分不清哪些功能真成了、哪些只是代码声称完成；</p>
+</li>
+<li>
+<p>Warm-Start 没了，开发从增量演化退化成重复生成。</p>
+</li>
+</ul>
+<p><em>（原图未能本地化：Figure S5：HoH 消融实验；IMA 媒体接口没有可用媒体编号）</em></p>
+<p><em>图注：消融结果显示，去掉计划更新、证据反馈或 warm-start 都会降低最终质量；去掉 warm-start 还会把 token 消耗抬高一大截。</em></p>
+<p><img src="/img/paper-reading/img_3850e194831e0789cdb84383c67a26affd9d0df3b751b8326d23f2969583b57f.svg" srcset="/img/loading.gif" lazyload alt="Figure 5：FrontierSWE 上持续十轮的收益" /></p>
+<p><em>图注：Codex + GPT-5.5 在 FrontierSWE 上从 Vanilla 的 27.33% baseline dominance 持续提升，HoH@9 达到 76.00%，HoH@10 为 72.67%；说明多轮结构能延续收益，但也存在后期波动。</em></p>
+<hr />
+<h2 id="多日自主开发案例fusepoint"><a class="markdownIt-Anchor" href="#多日自主开发案例fusepoint"></a> 多日自主开发案例：Fusepoint</h2>
+<p>作者给 HoH 一个空 workspace 和一份 PRD：开发一款约五分钟的单人第一人称拆弹游戏。要求包括：</p>
+<ul>
+<li>
+<p>按顺序占领两个控制点；</p>
+</li>
+<li>
+<p>在最终目标完成三阶段拆弹；</p>
+</li>
+<li>
+<p>三个区域分别放置 3、5、10 个敌人，共 18 个；</p>
+</li>
+<li>
+<p>实现成功和爆炸两条分支；</p>
+</li>
+<li>
+<p>具备战斗、叙事、UI、3D 资源、音效和可玩性。</p>
+</li>
+</ul>
+<p>跑在 Codex CLI + GPT-5.6-Sol 上，高推理强度，一共 <strong>70 轮</strong>。人只在网络或 API 掉线时出手恢复基础设施，规划、实现、debug、测试、验收一概没碰。</p>
+<p>70 轮大致走成三段：</p>
+<ol>
+<li>
+<p><strong>初始构建（1–27 轮）</strong>：搭起可运行的项目和核心交互，同时大量暴露缺失需求和缺陷；</p>
+</li>
+<li>
+<p><strong>能力扩展（28–49 轮）</strong>：新增功能和修复并行，局部改动开始牵动任务状态、战斗、UI 和已有行为；</p>
+</li>
+<li>
+<p><strong>稳定化阶段</strong>：功能逼近完整，新增减少，issue 关闭速度超过新问题产生速度。</p>
+</li>
+</ol>
+<p>到第 70 轮：</p>
+<ul>
+<li>
+<p>共记录 81 个 issue；</p>
+</li>
+<li>
+<p>已关闭 65 个；</p>
+</li>
+<li>
+<p>尚有 16 个未解决；</p>
+</li>
+<li>
+<p>17 个 issue 曾在关闭后因后续改动导致回归并重新打开。</p>
+</li>
+</ul>
+<p>这个案例最值钱的不是&quot;模型写出了一个游戏&quot;，而是它演示了**<span class="mark-strong">回归不被当偶发事故，而被当成有历史的项目状态</span>**：系统记得某个行为验证过、后来又坏了，还能把它重新排进后续计划。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>抽象抓得准。</strong> 它没把问题偷换成&quot;给模型更长的上下文&quot;，而是把长时程开发拆成 artifact continuity 和 evidence continuity 两条状态链。</p>
+</li>
+<li>
+<p><strong>角色分工有实际工程含义。</strong> Planner 管范围，Developer 管实现，QA 管独立验收；三者权限和信息都不同，自我验收和无边界改动没了土壤。</p>
+</li>
+<li>
+<p><strong>评测不只看能不能编译。</strong> GameCraft 把质量拆成机制、内容、功能视觉、艺术呈现；FrontierSWE 和 ProgramBench 覆盖实现、性能、研究和行为等价重建。</p>
+</li>
+<li>
+<p><strong>多轮对照和消融都做了。</strong> Vanilla Continuation 证明&quot;多跑几次&quot;拿不到同样收益；消融证明计划、证据、warm-start 各有贡献。</p>
+</li>
+<li>
+<p><strong>兼容现有 Agent 生态。</strong> 不用重写 Codex、OpenCode 或 Pi 的内部实现，直接套在外面。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：70 轮的多日运行，token、时间和外部工具的消耗都摆在台面上，把这种案例扩成大规模跨项目统计短期内不现实——单项目展示是当前成本下的合理选择。理解归理解，该提的还是要提：</p>
+<ol>
+<li>
+<p><strong>Fusepoint 终归是单个项目的展示。</strong> 很有说服力，但替代不了大规模、跨项目的长期可靠性统计。</p>
+</li>
+<li>
+<p><strong>成本仍然很高。</strong> 每轮至少三次模型调用，外加构建、测试、截图和交互的运行开销；70 轮项目消耗的 token、时间和外部资源不是小数目。</p>
+</li>
+<li>
+<p><strong>基础设施依赖没有消失。</strong> 论文明说人工要恢复网络或 API；真实自治系统撞上依赖、许可证、GPU、限流这些问题，仍需要一个可靠的恢复层。</p>
+</li>
+<li>
+<p><strong>QA 质量决定闭环的上限。</strong> 测试选得不全、视觉检查粗糙、evidence schema 设计不当，Planner 拿到的反馈就是歪的。</p>
+</li>
+<li>
+<p><strong>角色契约和工具仍是人工设计。</strong> HoH 能自动跑循环，但 Planner 的规则、QA 的检查策略、skills 和工具暴露方式都得工程师来定。</p>
+</li>
+<li>
+<p><strong>&quot;独立 QA&quot;不是完全独立的外部真理。</strong> QA 仍是同类模型在调用，只是角色、权限、输入被分开；模型之间的共同盲点它兜不住，不能等同于真实用户或独立测试团队。</p>
+</li>
+<li>
+<p><strong>结果和版本、供应商耦合。</strong> 实验绑定 GPT-5.5、DeepSeek-V4-Pro、MiniMax-M3 和 Codex/OpenCode/Pi 的具体版本；换模型、换工具能力或换任务分布，效果得重新验。</p>
+</li>
+<li>
+<p><strong>质量目标还不完整。</strong> 论文管到功能、可玩性、视觉和音频；真实软件还要安全、性能、可维护性、可观测性、许可证合规和长期运营成本。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>工作</strong></th>
+<th><strong>重点</strong></th>
+<th><strong>HoH 的区别</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SWE-Agent / OpenHands</td>
+<td>在软件环境中完成任务</td>
+<td>HoH 关注跨轮次、从零构建和状态延续</td>
+</tr>
+<tr>
+<td>AgentCoder / Self-Refine</td>
+<td>生成—测试—修复</td>
+<td>HoH 把计划、开发、独立 QA 和跨轮证据组织成长期循环</td>
+</tr>
+<tr>
+<td>MetaGPT / ChatDev</td>
+<td>多角色协作开发</td>
+<td>HoH 的角色更强调权限边界、证据绑定和持续迭代，而不是一次性角色对话</td>
+</tr>
+<tr>
+<td>Meta-Harness / Self-Harness</td>
+<td>优化或改进 Agent harness</td>
+<td>HoH 不主要修改 harness 本身，而是在其外层管理长期项目演化</td>
+</tr>
+<tr>
+<td>SWE-EVO / SlopCodeBench</td>
+<td>长时程软件演化和退化评估</td>
+<td>HoH 是面向开发过程的控制协议，强调如何维持进展和恢复回归</td>
+</tr>
+<tr>
+<td>Harness Engineering for Self-Improvement</td>
+<td>将 harness 作为系统层优化对象</td>
+<td>HoH 更具体地把 harness 的执行组织成项目级闭环，并验证完整软件产物</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="对-agent-工程的启发"><a class="markdownIt-Anchor" href="#对-agent-工程的启发"></a> 对 Agent 工程的启发</h2>
+<p>把这篇论文和 WHALE 放在一起看最有意思：</p>
+<ul>
+<li>
+<p><strong>WHALE</strong> 优化的是模型权重 θ 和可执行 harness h，研究&quot;模型和工作流如何共同适配&quot;；</p>
+</li>
+<li>
+<p><strong>HoH</strong> 假设底层模型和 harness 固定，研究&quot;如何在长时间内组织这些调用，使软件持续变好&quot;。</p>
+</li>
+</ul>
+<p>二者可以叠成三层架构：</p>
+<figure class="highlight text"><div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">底层模型权重：学会编码、调试、使用工具<br>底层 Harness：提供文件、shell、编译器、浏览器和运行环境<br>HoH 外层协议：规划、实现、独立验收、证据反馈、版本恢复<br></code></pre></td></tr></table></div></figure>
+<p>这也把&quot;Agent 自我改进&quot;拆出了至少三种含义：</p>
+<ol>
+<li>
+<p>改模型参数；</p>
+</li>
+<li>
+<p>改 harness 的工具和控制流；</p>
+</li>
+<li>
+<p>前两者都不动，只改长期运行时的项目管理和反馈闭环。</p>
+</li>
+</ol>
+<p>实际部署里，第三层往往最先落地：不用重训模型，也不用 Agent 改自己的底层 runtime，让它围着可验证 artifact 小步循环就行。</p>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>Harness-of-Harness 的核心贡献，是把&quot;让一个 Coding Agent 跑很久&quot;改造成&quot;用一个外层协议持续管理一串有边界的开发阶段&quot;。每轮只做一个有限、可观察的增量，独立 QA 产出 evidence，Planner 再按证据定下一轮。<span class="mark-strong">代码状态保证开发连续，证据状态保证方向连续</span>。</p>
+<p>实验把最要紧的混淆排掉了：收益不是更多 token、更多重复调用买来的，而是计划更新、独立验收、warm-start 三件套成的闭环。从零构建大型项目、游戏、工具库、需要持续集成的多模块软件，是它最适配的场景。</p>
+<p>但它离&quot;完全自主软件公司&quot;还有距离：测试策略、工具链、角色契约、基础设施恢复、质量目标，全都还要人来设计。更准确的定位是：<strong>HoH 是把现有 Coding Agent 从一次性执行器，变成可持续、可审计、可回退的软件开发系统的一套外层控制协议。</strong></p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>HoH 在 Coding Agent 外面再套一层 harness，用 Planner–Developer–QA 三角色循环管理长期软件开发。</strong></p>
+</li>
+<li>
+<p><strong>Artifact state 保代码连续，Evidence state 保验证知识；缺任何一条，长时程开发都会失控。</strong></p>
+</li>
+<li>
+<p><strong>它不是多调几次模型，而是靠有界增量、独立验收、证据反馈和版本历史，让 Agent 持续修复并扩展完整软件。</strong></p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</div>
+      <div>https://yyhchen.github.io/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年9月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization">
+                        <span class="hidden-mobile">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

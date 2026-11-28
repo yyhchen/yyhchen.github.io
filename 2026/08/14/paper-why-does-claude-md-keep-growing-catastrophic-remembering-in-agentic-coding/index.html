@@ -1,0 +1,1310 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="&quot;灾难性记住&quot;（Catastrophic Remembering）——agentic 编码的 README（CLAUDE.md&#x2F;AGENTS.md 类上下文文件）在真实仓库中无界增长，只有仓库退役或有人整体重写才会停。根因是不完美的记忆（imperfect recall）：追加一条指令永远便宜，可一旦指令背后的&quot;为什么&quot;（latent reasoning）消失，删除它而不冒正确性回归的风险需要 O">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="&quot;灾难性记住&quot;（Catastrophic Remembering）——agentic 编码的 README（CLAUDE.md&#x2F;AGENTS.md 类上下文文件）在真实仓库中无界增长，只有仓库退役或有人整体重写才会停。根因是不完美的记忆（imperfect recall）：追加一条指令永远便宜，可一旦指令背后的&quot;为什么&quot;（latent reasoning）消失，删除它而不冒正确性回归的风险需要 O">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_96058cb34ec8b439278e865c541bd5af485b3260ceb4d4ab9f9aeb9cb06f97b7.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_5ee508298e3ed7c6ca76bb283d1983615fdef59dbc4c952969e48fcfb12eef9e.svg">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_2fc1d3a1fb22cfef4400b72d8063b090500a6879093d468bfab68d12040feac6.png">
+<meta property="article:published_time" content="2026-08-14T05:09:12.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_96058cb34ec8b439278e865c541bd5af485b3260ceb4d4ab9f9aeb9cb06f97b7.png">
+  
+  
+  
+  <title>Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-14 13:09" pubdate>
+          2026-08-14 13:09:12
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          34 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="智能体与Harness"
+        id="heading-2ea67f00efc10b35155f366a42dd3333" role="tab" data-toggle="collapse" href="#collapse-2ea67f00efc10b35155f366a42dd3333"
+        aria-expanded="true"
+      >
+        智能体与Harness
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2ea67f00efc10b35155f366a42dd3333"
+           role="tabpanel" aria-labelledby="heading-2ea67f00efc10b35155f366a42dd3333">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(20)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-agentic-longlive-asynchronous-agentic-memory-for-long-video-generation/" title="Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-a-society-of-ai-scientists/" title="Paper精读｜A Society of AI Scientists"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Society of AI Scientists</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/19/paper-stream-of-belief-eliciting-collective-intelligence-through-latent-belief-dynamics/" title="Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Stream of Belief: Eliciting Collective Intelligence through Latent Belief Dynamics</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-continual-learning-mechanisms-compose-for-long-horizon-memorization/" title="Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Continual Learning Mechanisms Compose for Long-Horizon Memorization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/04/paper-harness-of-harness-multi-day-autonomous-software-development-with-continual-improvement/" title="Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/03/paper-whale-a-simple-recipe-for-joint-harness-weight-optimization/" title="Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WHALE: A Simple Recipe for Joint Harness–Weight Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/30/paper-wikiskill-compiling-agent-experience-into-persistent-knowledge-for-skill-evolution/" title="Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/27/paper-prime-agent-a-self-improving-rlm-harness/" title="Paper精读｜Prime Agent: A Self-Improving RLM Harness"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prime Agent: A Self-Improving RLM Harness</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/26/paper-envharness-awakening-static-worlds-for-agent-learning/" title="Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜EnvHarness: Awakening Static Worlds for Agent Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/" title="Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/11/paper-llmrouter-unified-infrastructure-for-developing-evaluating-and-deploying-llm-routers/" title="Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-argus-a-general-purpose-agentic-runtime-for-long-horizon-reasoning/" title="Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Argus: A General-Purpose Agentic Runtime for Long-Horizon Reasoning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-longhorizon-harness-advancing-long-horizon-agents-for-real-world-tasks/" title="Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/25/paper-arex-towards-a-recursively-self-improving-agent-for-deep-research/" title="Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AREX: Towards a Recursively Self-Improving Agent for Deep Research</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/24/paper-language-model-harnesses-are-compositional-generalizers/" title="Paper精读｜Language model harnesses are compositional generalizers"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Language model harnesses are compositional generalizers</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-harness-engineering-for-self-improvement/" title="Paper精读｜Harness Engineering for Self-Improvement"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Harness Engineering for Self-Improvement</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/16/paper-harnessx-a-composable-adaptive-and-evolvable-agent-harness-foundry/" title="Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/10/paper-skillos-learning-skill-curation-for-self-evolving-agents/" title="Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜SkillOS: Learning Skill Curation for Self-Evolving Agents</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;agents">智能体与Harness</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读why-does-claudemd-keep-growing-catastrophic-remembering-in-agentic-coding"><a class="markdownIt-Anchor" href="#paper精读why-does-claudemd-keep-growing-catastrophic-remembering-in-agentic-coding"></a> Paper精读｜Why Does <a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> Keep Growing? Catastrophic Remembering in Agentic Coding</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>&quot;<span class="mark-strong">灾难性记住</span>&quot;（Catastrophic Remembering）</strong>——agentic 编码的 README（<a target="_blank" rel="noopener" href="http://CLAUDE.md/AGENTS.md">CLAUDE.md/AGENTS.md</a> 类上下文文件）在真实仓库中<strong>无界增长</strong>，只有仓库退役或有人整体重写才会停。根因是<strong>不完美的记忆</strong>（imperfect recall）：追加一条指令永远便宜，可一旦指令背后的&quot;为什么&quot;（latent reasoning）消失，删除它而不冒正确性回归的风险需要 <strong>O(2^|D|)</strong> 次子集探测（|D| 条指令的 prompt）。实证盘子够大：<strong><span class="mark-number">247,694 条指令生命周期、1,867 个仓库</span></strong>——agentic prompt 平均 <span class="mark-number">+226%</span>（超 3 倍）增长、每次 commit 净增 <span class="mark-number">+4.9</span> 条指令、指令越老越不可能被删除（log-hazard <span class="mark-number">-0.032</span>/commit）。解法：<strong>prompt 注释</strong>——把指令的潜在推理在写入时存为注释（executor 看不到、只给下一位维护者看），在 Inverse-IFEval 可验证世界中**<span class="mark-strong">移除 99.3% 的多余指令</span><strong>（excess +211.3% → +1.4%）；在 WildIFEval 真实场景中</strong>指令跟随提升最高 <span class="mark-number">23.1%</span>**。金句：“如果英语是新的代码，为什么我们还没有注释？”</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Why Does <a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> Keep Growing? Catastrophic Remembering in Agentic Coding</li>
+<li><strong>arXiv</strong>：2608.11095（<a target="_blank" rel="noopener" href="http://cs.AI">cs.AI</a>）</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.11095">https://arxiv.org/abs/2608.11095</a></li>
+<li><strong>作者</strong>：Kushal Chakrabarti（单人作者）</li>
+<li><strong>机构</strong>：South Park Commons</li>
+<li><strong>日期</strong>：2026-08-11</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>Claude Code 等 agentic 编码工具兴起后，<a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> / <a target="_blank" rel="noopener" href="http://AGENTS.md">AGENTS.md</a> 成了&quot;agent 的 README&quot;——开发者通过往里面加指令来调教 agent 行为。但：</p>
+<ul>
+<li>
+<p><strong>维护者只加不减</strong>：出问题时追加一条指令成本极低，于是指令无限累积</p>
+</li>
+<li>
+<p><strong>删除有风险</strong>：一条指令当初为什么加（对应什么隐藏约束/失败案例）没人记录——删错了会导致正确性回归，而验证删除安全需要穷举 2^|D| 个子集</p>
+</li>
+<li>
+<p><strong>后果严重</strong>：中位数仓库 39 条指令（90 分位 131 条），远超指令跟随能力退化的阈值——<strong>prompt 越大，agent 越不听话</strong></p>
+</li>
+</ul>
+<p>论文把它形式化为<strong>灾难性记住</strong>——灾难性遗忘（catastrophic forgetting）的反面：连续学习领域研究&quot;模型怎么忘不掉旧知识&quot;，这里的问题是&quot;<strong>prompt 怎么删不掉旧指令</strong>&quot;。两者共享同一根源：<strong>无法区分&quot;仍然必要的知识&quot;与&quot;过时的负担&quot;</strong>。</p>
+<p><strong>核心问题</strong>：为什么 agentic prompt 只涨不缩？能否阻止这种无界增长？</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>删除需要记住&quot;为什么&quot;</strong>：追加一条指令只需要知道&quot;现在坏了&quot;；删除一条指令需要知道&quot;当初为什么加它&quot;（对应哪个约束、防哪个失败）。<strong>写时 provenance（来源/理由）一旦衰减，最优估计器就退化为 append-only</strong>——这是无界增长的理论根源。</p>
+</li>
+<li>
+<p><strong>O(2^|D|) 的审计成本</strong>：冗余会击败逐条探测——两条指令各覆盖一个约束，单独看每条都可删，一起删才坏。诚实审计需要穷举所有子集，D*（最小覆盖）一般不可计算。</p>
+</li>
+<li>
+<p><strong>棘轮效应（ratchet）</strong>：整体重写（bulldoze）是主要删除方式（77.3% 的指令死亡来自重写/迁移），但重写只重置大小、不解决根因——<strong>重写后立刻以更快速度重新增长</strong>（4.1%/commit → 4.9%/commit）。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">删除危险随年龄下降 = 不完美记忆的指纹</span></strong>：如果是指令过时（staleness），删除危险应随年龄<strong>上升</strong>；实证是<strong>下降</strong>（log-hazard -0.032/commit）——推理在丢失，不是指令在过时。多作者文件的衰减更陡（β=-0.021, z=-11.7）——记忆在交接中损失。</p>
+</li>
+<li>
+<p><strong>注释是修复</strong>：软件工程几十年前就解决了同样的问题（代码注释）——<strong>“指令告诉 executor 做什么；注释告诉下一位维护者为什么”</strong>。把潜在推理在写入时存下来，棘轮就停了。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">注释必须携带结果</span>（outcomes）</strong>：消融显示注释形状的噪音无效、只叙述尝试过程无效——<strong>必须记录失败、假设与结果</strong>（“这条指令因 X 失败而加，假设 Y，结果 Z”）。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1理论模型prompt-维护即在线估计2"><a class="markdownIt-Anchor" href="#组件1理论模型prompt-维护即在线估计2"></a> 组件1：理论模型——prompt 维护即在线估计（§2）</h3>
+<ul>
+<li>
+<p><strong>任务</strong> j=(o_j, C_j)：陈述目标 o_j + 不可观测约束 C_j ⊆ C（隐藏验证器集合）</p>
+</li>
+<li>
+<p><strong>prompt</strong> D_t = 有限指令集；指令 d 年龄 a_d = t - τ_d</p>
+</li>
+<li>
+<p><strong>维护者目标</strong>：最小覆盖 D* = argmin|D| s.t. D ∈ argmax E[q_c(D,j)]——<strong>正确性最高且指令最少</strong></p>
+</li>
+<li>
+<p><strong>五条约束集特性（Table 1）</strong>：A1 可指导性（存在 d 提升 q_c）、A2 干扰性（加 d 降低其他 q_c’）、A3 冗余性（第二条 d’ 不增加覆盖）、A4 审查性（结果不指名是哪个 d 起作用）、A5 随机性（即使覆盖 q_c &lt; 1）——A1-A3 设定 regime，A4 阻断删除、A5 驱动追加</p>
+</li>
+<li>
+<p><strong>Δ_c(d|D) = E[q_c(D,j) - q_c(D{d},j)]</strong>：d 对 c 的贡献；d 是多余的当且仅当对所有 c 有 Δ_c ≤ 0——估计它需要探测 D{d}，而冗余使单条探测失效，诚实审计 O(2^|D|)</p>
+</li>
+</ul>
+<h3 id="组件2观测研究棘轮的三段论3"><a class="markdownIt-Anchor" href="#组件2观测研究棘轮的三段论3"></a> 组件2：观测研究——棘轮的三段论（§3）</h3>
+<p><strong>语料</strong>：1,867 GitHub 仓库、1,801 个多版本文件、299,440 次版本转换、247,694 条指令生命周期</p>
+<p><strong>3.1 无界增长</strong>：</p>
+<ul>
+<li>
+<p>末版本中位 39 条指令（90 分位 131）——远超指令跟随退化阈值</p>
+</li>
+<li>
+<p>64.3% 仓库增长 vs 26.6% 收缩；中位净增 +7 条；每次 commit 净增 +4.9 条（19,267 commits）</p>
+</li>
+<li>
+<p>生命周期 +226% 数量、+10% 平均长度、+140% 总大小（数量增长不是文本迁移）</p>
+</li>
+</ul>
+<p><strong>3.2 大多数&quot;消失&quot;不是删除</strong>：</p>
+<ul>
+<li>
+<p>77.3% 的指令死亡来自<strong>整体重写或迁移</strong>到兄弟文件——维护者是&quot;推土机&quot;而非&quot;修剪工&quot;</p>
+</li>
+<li>
+<p>重写/迁移作为竞争风险审查（96,162 + 682 死亡）；匹配验证 precision 1.000 / recall 0.933（50 条人工标注）</p>
+</li>
+</ul>
+<p><strong>3.3 重写后立刻重新增长</strong>：</p>
+<ul>
+<li>
+<p>对齐首次重写：重写砍到 59.5%，10 个 commit 内恢复到 91.5%</p>
+</li>
+<li>
+<p><strong>重写后增长更快</strong>：4.9%/commit vs 重写前 4.1%/commit</p>
+</li>
+</ul>
+<p><strong>3.4 删除危险证伪竞争机制</strong>：</p>
+<ul>
+<li>
+<p>删除危险随年龄<strong>下降</strong>（log-hazard -0.032/commit，95% CI [-0.047, -0.019]）——证伪&quot;指令过时&quot;假说（应上升），支持&quot;不完美记忆&quot;（推理丢失）</p>
+</li>
+<li>
+<p>gamma frailty 模型（28,255 死亡）吸收组合效应后斜率仍 -0.0355——内容脆弱性无法解释</p>
+</li>
+<li>
+<p><strong>多作者 × 年龄交互显著</strong>（β=-0.021, z=-11.7）——只有不完美记忆能预测这一点：记忆在多人交接中损失更快</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_96058cb34ec8b439278e865c541bd5af485b3260ceb4d4ab9f9aeb9cb06f97b7.png" srcset="/img/loading.gif" lazyload alt="图 1｜有信息的注释抑制提示增长，真实仓库中的提示指令仍持续累积" /></p>
+<p><em>图 1｜有信息的注释抑制提示增长，真实仓库中的提示指令仍持续累积。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.11095v1/#S0.F1">来源</a></em></p>
+<p><em>Figure 1（核心证据）：(a) 因果：无注释（或注释形状噪音）的 prompt 无界增长；有信息量注释的 prompt 以同等正确性稳定在最优大小附近（excess = |Dt|/|D⋆| − 1，184 worlds 的 95% bootstrap）；(b) 观测：1,867 仓库中 agentic README 指令数生命周期 +226%。</em></p>
+<h3 id="组件3inverse-ifeval让最小覆盖可观测41"><a class="markdownIt-Anchor" href="#组件3inverse-ifeval让最小覆盖可观测41"></a> 组件3：Inverse-IFEval——让最小覆盖可观测（§4.1）</h3>
+<p>标准 IFEval 每项 (D_j, C_j)（指令 + 验证器）做三步变换：</p>
+<ol>
+<li>
+<p><strong>隐藏 D_j</strong>：原指令成为参考最小覆盖 D*——|D*| 先验已知，excess size 可测量</p>
+</li>
+<li>
+<p><strong>保留 C_j</strong>：验证器成为世界的隐藏约束集，只有 harness 运行、从不告诉维护者</p>
+</li>
+<li>
+<p><strong>生成简短 o_j</strong>：强模型有损总结 D_j 为通用任务目标（“起草一份产品公告”）</p>
+</li>
+</ol>
+<p>新维护者从 o_j 出发、T 步重建 D_j，只见审查过的噪音反馈；<strong>arm 决定是否允许给指令 d 加注释 r_d（携带潜在推理）</strong>。下一位维护者读 D_t + 所有 r_d；executor 只读 D_t——<strong>harness 在 prompt 到达 executor 前剥离注释</strong>，并拒绝引用过去失败的指令，注释成为潜在推理唯一幸存通道。</p>
+<h3 id="组件4注释干预结果42-43"><a class="markdownIt-Anchor" href="#组件4注释干预结果42-43"></a> 组件4：注释干预结果（§4.2-4.3）</h3>
+<p><em><em>Inverse-IFEval（552 条维护历史，|D</em>|=2.2）</em>*：</p>
+<ul>
+<li>
+<p>有注释维护者：<strong>-5.8% excess</strong> vs 无注释 <strong>+60.4%</strong>（66.2pp 差距）——约束满足率持平（parity）</p>
+</li>
+<li>
+<p>更强维护者棘轮更猛、注释帮得更多：3 档维护者，无注释 arm 的 excess 从 +67.7% 涨到 <strong>+571.9%</strong>；顶级维护者下注释实现约束满足与 excess 的<strong>严格 Pareto 改进</strong></p>
+</li>
+<li>
+<p>消融（Table 10）：注释必须携带结果——注释形状噪音落在无注释 arm 噪音范围内；只叙述尝试过程的注释同样无效</p>
+</li>
+<li>
+<p>摘要数据：注释编码潜在推理<strong>移除 99.3% 的多余指令</strong>（+211.3% → +1.4%）</p>
+</li>
+</ul>
+<p><strong>WildIFEval（64 worlds，K=1 真指令 + G=16 噪音指令）</strong>：</p>
+<ul>
+<li>
+<p>噪音指令让已有真指令的正确性损失 24.1pp（65.6% → 41.5%）</p>
+</li>
+<li>
+<p><strong>注释把满足率从 50.4% 提升到 62.0%</strong>（3 轮维护，+11.6pp，95% CI [5.1, 18.3]）——<strong>相对提升 23.1%</strong></p>
+</li>
+<li>
+<p>消融：注释形状噪音只比无注释 arm 好 2.7pp（CI 含零）——行为由注释编码的潜在推理驱动</p>
+</li>
+<li>
+<p>双裁判验证：6,336 个判定用第二裁判重评，判据复现、效应量差 3.8pp</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_5ee508298e3ed7c6ca76bb283d1983615fdef59dbc4c952969e48fcfb12eef9e.svg" srcset="/img/loading.gif" lazyload alt="Figure 5: 删除危险随指令年龄下降——不完美记忆的指纹（指令过时会上升、年龄无关是平坦，只有记忆衰减预测下降）" /></p>
+<p><em>Figure 5（机制识别）：Nelson–Aalen 删除危险估计（28,426 次删除）随指令年龄下降——log-hazard -0.032/commit。指令过时假说预测危险上升、年龄无关假说预测平坦；只有不完美记忆（推理衰减）预测下降。</em></p>
+<p><img src="/img/paper-reading/img_2fc1d3a1fb22cfef4400b72d8063b090500a6879093d468bfab68d12040feac6.png" srcset="/img/loading.gif" lazyload alt="图 6｜提示指令与记录失败原因、假设和结果的注释示例" /></p>
+<p><em>图 6｜提示指令与记录失败原因、假设和结果的注释示例。 <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2608.11095v1#page=6">来源</a></em></p>
+<p><em>Figure 6（注释形态）：每条注释命名其指令背后的失败、一个假设及其结果（如 “# r3: task 0 failed with ‘certain wording is not used the right number of times’ — … d12 was passing, so keeping that approach”）。注释绿色（#）标记、从不到达 executor——8,541 次添加中每约束族 3 例。</em></p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>概念的漂亮命名与对偶</strong>：<strong>灾难性记住 = 灾难性遗忘的反面</strong>——连续学习领域几十年的框架直接迁移到 agentic prompt 维护，一句话点破&quot;prompt 为什么只涨不缩&quot;——删不掉的根源是无法区分必要知识与过时负担</p>
+</li>
+<li>
+<p><strong>理论-观测-干预三件套完整</strong>：O(2^|D|) 审计成本的理论下界 → 24.7 万条指令生命周期的观测验证（含危险函数、frailty 模型、多作者交互）→ Inverse-IFEval 的因果干预——从&quot;为什么&quot;到&quot;怎么办&quot;闭环</p>
+</li>
+<li>
+<p><strong>机制识别的严谨性</strong>：用删除危险的<strong>斜率方向</strong>区分竞争假说（过时=上升 vs 记忆衰减=下降 vs 组合效应），再用多作者交互做<strong>只有不完美记忆能预测的检验</strong>——教科书级的假说证伪设计</p>
+</li>
+<li>
+<p><strong>Inverse-IFEval 是方法论创新</strong>：把标准指令跟随基准<strong>倒过来</strong>变成&quot;可验证的最小覆盖世界&quot;——让理论上不可计算的 excess size 变得可测量，为 prompt 评测开了新路</p>
+</li>
+<li>
+<p><strong>&quot;注释告诉下一位维护者为什么&quot;是直接可用的工程启示</strong>：指令/注释分离 + 注释必须携带结果——对任何用 <a target="_blank" rel="noopener" href="http://CLAUDE.md/AGENTS.md">CLAUDE.md/AGENTS.md</a> 的人立即可落地</p>
+</li>
+<li>
+<p><strong>金句与文化感</strong>：“If English is the new code, why don’t we have comments yet?”——一句话把问题放进软件工程四十年的历史里</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p>先说处境：单人作者把预注册判据和消融都做齐了，附录详尽，这份自律不常见；但风险还是要摆明：</p>
+<ol>
+<li>
+<p><strong>单人作者 + South Park Commons</strong>：非学术机构背书，审稿严谨性未知（虽然预注册判据齐全、附录极其详尽）</p>
+</li>
+<li>
+<p><strong>任务平稳假设</strong>：Inverse-IFEval/WildIFEval 都是 task-stationary 世界——真实仓库的约束集随需求演化，注释的长期有效性在<strong>非平稳</strong>环境下未验证</p>
+</li>
+<li>
+<p><strong>&quot;注释&quot;的具体落地未完成</strong>：作者自认&quot;prototype 只是 prototype&quot;——<a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 注释语法、harness 集成、生态支持都未定义</p>
+</li>
+<li>
+<p><strong>观测研究的选择偏差</strong>：GitHub 上能追踪的仓库本身是幸存者（活跃维护者才写 <a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a>）；被整体重写/删除文件的指令&quot;死亡&quot;被审查，真实增长可能更严重或更轻</p>
+</li>
+<li>
+<p><strong>WildIFEval 的 LLM judge</strong>：无代码验证器，靠 arm-blind LLM judge 评分——双裁判复现了判据，但 judge 噪声仍是上限约束</p>
+</li>
+<li>
+<p><strong>指令跟随退化的因果</strong>：39 条中位数的&quot;退化阈值&quot;引用外部工作，未在本语料中直接测量正确性随大小的下降曲线</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>非平稳环境</strong>：约束集演化时注释是否仍然有效——需要&quot;约束漂移&quot;世界的实验</p>
+</li>
+<li>
+<p><strong>注释的自动生成/维护</strong>：能否让 agent 在写入指令时自动生成携带结果的注释；注释本身会不会也腐烂（stale comments 问题）</p>
+</li>
+<li>
+<p><strong>rehearsal/regularization 的类比</strong>：作者指出 prompt 维护是&quot;文本上的连续学习&quot;——rehearsal（重放旧任务）与正则化的文本模拟是什么？</p>
+</li>
+<li>
+<p><strong>大规模测量</strong>：非平稳、约束不可机械验证、代表性约束数量的评测基准</p>
+</li>
+<li>
+<p><strong>工程落地</strong>：<a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 注释语法标准、harness 自动剥离注释、IDE/agent 生态集成——作者已号召&quot;coding agent developers can give prompts a comment syntax&quot;</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Lilian Weng / Harness 工程浪潮（harness-engineering-self-improvement）</strong></td>
+<td>同属&quot;agent 工程&quot;主题</td>
+<td>Harness 论谈外部程序管理 agent；本作聚焦<strong>prompt 文件本身的维护动力学</strong>——harness 的&quot;代码&quot;（<a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a>）也需要工程纪律</td>
+</tr>
+<tr>
+<td><strong>agent-skills / superpowers（GitHub 技能方法论）</strong></td>
+<td>同主题不同层</td>
+<td>那些是&quot;怎么写好技能/指令&quot;的最佳实践；本作是<strong>为什么指令会膨胀</strong>的机制研究 + 注释修复</td>
+</tr>
+<tr>
+<td><strong>MemHarness（2607.28272）</strong></td>
+<td>记忆管理</td>
+<td>MemHarness 重构 agent 经验记忆；本作是<strong>prompt 指令集</strong>的记忆（provenance 衰减）——两种&quot;记忆&quot;的维护问题</td>
+</tr>
+<tr>
+<td><strong>Catastrophic Forgetting（连续学习）</strong></td>
+<td>概念对偶</td>
+<td>连续学习防遗忘；本作发现并命名&quot;灾难性记住&quot;——prompt 删不掉旧指令，同一枚硬币的反面</td>
+</tr>
+<tr>
+<td><strong>IFEval / WildIFEval</strong></td>
+<td>方法基础</td>
+<td>标准指令跟随基准被<strong>倒置</strong>为可验证的最小覆盖世界——评测工具的创造性复用</td>
+</tr>
+<tr>
+<td><strong>SWE-Bench ProMax（2608.09802）</strong></td>
+<td>编码 agent 评测</td>
+<td>ProMax 测 agent 能力；本作测<strong>维护者与 prompt 文件的交互</strong>——agent 工程的&quot;元层面&quot;</td>
+</tr>
+<tr>
+<td><strong><a target="_blank" rel="noopener" href="http://AGENTS.md/CLAUDE.md">AGENTS.md/CLAUDE.md</a> 生态（本作主题）</strong></td>
+<td>直接对象</td>
+<td>本作是第一个把 <a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 增长作为科学对象研究的论文</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这篇论文用一个漂亮的对称命名（<strong>灾难性记住</strong> vs 灾难性遗忘）抓住了 agentic 编程时代最普遍却最没人管的现象：<strong><a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 只涨不缩</strong>。解释链是完整的——追加便宜、删除需记忆&quot;为什么&quot;、审计 O(2^|D|) 不可行 → prompt 必然无界增长；24.7 万条指令生命周期证明根因是不完美记忆（删除危险随年龄下降 + 多作者加速衰减）；Inverse-IFEval 的因果实验再补一刀：<strong>写入时把潜在推理存为注释</strong>能停掉棘轮（excess +211.3% → +1.4%，移除 99.3% 多余指令），WildIFEval 真实场景指令跟随提升 23.1%。药方也直接可抄：<span class="mark-strong">给每条指令写注释，注明它防的失败、假设与结果</span>——软件工程四十年的老智慧搬回 AI 新世界。我最想看的下一步是&quot;约束漂移&quot;世界里的复验：注释自己也是文本，它会不会腐烂（stale comments），是这套方案能不能走出 prototype 的关键。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>灾难性记住</strong>：<a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 类 prompt 无界增长（+226%，每次 commit +4.9 条），根因是不完美记忆——删除需 O(2^|D|) 审计，指令越老越删不掉（log-hazard -0.032/commit）。</p>
+</li>
+<li>
+<p><strong>注释停住棘轮</strong>：写入时把&quot;为什么&quot;存为注释（指令给 executor、注释给下一位维护者），excess +211.3% → +1.4%（移除 99.3% 多余指令）；WildIFEval 指令跟随 +23.1%。</p>
+</li>
+<li>
+<p><strong>注释必须携带结果</strong>：只写过程/噪音形状的注释无效——必须记录失败、假设与结果；重写（bulldoze）只重置大小，重写后增长反而更快（4.1% → 4.9%/commit）。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/" class="category-chain-item">智能体与Harness</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%99%BA%E8%83%BD%E4%BD%93%E4%B8%8EHarness/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding</div>
+      <div>https://yyhchen.github.io/2026/08/14/paper-why-does-claude-md-keep-growing-catastrophic-remembering-in-agentic-coding/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/12/paper-swe-bench-promax-benchmarking-agents-on-large-scale-multilingual-code-refactoring/" title="Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring">
+                        <span class="hidden-mobile">Paper精读｜SWE-Bench ProMax: Benchmarking Agents on Large-Scale Multilingual Code Refactoring</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

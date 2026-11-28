@@ -1,0 +1,1538 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="FlashREINFORCE 用三个互补机制把“每个 prompt 只采一条轨迹”的异步 RL 变得可训练：批均值 reward 提供正负反馈，序列级 trust gate 丢弃过时轨迹，sample-mean loss 消除长失败轨迹的额外权重。1.5B 推理、7B 工具调用、30B MoE、ALFWorld，四个场景都训得稳、样本用得省；但要看清它证明的是什么——一套在这些设定下有实用价值的训">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models">
+<meta property="og:url" content="https://yyhchen.github.io/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="FlashREINFORCE 用三个互补机制把“每个 prompt 只采一条轨迹”的异步 RL 变得可训练：批均值 reward 提供正负反馈，序列级 trust gate 丢弃过时轨迹，sample-mean loss 消除长失败轨迹的额外权重。1.5B 推理、7B 工具调用、30B MoE、ALFWorld，四个场景都训得稳、样本用得省；但要看清它证明的是什么——一套在这些设定下有实用价值的训">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_a82db8d012778bd599bc8d2259310a33187b9e26605154ed48d42569dd237d91.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_3d2bf5a7825dfc91ad76ef43b4e379411ba98ce15d788eb11501a65a403f4953.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_4522e550e76e985dcc6447f3775e6f37db2568ffacac04e29defb60bfa0ddd07.png">
+<meta property="article:published_time" content="2026-09-16T06:19:42.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_a82db8d012778bd599bc8d2259310a33187b9e26605154ed48d42569dd237d91.png">
+  
+  
+  
+  <title>Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-09-16 14:19" pubdate>
+          2026-09-16 14:19:42
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          45 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="强化学习与后训练"
+        id="heading-29da1621cfec405f671ce94f3f329a14" role="tab" data-toggle="collapse" href="#collapse-29da1621cfec405f671ce94f3f329a14"
+        aria-expanded="true"
+      >
+        强化学习与后训练
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-29da1621cfec405f671ce94f3f329a14"
+           role="tabpanel" aria-labelledby="heading-29da1621cfec405f671ce94f3f329a14">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/25/Paper%E7%B2%BE%E8%AF%BB-Verifiable-On-Policy-Distillation/" title="Paper精读｜Verifiable On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Verifiable On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/" title="Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/31/paper-ttpo-test-time-policy-optimization/" title="Paper精读｜TTPO: Test-Time Policy Optimization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜TTPO: Test-Time Policy Optimization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/10/paper-u-opsd-on-policy-self-distillation-without-any-supervision/" title="Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜U-OPSD: On-Policy Self-Distillation without Any Supervision</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/08/paper-agentopsd-recursive-self-distillation-for-agentic-reinforcement-learning/" title="Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜AgentOPSD: Recursive Self-Distillation for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-weak-to-strong-on-policy-distillation/" title="Paper精读｜Weak-to-Strong On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Weak-to-Strong On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-single-rollout-asynchronous-optimization-for-agentic-reinforcement-learning/" title="Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/10/paper-compactionrl-reinforcement-learning-with-context-compaction-for-long-horizon-agents/" title="Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜CompactionRL: Reinforcement Learning with Context Compaction for Long-Horizon Agents</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/08/paper-is-one-layer-enough-training-a-single-transformer-layer-can-match-full-parameter-rl-training/" title="Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Is One Layer Enough? Training a Single Transformer Layer Can Match Full-Parameter RL Training</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-breaking-entropy-bounds-accelerating-rl-training-via-mtp-with-rejection-sampling/" title="Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Breaking Entropy Bounds: Accelerating RL Training via MTP with Rejection Sampling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/26/paper-vector-policy-optimization-training-for-diversity-improves-test-time-search/" title="Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Vector Policy Optimization: Training for Diversity Improves Test-Time Search</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/20/paper-self-distilled-agentic-reinforcement-learning-sdar/" title="Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Self-Distilled Agentic Reinforcement Learning (SDAR)</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-evolving-rl-%E7%AB%AF%E5%88%B0%E7%AB%AFrl%E4%BC%98%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96%E8%83%BD%E5%8A%9B/" title="Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Evolving-RL: 端到端RL优化智能体自我进化能力</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/12/paper-flow-opd-on-policy-distillation-for-flow-matching-models/" title="Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Flow-OPD: On-Policy Distillation for Flow Matching Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/11/paper-skill1-unified-evolution-of-skill-augmented-agents-via-reinforcement-learning/" title="Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Skill1: Unified Evolution of Skill-Augmented Agents via Reinforcement Learning</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/07/paper-on-policy-distillation-uni-opd/" title="Paper精读｜On-Policy Distillation (Uni-OPD)"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜On-Policy Distillation (Uni-OPD)</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;reinforcement-learning">强化学习与后训练</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models"><a class="markdownIt-Anchor" href="#paper精读flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models"></a> Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>FlashREINFORCE</strong> 用三个互补机制把“每个 prompt 只采一条轨迹”的异步 RL 变得可训练：<span class="mark-strong">批均值 reward 提供正负反馈</span>，序列级 trust gate 丢弃过时轨迹，sample-mean loss 消除长失败轨迹的额外权重。1.5B 推理、7B 工具调用、30B MoE、ALFWorld，四个场景都训得稳、样本用得省；但要看清它证明的是什么——一套在这些设定下有实用价值的训练配方，不是已经解决了任意长时程 Agent 的 off-policy 学习问题。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</li>
+<li><strong>来源</strong>：<a target="_blank" rel="noopener" href="https://www.alphaxiv.org/abs/2609.flashreinforce-asynchronous-rl-agentic-models">alphaXiv 原文</a></li>
+<li><strong>代码</strong>：<a target="_blank" rel="noopener" href="https://github.com/NVIDIA-NeMo/labs-molt">NVIDIA-NeMo/labs-molt</a></li>
+<li><strong>作者</strong>：Jian Hu, Yifan Zhang, Hao Zhang, Binfeng Xu, Shaokun Zhang, Hongqing Peng, Zhiding Yu, Pavlo Molchanov, Jan Kautz, Yi Dong 等</li>
+<li><strong>机构</strong>：NVIDIA</li>
+<li><strong>日期</strong>：2026（alphaXiv 条目；该版本未提供标准 arXiv 编号）</li>
+</ul>
+</div></details><hr />
+<h2 id="论文分类标注"><a class="markdownIt-Anchor" href="#论文分类标注"></a> 论文分类标注</h2>
+<ul>
+<li>
+<p><strong>研究类型</strong>：强化学习算法/系统论文，带有异步 RL、长轨迹 off-policy 修正和 agent 工具使用实验。</p>
+</li>
+<li>
+<p><strong>领域归属</strong>：LLM post-training &gt; agentic RL &gt; asynchronous rollout &gt; critic-free policy optimization。</p>
+</li>
+<li>
+<p><strong>方法学标签</strong>：one-rollout-per-prompt、REINFORCE、batch reward centering、sequence-level trust region、sample-mean reduction、token importance sampling。</p>
+</li>
+<li>
+<p><strong>问题性质</strong>：解决长时程 Agent 中 rollout 时间不规则、策略滞后、轨迹长度差异和工具调用退化问题。</p>
+</li>
+<li>
+<p><strong>与 GRPO 的关系</strong>：不是简单换一个 baseline，而是用独立 prompt 的批均值基线替代同 prompt 多样本分组，牺牲部分组内方差降低，换取 prompt 覆盖率、异步吞吐和单轨迹可学习性。</p>
+</li>
+<li>
+<p><strong>证据边界</strong>：主要结果来自 NVIDIA 团队的实验；对 GRPO/C-RF+NTF 的部分比较引用已发表结果，不能把所有表格视为同一实验环境下的完全公平重跑。</p>
+</li>
+</ul>
+<hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p>长链路 Agent 的一条 rollout 可能包含数千个 reasoning token、多轮工具调用和环境步骤，不同任务完成时间差异很大。同步 RL 要等待同组轨迹全部完成；GRPO、RLOO 等组相对方法还要为同一个 prompt 重复采样多个答案。固定 rollout 预算下，重复采样降低了 prompt 覆盖率，也让最慢的一条轨迹拖住整个更新。</p>
+<p>异步方案让完成的 trajectory 到达就进入 learner，但带来三个不稳定源：第一，轨迹来自不同时间的旧 policy，当前 learner 与 behavior policy 存在 policy lag；第二，只有一条 rollout 时没有 sibling baseline，二元 reward 下失败轨迹很容易变成“无信号”；第三，失败轨迹常常很长，若按 token 平均，长失败会因为 token 数多而获得过大的负向梯度，即使其中很多步骤其实是有用的。</p>
+<p>论文的设计目标不是训练 critic，而是在一个<strong>不重复采样、不回放同一批、不等待 sibling、不使用 PPO clipping 和 reference model</strong>的条件下，尽可能保留 REINFORCE 的正负反馈，同时控制异步数据带来的漂移。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>prompt 覆盖率与 baseline 方差降低存在预算交换。</strong> 对每个 prompt 采 G 条响应时，可以获得组内相对优势；但同样预算若改为 G 个不同 prompt，就覆盖更多问题。FlashREINFORCE 认为对长时程 Agent，及时消费更多独立轨迹比精细估计每个 prompt 的组内相对排名更重要。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">失败轨迹不能简单丢弃</span>。</strong> reward-zero 轨迹若不参与更新，相当于正向-only 学习，模型可能只学会强化偶然成功的模式，且工具调用容易消失。用 batch mean 做 baseline 后，低于均值的样本得到负 advantage，失败也能告诉模型“哪些行为不要继续”。</p>
+</li>
+<li>
+<p><strong><span class="mark-strong">token IS 修正不了全部的历史分布漂移</span>。</strong> token importance sampling 修正的是“在已存 history 上，动作概率从 behavior 到 learner 的变化”；但 history 本身仍是旧 policy 走出来的。长序列中累积漂移会造成 local surrogate 与真实目标之间的误差，因此需要对完整 trajectory 做一次 admission decision。</p>
+</li>
+<li>
+<p><strong>轨迹级归一化是对 credit assignment 粗糙性的补偿。</strong> 终端 reward 赋给整条轨迹时，本来就无法区分哪些 token 真正造成成功/失败。token-mean 又让长轨迹拥有更大总权重，放大这个粗糙信号；sample mean 至少保证每条被接受的 trajectory 贡献约相同，减少长失败的支配效应。</p>
+</li>
+<li>
+<p><strong>异步训练的“新鲜”应按 update 使用历史判断，而不是只看时间。</strong> 论文把 fresh 定义为“此前没有用于这次 update 的轨迹”，即使它由较旧 snapshot 生成也可以使用；真正控制其风险的是存储 behavior probability 和 sequence trust gate，而不是把旧数据直接当作 on-policy 数据。</p>
+</li>
+</ol>
+</div></div><p><img src="/img/paper-reading/img_a82db8d012778bd599bc8d2259310a33187b9e26605154ed48d42569dd237d91.png" srcset="/img/loading.gif" lazyload alt="图 1｜FlashREINFORCE 的单批次更新、序列信任区间与样本均值损失" /></p>
+<p><em>图 1｜FlashREINFORCE 的单批次更新、序列信任区间与样本均值损失。 <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2611.18627v1#page=2">来源</a></em></p>
+<p><em>图中横轴是累计 optimizer updates，纵轴是 AIME24/25 平均准确率；散点为 evaluation，深色曲线为三 checkpoint moving mean。准确率从约 21.7 上升到约 33.7，贯穿约 6,000 次更新保持上升趋势。</em></p>
+<hr />
+<h2 id="3️⃣-方法解读"><a class="markdownIt-Anchor" href="#3️⃣-方法解读"></a> 3️⃣ 方法解读</h2>
+<h3 id="组件1异步单轨迹数据"><a class="markdownIt-Anchor" href="#组件1异步单轨迹数据"></a> 组件1：异步单轨迹数据</h3>
+<p>对 prompt <code>x_i</code>，轨迹 <code>τ_i</code> 包含 history <code>h_&#123;i,t&#125;</code>、生成 token <code>a_&#123;i,t&#125;</code>、长度 <code>T_i</code> 和终端标量 reward <code>R_i</code>。每条轨迹还保存实际生成它的 behavior policy 概率：</p>
+<p><code>μ_i(a_&#123;i,t&#125;|h_&#123;i,t&#125;)</code></p>
+<p>当前 learner policy 为 <code>π_θ</code>，动作重要性采样比率为：</p>
+<p><code>ρ_&#123;i,t&#125;(θ) = exp(log π_θ(a_&#123;i,t&#125;|h_&#123;i,t&#125;) − log μ_i(a_&#123;i,t&#125;|h_&#123;i,t&#125;))</code></p>
+<p>这里保存真实 behavior probability 很重要。训练时重新用 inference engine 计算“old probability”，不一定等于真正采样概率，因为 learner 和 rollout engine 可能已经发生版本、并行配置或数值实现差异。</p>
+<h3 id="组件2one-batch-reinforce-与-signed-feedback"><a class="markdownIt-Anchor" href="#组件2one-batch-reinforce-与-signed-feedback"></a> 组件2：One-Batch REINFORCE 与 signed feedback</h3>
+<p>一个 batch 含 <code>B</code> 条来自独立 prompt 的完成轨迹。先计算批均值：</p>
+<p><code>R̄ = (1/B) Σ_j R_j</code></p>
+<p>再定义中心化优势：</p>
+<p><code>A_i = R_i − R̄</code></p>
+<p>二元 reward 下，如果 batch 同时含成功和失败，成功轨迹得到正值，失败轨迹得到负值；一般标量 reward 下，<code>A_i &lt; 0</code> 表示该轨迹低于当前 batch 平均水平。</p>
+<p>每个 fresh batch 只做一次完整 batch update，随后丢弃，而不是把同一批拆成连续 minibatch。这样可避免 learner 在处理后续 minibatch 时已经向前走了若干步，从而进一步增加 behavior-policy mismatch。</p>
+<h3 id="组件3sequence-trust-region"><a class="markdownIt-Anchor" href="#组件3sequence-trust-region"></a> 组件3：Sequence Trust Region</h3>
+<h4 id="31-为什么-token-is-仍然不够"><a class="markdownIt-Anchor" href="#31-为什么-token-is-仍然不够"></a> 3.1 为什么 token IS 仍然不够</h4>
+<p>作者先构造 behavior policy 下的 local surrogate。token IS 可以修正给定 history 上的 action distribution，但 history distribution 仍来自 <code>d_t^μ</code>，而真实目标依赖 <code>d_t^&#123;π_θ&#125;</code>。在 advantage 有界的条件下，论文给出误差上界：</p>
+<p><code>|J(π) − L_μ(π)| ≤ 2 A_max (Σ_t ε_t)^2 ≤ A_max T² κ̄</code></p>
+<p>其中：</p>
+<ul>
+<li>
+<p><code>J(π)</code>：新 policy 的真实期望回报。</p>
+</li>
+<li>
+<p><code>L_μ(π)</code>：固定 behavior history 和 continuation value 下的 local surrogate。</p>
+</li>
+<li>
+<p><code>A_max</code>：advantage 绝对值上界。</p>
+</li>
+<li>
+<p><code>ε_t</code>：第 t 步 policy 间的最大 total-variation 距离。</p>
+</li>
+<li>
+<p><code>κ̄</code>：各 token 条件分布 KL 的平均值。</p>
+</li>
+<li>
+<p><code>T</code>：固定 horizon。</p>
+</li>
+</ul>
+<p>这个式子表达的工程直觉是：长轨迹会把小的逐 token 漂移累积起来；只做 token-level correction，无法保证整条 trajectory 仍处于 local approximation 的可信范围。</p>
+<h4 id="32-可计算的-bernoulli-kl-proxy"><a class="markdownIt-Anchor" href="#32-可计算的-bernoulli-kl-proxy"></a> 3.2 可计算的 Bernoulli KL proxy</h4>
+<p>对已采样动作，把完整词表分布压缩成二元事件：采样到的 action vs. 其余 vocabulary mass。设：</p>
+<ul>
+<li>
+<p><code>p_&#123;i,t&#125; = μ_i(a_&#123;i,t&#125;|h_&#123;i,t&#125;)</code></p>
+</li>
+<li>
+<p><code>q_&#123;i,t&#125; = π_θ(a_&#123;i,t&#125;|h_&#123;i,t&#125;)</code></p>
+</li>
+</ul>
+<p>则 token-level proxy 是：</p>
+<p><code>d_&#123;i,t&#125; = p log(p/q) + (1-p) log((1-p)/(1-q))</code></p>
+<p>它有两个好处：不需要保存完整 behavior distribution，只需要 behavior policy 已经保存的 sampled-action probability；并且由于 data-processing inequality，它是完整 categorical KL 的下界。注意“下界”是关键限制：proxy 超过阈值可以证明完整 KL 也超过阈值，但 proxy 通过不代表完整 KL 很小。</p>
+<p>对整条轨迹取均值：</p>
+<p><code>D̄_i = (1/T_i) Σ_t d_&#123;i,t&#125;</code></p>
+<p>再做一次序列级 admission：</p>
+<p><code>m_i = 1[D̄_i ≤ δ]</code></p>
+<p><code>m_i</code> 在 update 中 stop-gradient。若轨迹被拒绝，整条轨迹在本次更新中的 stored-history contribution 全部移除；不是只保留其中恰好没超阈值的 token。这个粒度是论文与 token-local masking 的关键区别。</p>
+<p><img src="/img/paper-reading/img_3d2bf5a7825dfc91ad76ef43b4e379411ba98ce15d788eb11501a65a403f4953.png" srcset="/img/loading.gif" lazyload alt="图 2｜近似四步策略滞后下的长程训练与响应长度变化" /></p>
+<p><em>图 2｜近似四步策略滞后下的长程训练与响应长度变化。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2611.18627v1/#S4.F2">来源</a></em></p>
+<p><em>响应长度随训练从约 6,200 tokens 快速下降到约 4,100–4,300 tokens 后趋于稳定。它与准确率上升同时出现，说明该实验中训练并没有通过无止境增加 CoT 长度来获得表面收益。</em></p>
+<h3 id="组件4sample-mean-optimization"><a class="markdownIt-Anchor" href="#组件4sample-mean-optimization"></a> 组件4：Sample-Mean Optimization</h3>
+<p>被 trust gate 接受的 trajectory 使用如下 loss：</p>
+<p><code>J_Flash(θ) = (1/B) Σ_i m_i A_i [ (1/T_i) Σ_t ρ_&#123;i,t&#125;(θ) ]</code></p>
+<p>实际 score-function loss 写成：</p>
+<p><code>L(θ) = −(1/B) Σ_i [m_i A_i/T_i] Σ_t stopgrad(ρ_&#123;i,t&#125;) log π_θ(a_&#123;i,t&#125;|h_&#123;i,t&#125;)</code></p>
+<p>梯度方向为：</p>
+<p><code>g_Flash(θ) = (1/B) Σ_i m_i A_i [ (1/T_i) Σ_t ρ_&#123;i,t&#125; ∇ log π_θ(a_&#123;i,t&#125;|h_&#123;i,t&#125;)]</code></p>
+<p>关键是先在每条 trajectory 内平均，再在 batch 内平均。对比 token-mean：</p>
+<p><code>L_token = Σ_i Σ_t ℓ_&#123;i,t&#125; / Σ_i T_i = Σ_i [T_i / Σ_j T_j] L_i</code></p>
+<p>token-mean 让轨迹 i 的权重与 <code>T_i</code> 成正比，因此长失败轨迹得到更大负权重。sample-mean 固定每条轨迹约为 <code>1/B</code> 的权重，保留 signed feedback，但不允许长度单独放大惩罚。</p>
+<p>该方法不使用 PPO-style ratio clipping、critic 或 reference-model forward pass。数值实现仍会在 float32 中把 log-ratio clamp 到 [-30,30] 后 exponentiate；这只是数值保护，不等同于 PPO clipping，也不改变 batch 和 trajectory-length 分母。</p>
+<h3 id="组件5完整算法流程"><a class="markdownIt-Anchor" href="#组件5完整算法流程"></a> 组件5：完整算法流程</h3>
+<ol>
+<li>
+<p>收集下一批完成的 trajectories，每个 prompt 只采一条。</p>
+</li>
+<li>
+<p>计算 batch mean，得到 <code>A_i = R_i − R̄</code>。</p>
+</li>
+<li>
+<p>用当前 learner 与保存的 behavior probability 计算 token ratio 和 Bernoulli KL proxy。</p>
+</li>
+<li>
+<p>对每条轨迹取平均 drift，按 <code>D̄_i ≤ δ</code> 做完整 trajectory admission。</p>
+</li>
+<li>
+<p>对被接受的轨迹使用 sample-mean loss 做一次 optimizer step。</p>
+</li>
+<li>
+<p>固定 <code>A_i</code>、<code>m_i</code> 和 <code>μ_i</code>，不在同一 batch 上继续重复更新。</p>
+</li>
+</ol>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="实验设置"><a class="markdownIt-Anchor" href="#实验设置"></a> 实验设置</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>场景</strong></th>
+<th><strong>模型</strong></th>
+<th><strong>训练数据/任务</strong></th>
+<th><strong>每次更新</strong></th>
+<th><strong>关键控制</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>长 CoT 推理</td>
+<td>DeepSeek-R1-Distill-Qwen-1.5B</td>
+<td>1,460 个 MATH 子集问题</td>
+<td>128 prompts × 1 rollout</td>
+<td>lag≈4，最长 response 8,192 tokens</td>
+</tr>
+<tr>
+<td>数学基线比较</td>
+<td>Qwen2.5-Math-1.5B</td>
+<td>7.5k 去重 DAPO-Math prompts</td>
+<td>128 × 1</td>
+<td>5 个 benchmark，avg@16</td>
+</tr>
+<tr>
+<td>Python 工具调用</td>
+<td>Qwen2.5-7B-Instruct</td>
+<td>DAPO-style math prompts</td>
+<td>128 × 1</td>
+<td>最多 10 tool turns</td>
+</tr>
+<tr>
+<td>30B MoE 工具调用</td>
+<td>Qwen3-30B-A3B</td>
+<td>7.5k DAPO-Math prompts</td>
+<td>128 × 1</td>
+<td>lag≈8，avg@4</td>
+</tr>
+<tr>
+<td>交互式决策</td>
+<td>Qwen2.5-7B-Instruct</td>
+<td>1,024 ALFWorld games</td>
+<td>64 × 1</td>
+<td>140 seen + 134 unseen</td>
+</tr>
+</tbody>
+</table></div>
+<p>训练普遍使用 AdamW、约 <code>1e-6</code> 初始学习率和 cosine decay；不同实验的 trust threshold 为 <code>1e-3</code>、<code>3e-3</code> 或 <code>1e-2</code>。GRPO 对照通常每个 update 用 32 prompts × 4 rollouts（共 128 条），而 FlashREINFORCE 用 128 prompts × 1 rollout，因此两者的总 rollout 数可匹配，但 prompt coverage 不同。</p>
+<h3 id="核心结果五个数学-benchmark"><a class="markdownIt-Anchor" href="#核心结果五个数学-benchmark"></a> 核心结果：五个数学 benchmark</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方法</strong></th>
+<th><strong>group size</strong></th>
+<th><strong>训练 rollouts</strong></th>
+<th><strong>MATH-500</strong></th>
+<th><strong>AMC23</strong></th>
+<th><strong>Minerva</strong></th>
+<th><strong>AIME25</strong></th>
+<th><strong>Olympiad</strong></th>
+<th><strong>Mean</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base model</td>
+<td>–</td>
+<td>0</td>
+<td>35.1</td>
+<td>30.9</td>
+<td>6.7</td>
+<td>5.4</td>
+<td>19.4</td>
+<td>19.5</td>
+</tr>
+<tr>
+<td>C-RF + NTF</td>
+<td>1</td>
+<td>512k</td>
+<td>69.6</td>
+<td>55.5</td>
+<td>18.4</td>
+<td>9.4</td>
+<td>23.9</td>
+<td>35.3</td>
+</tr>
+<tr>
+<td>GRPO</td>
+<td>16</td>
+<td>512k</td>
+<td>71.0</td>
+<td>57.1</td>
+<td>18.2</td>
+<td>10.0</td>
+<td>24.9</td>
+<td>36.3</td>
+</tr>
+<tr>
+<td><strong>FlashREINFORCE</strong></td>
+<td><strong>1</strong></td>
+<td><strong>256k</strong></td>
+<td>69.2</td>
+<td>52.5</td>
+<td><strong>22.8</strong></td>
+<td><strong>10.8</strong></td>
+<td><strong>34.5</strong></td>
+<td><strong>38.0</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>FlashREINFORCE 的五项均值比报告中的 GRPO 高 1.7 个百分点，同时使用一半训练 rollouts。这里的“更高”主要来自 Minerva、AIME25 和 OlympiadBench；MATH-500 与 AMC23 反而略低。这说明它并非在每个 benchmark 都占优，而是单轨迹 signed feedback 与 prompt coverage 对较难/分布不同的任务可能更有帮助。</p>
+<p>公平性得先摆在桌面上：GRPO/C-RF+NTF 是引用 Wu et al. 的 published rows，FlashREINFORCE 是本文实验；模型、实现、训练时间和 checkpoint 选择未必完全相同。表中 FlashREINFORCE 取 step 2,000 的 peak-mean checkpoint，而不是统一固定 step，因此“1.7 分提升”应视为有参考价值但不是严格 head-to-head 结论。</p>
+<h3 id="核心结果长-cot-稳定性"><a class="markdownIt-Anchor" href="#核心结果长-cot-稳定性"></a> 核心结果：长 CoT 稳定性</h3>
+<p>DeepSeek-R1-Distill-Qwen-1.5B 在 policy lag 约 4 时，从初始 AIME24/25 平均准确率 21.7 提升到 6,000 次累计更新末次评估的 33.7。序列 trust 版本在 4,992 步的均值为 32.24，而仅使用 token IS 的版本为 30.63；继续训练后，带 trust 的版本达到 33.70，不带 trust 的版本约 30.57。</p>
+<p>同时，带 trust 版本在 5,896 步的新 AIME24 峰值为 38.85。训练 response length 从约 6,200 降至约 4,100–4,300，token entropy 从约 0.80 降至约 0.48。更重要的是，不带 trust 的继续训练几乎没有继续提升，说明在这个设定下，sequence gate 主要作用是限制异步 drift，而不是简单筛掉低 reward 样本。</p>
+<h3 id="核心结果python-工具调用和-30b-moe"><a class="markdownIt-Anchor" href="#核心结果python-工具调用和-30b-moe"></a> 核心结果：Python 工具调用和 30B MoE</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型/方法</strong></th>
+<th><strong>step</strong></th>
+<th><strong>AMC23</strong></th>
+<th><strong>Minerva</strong></th>
+<th><strong>AIME25</strong></th>
+<th><strong>Mean</strong></th>
+<th><strong>每轨迹 tool calls</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen2.5-7B GRPO</td>
+<td>600</td>
+<td>51.2</td>
+<td>32.3</td>
+<td>7.5</td>
+<td>30.3</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>Qwen2.5-7B FlashREINFORCE</td>
+<td>600</td>
+<td>60.6</td>
+<td>28.8</td>
+<td>21.7</td>
+<td>37.0</td>
+<td>3.25</td>
+</tr>
+<tr>
+<td>Qwen3-30B-A3B GRPO</td>
+<td>800</td>
+<td>93.8</td>
+<td>40.4</td>
+<td>46.7</td>
+<td>60.3</td>
+<td>1.19</td>
+</tr>
+<tr>
+<td><strong>Qwen3-30B-A3B FlashREINFORCE</strong></td>
+<td><strong>800</strong></td>
+<td><strong>95.6</strong></td>
+<td><strong>44.9</strong></td>
+<td><strong>60.8</strong></td>
+<td><strong>67.1</strong></td>
+<td><strong>1.94</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>7B 实验最有诊断价值：GRPO 大约 200 步后停止调用工具，而 FlashREINFORCE 仍保持平均 3.25 次调用。若只看最终准确率，可能误以为是“算法分数差异”；但 tool calls=0 表明 GRPO 已经找到一种不调用工具的退化策略，<span class="mark-strong">signed feedback 有助于维持正确的交互模式</span>。</p>
+<p>30B MoE 上，FlashREINFORCE 在 lag≈8 的情况下仍领先 lag≈1 的 GRPO 6.8 个百分点，说明它的目标不是把异步 lag 消灭，而是让较大的 lag 在可接受的漂移范围内可用。长跑 R3 配置在 1,000–1,450 updates 维持 63.7–66.8 的三任务均值，末尾 66.4；GRPO 曾两次大幅下降，step 800 回到 60.3。</p>
+<p><img src="/img/paper-reading/img_4522e550e76e985dcc6447f3775e6f37db2568ffacac04e29defb60bfa0ddd07.png" srcset="/img/loading.gif" lazyload alt="图 3｜Qwen3-30B-A3B 的 Python 工具调用准确率" /></p>
+<p><em>图 3｜Qwen3-30B-A3B 的 Python 工具调用准确率。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2611.18627v1/#S4.F3">来源</a></em></p>
+<p><em>四个子图分别展示三任务均值、AIME2025、AMC2023 和 Minerva 的 avg@4 准确率随 policy updates 的变化。FlashREINFORCE 的三种 lag=8 配置保持在约 60–67 区间；GRPO（lag=1）的曲线出现两次明显崩落后才恢复。</em></p>
+<h3 id="核心结果alfworld"><a class="markdownIt-Anchor" href="#核心结果alfworld"></a> 核心结果：ALFWorld</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>方法</strong></th>
+<th><strong>seen success</strong></th>
+<th><strong>unseen success</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GRPO, G=8</td>
+<td>78.6</td>
+<td>76.8</td>
+</tr>
+<tr>
+<td>C-RF + NTF, G=1</td>
+<td>90.5</td>
+<td>86.3</td>
+</tr>
+<tr>
+<td><strong>FlashREINFORCE, G=1</strong></td>
+<td><strong>98.3</strong></td>
+<td><strong>96.5</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>相对最强 published baseline，seen/unseen 分别提升 7.8/10.2 个百分点。C-RF+NTF 也使用 G=1，因此该增益不能简单归因于“单 rollout 带来更高 prompt diversity”；更可能与 signed feedback、sequence-level admission、sample mean 或其组合有关。但表格仍是跨来源比较，需谨慎解读。</p>
+<h3 id="消融三部分设计各自做了什么"><a class="markdownIt-Anchor" href="#消融三部分设计各自做了什么"></a> 消融：三部分设计各自做了什么</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>消融</strong></th>
+<th><strong>结果</strong></th>
+<th><strong>解释</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fresh batch vs 同一 rollout batch 的四个 sequential minibatches</td>
+<td>28.45 vs 26.80</td>
+<td>同数据、同优化步数下，每次 update 使用新的 batch 更好，说明避免同批数据的额外 stale drift 有价值</td>
+</tr>
+<tr>
+<td>Signed feedback vs positive-only</td>
+<td>36.2 vs 9.8 mean；tool calls 3.30 vs 0</td>
+<td>失败轨迹的负反馈对工具使用非常关键；丢掉负 advantage 会使交互策略退化</td>
+</tr>
+<tr>
+<td>Sample mean vs token mean</td>
+<td>reward 0.477 vs 0.403；truncation 17.2% vs 45.3%</td>
+<td>token mean 引发长响应 collapse、更多截断和更少工具调用</td>
+</tr>
+<tr>
+<td>Sequence trust vs token-local trust</td>
+<td>最后 step 2,160 vs 1,237；token-local reward 0.37→5.6、崩溃</td>
+<td>对完整 trajectory 做 admission 比逐 token 留/删更稳定</td>
+</tr>
+<tr>
+<td>关闭 IS + sequence trust（ALFWorld）</td>
+<td>seen/unseen 81.0/77.6 降至 35.0/27.6</td>
+<td>behavior correction 和 sequence gate 的联合重要性很大</td>
+</tr>
+</tbody>
+</table></div>
+<p>token-local 崩掉的机制其实很直白：删除一个 token 的 loss term 并不会删除后续 token 所依赖的 stored history，因此 trajectory 内不同 token 仍在不一致的历史分布上更新。sequence-level mask 则把一条轨迹视为一个因果整体，要么全纳入，要么全排除。</p>
+<p><em>（原图未能本地化：Figure 4：长时程训练中的 token entropy 变化；IMA 媒体接口没有可用媒体编号）</em></p>
+<p><em>token entropy 随训练由约 0.80 降至约 0.48，反映策略分布逐渐收敛；需与准确率和响应长度一起看，不能单独把 entropy 下降等同于能力提升。</em></p>
+<h3 id="可选的-negative-token-filtering"><a class="markdownIt-Anchor" href="#可选的-negative-token-filtering"></a> 可选的 negative-token filtering</h3>
+<p>附录还研究了失败 trajectory 内只保留高 entropy token 的可选 selector：成功轨迹保留所有 token，失败轨迹保留其最高 entropy 的前 <code>qT</code> 个 token。动机是失败原因可能集中在模型最不确定的位置。</p>
+<ul>
+<li>
+<p>Qwen2.5-Math-1.5B：轻度过滤 <code>q=0.9</code> 的峰值均值 37.91，高于不筛选的 37.09；激进过滤 <code>q=0.2</code> 在 step 1,000 为 37.04，之后未继续报告。</p>
+</li>
+<li>
+<p>Qwen2.5-7B 工具调用：轻度过滤最好均值 39.4、tool calls 3.72；不筛选为 37.0、3.30；激进过滤为 32.2、0.03；全量失败 token 过滤为 13.1、0。</p>
+</li>
+</ul>
+<p>因此该 selector 是“可选诊断性增强”，不是 FlashREINFORCE 的必要核心。过滤过强会把有用的失败轨迹信息一起删掉，甚至再次导致工具调用消失。</p>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>问题抓得准。</strong> 许多 Agent RL 方案默认 rollout 可同步、轨迹长度类似、group response 便宜；FlashREINFORCE 直接针对真实系统中的 irregular completion、policy lag 和工具调用退化。</p>
+</li>
+<li>
+<p><strong>三个机制相互补位。</strong> batch mean 解决单轨迹缺少 baseline 和失败无信号；sequence trust 解决异步历史漂移；sample mean 解决长度权重放大。消融结果也大体支持这种拆分。</p>
+</li>
+<li>
+<p><strong>工程成本低。</strong> 不需要 critic、PPO clipping、reference model forward 或完整 behavior distribution；只保存 sampled-action probability，比较适合高吞吐 rollout learner 架构。</p>
+</li>
+<li>
+<p><strong>把 tool-use survival 当作指标。</strong> 7B 实验中 GRPO 的 tool calls 变为 0，而 FlashREINFORCE 保持调用，这比只看 aggregate accuracy 更能揭示策略退化。</p>
+</li>
+<li>
+<p><strong>对长时程稳定性有实证。</strong> 6,000 updates、lag≈4 和 30B MoE lag≈8 的实验，至少说明方法不只在短训练窗口有效。</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>batch-mean baseline 仍有噪声。</strong> 它不如 critic 或组内 baseline 精细，若 batch reward 同质或 batch 很小，优势估计可能非常 noisy；论文展示的是选定 batch size 和任务下的稳定性。</p>
+</li>
+<li>
+<p><strong>sequence KL proxy 只是下界。</strong> 通过 gate 不代表真实 categorical KL 或 history-distribution error 一定小；阈值 δ 仍需按模型、任务和 lag 调整。</p>
+</li>
+<li>
+<p><strong>终端 reward 的 credit assignment 仍粗糙。</strong> sample mean 只解决轨迹长度加权，不知道失败发生在哪个 tool call 或 reasoning token；negative-token filtering 只是启发式补救。</p>
+</li>
+<li>
+<p><strong>主要对照不是全部同条件重跑。</strong> 五 benchmark 和 ALFWorld 中有 published baseline，checkpoint 也存在 peak selection，因此增益不能直接解释成纯算法因果。</p>
+</li>
+<li>
+<p><strong>异步 lag 的上限未知。</strong> 论文展示 lag≈4 和 lag≈8，但没有建立 reward、trust rejection rate、吞吐与 lag 的完整 scaling curve，也没有证明更大 lag 仍可稳定。</p>
+</li>
+<li>
+<p><strong>任务覆盖仍偏数学和模拟环境。</strong> Python tool、ALFWorld 很有代表性，但现实浏览器、代码仓库、长周期业务 Agent 的 observation drift、工具副作用和多目标 reward 尚未验证。</p>
+</li>
+<li>
+<p><strong>缺少系统吞吐/成本报告。</strong> 方法理论上减少同步等待和重复 rollout，但论文没有充分报告 wall-clock speedup、GPU utilization、每个 validated capability 的总成本，以及 gate rejection 带来的有效样本损失。</p>
+</li>
+<li>
+<p><strong>序列级全拒绝可能浪费局部有效信息。</strong> 一条轨迹只因少数位置漂移过大就整体丢弃，虽然稳定，但在长轨迹和稀疏错误环境中可能牺牲数据利用率。</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="与相关路线的关系"><a class="markdownIt-Anchor" href="#与相关路线的关系"></a> 与相关路线的关系</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>路线</strong></th>
+<th><strong>主要做法</strong></th>
+<th><strong>FlashREINFORCE 的差异</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GRPO</td>
+<td>同 prompt 多 rollout，组内相对优势，常配 PPO clipping</td>
+<td>FlashREINFORCE 每 prompt 一条，使用 batch mean，提升覆盖率并适合异步完成</td>
+</tr>
+<tr>
+<td>RLOO</td>
+<td>留一法/组内 baseline</td>
+<td>同样依赖 sibling samples；FlashREINFORCE 不等待 sibling</td>
+</tr>
+<tr>
+<td>Critic-based actor-critic</td>
+<td>学 value function 估计 baseline</td>
+<td>FlashREINFORCE 放弃 critic，换取实现简单与无 critic 训练不稳定性</td>
+</tr>
+<tr>
+<td>C-RF + NTF</td>
+<td>对比成功/失败轨迹并过滤失败高概率 token</td>
+<td>FlashREINFORCE 使用批均值 signed feedback；negative-token filtering 只是可选增强</td>
+</tr>
+<tr>
+<td>PPO / token clipping</td>
+<td>token ratio clipping 控制更新</td>
+<td>FlashREINFORCE 不做 PPO clipping，改用 sequence KL admission + token IS</td>
+</tr>
+<tr>
+<td>Seq-MIS / TRM / DPPO</td>
+<td>序列重要性或 trust masking</td>
+<td>本文采用 sampled-action Bernoulli KL proxy，存储成本更低，并用整轨迹 admission</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="论文明确主张-实验支持与分析推断"><a class="markdownIt-Anchor" href="#论文明确主张-实验支持与分析推断"></a> 论文明确主张、实验支持与分析推断</h2>
+<ul>
+<li>
+<p><strong>论文明确主张</strong>：one-pass、single-rollout、critic-free；由 One-Batch REINFORCE、Sequence Trust Region、Sample-Mean Optimization 三部分构成。</p>
+</li>
+<li>
+<p><strong>实验直接支持</strong>：在指定模型、数据、batch 和 lag 下训练稳定；signed feedback、sample mean、sequence gate 的消融有明显影响；tool calls 可避免部分退化。</p>
+</li>
+<li>
+<p><strong>分析者推断</strong>：方法可能特别适合“成功需要工具交互、失败仍含局部有效步骤”的任务；但这种优势未必迁移到 reward 极稀疏、奖励噪声很大或需要精细 token-level credit assignment 的任务。</p>
+</li>
+<li>
+<p><strong>不要过度推出</strong>：38.0 mean 不等于 FlashREINFORCE 在所有数学 benchmark 都优于 GRPO；lag=8 稳定不等于任意异步延迟都稳定；不使用 critic 不等于 variance 已被彻底解决。</p>
+</li>
+</ul>
+<hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p>建立 lag × batch size × δ 的完整稳定性相图，同时报告吞吐、接受率、有效样本数和 wall-clock cost。</p>
+</li>
+<li>
+<p>将 sequence gate 从固定 hard mask 扩展为带不确定度的 soft weighting，但要避免重新引入 token-local 的历史不一致。</p>
+</li>
+<li>
+<p>结合 step-level verifier、tool-call outcome 和失败定位，改善 terminal reward 的 credit assignment。</p>
+</li>
+<li>
+<p>用独立 evaluator、held-out environment 和跨模型迁移测试，确认工具调用保持不是某个 prompt 分布的偶然现象。</p>
+</li>
+<li>
+<p>将动态 batch baseline、critic/value head 和 group-relative baseline 放进 matched-budget 对照，测量降低方差与提高 prompt coverage 的真实 trade-off。</p>
+</li>
+<li>
+<p>对一条轨迹内少数 drift outlier 探索局部重采样或 prefix restart，降低“整轨迹丢弃”的样本浪费。</p>
+</li>
+<li>
+<p>在代码 Agent、浏览器 Agent 和真实多工具系统中报告副作用、失败回滚、权限边界与人工审核成本。</p>
+</li>
+</ul>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>FlashREINFORCE 的价值在于把异步 Agent RL 的几个经常被分开讨论的问题放进同一个 update：单轨迹如何得到 signed signal、旧 policy 轨迹何时还能用、长失败如何不支配梯度。它不靠更复杂的 critic 或 PPO 变体，而是用批均值、序列级 admission 和轨迹内归一化做一个简洁的工程闭环。实验表明这套组合在数学推理、Python 工具调用、30B MoE 和 ALFWorld 上都有实用效果，尤其能避免“模型学会不调用工具”的退化。</p>
+<p>但它的理论保证仍是 local off-policy surrogate + proxy gate，不是完整 history-distribution correction；它的最强数字也混合了自有实验、引用 baseline 和 peak checkpoint。真正决定它是否成为通用 Agent RL 基础设施的下一步，是在匹配总预算和 wall-clock 条件下，证明更高 prompt coverage、较大 policy lag 与更少同步等待确实转化为更低成本的长期能力提升。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>一条 prompt 采一条 rollout</strong>换来更高覆盖率和异步吞吐，但必须用 batch mean 补回负反馈，用 sequence trust 控制旧 policy 漂移。</p>
+</li>
+<li>
+<p><strong>sample mean 不是普通归一化</strong>：它阻止<span class="mark-strong">长失败 trajectory 按 token 数放大负梯度</span>，是避免长响应 collapse 的关键。</p>
+</li>
+<li>
+<p>这是一套很有工程说服力的 critic-free 异步 RL 配方；它证明了“在这些设定下能稳”，还没有证明“在通用长时程 Agent 上都能稳”。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/" class="category-chain-item">强化学习与后训练</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%90%8E%E8%AE%AD%E7%BB%83/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜FlashREINFORCE: Critic-Free Single-Rollout Asynchronous RL for Agentic Language Models</div>
+      <div>https://yyhchen.github.io/2026/09/16/paper-flashreinforce-critic-free-single-rollout-asynchronous-rl-for-agentic-language-models/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年9月16日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/09/14/paper-the-last-ai-built-by-humans-toward-genuine-recursive-self-improvement/" title="Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement">
+                        <span class="hidden-mobile">Paper精读｜The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

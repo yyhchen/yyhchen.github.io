@@ -1,0 +1,1509 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="2.8T 参数的 MoE，Kimi 这回押的是架构不是参数量：Kimi Delta Attention (KDA)、Attention Residuals (AttnRes)、Stable LatentMoE、Per-Head Muon 一起换来 2.5× scaling efficiency 提升；后训练配百万 token 级 agentic RL，部署靠从 SFT 阶段就开始的 MXFP4 量">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Kimi K3: Open Frontier Intelligence">
+<meta property="og:url" content="https://yyhchen.github.io/2026/07/28/paper-kimi-k3-open-frontier-intelligence/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="2.8T 参数的 MoE，Kimi 这回押的是架构不是参数量：Kimi Delta Attention (KDA)、Attention Residuals (AttnRes)、Stable LatentMoE、Per-Head Muon 一起换来 2.5× scaling efficiency 提升；后训练配百万 token 级 agentic RL，部署靠从 SFT 阶段就开始的 MXFP4 量">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_6fc2ca8a7b0edff7b878d2ff34dc77c5520d93790727e2c5e2b70a84f95c8601.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_0042cbb7e2aa13d7475861eed836eeb969e503e2caa8e7cb97e8656fecd79b7e.png">
+<meta property="article:published_time" content="2026-07-28T08:29:12.000Z">
+<meta property="article:modified_time" content="2026-11-25T09:14:36.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_6fc2ca8a7b0edff7b878d2ff34dc77c5520d93790727e2c5e2b70a84f95c8601.png">
+  
+  
+  
+  <title>Paper精读｜Kimi K3: Open Frontier Intelligence - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-28 16:29" pubdate>
+          2026-07-28 16:29:12
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="模型架构与推理效率"
+        id="heading-2b414557444ce743ae890d15692b8e1e" role="tab" data-toggle="collapse" href="#collapse-2b414557444ce743ae890d15692b8e1e"
+        aria-expanded="true"
+      >
+        模型架构与推理效率
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2b414557444ce743ae890d15692b8e1e"
+           role="tabpanel" aria-labelledby="heading-2b414557444ce743ae890d15692b8e1e">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(15)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/27/paper-mixture-of-loops-transformer/" title="Paper精读｜Mixture-of-Loops Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mixture-of-Loops Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/24/paper-glm-5-4-toward-generalized-coding-with-our-first-loop-transformer/" title="Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜GLM-5.4: Toward Generalized Coding with Our First Loop Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/10/26/paper-a-fix-for-softmax-and-cross-entropy/" title="Paper精读｜A Fix for Softmax and Cross-Entropy"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜A Fix for Softmax and Cross-Entropy</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/11/paper-deepseek-v4-1-flash-pushing-the-limits-of-kv-cache-compression/" title="Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/02/paper-normalized-low-rank-adaptation/" title="Paper精读｜Normalized Low-Rank Adaptation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Normalized Low-Rank Adaptation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/29/paper-prefix-sliding-for-efficient-test-time-scaling/" title="Paper精读｜Prefix Sliding for efficient test-time scaling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Prefix Sliding for efficient test-time scaling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/21/paper-recirculation/" title="Paper精读｜Recirculation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Recirculation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/19/paper-proteus-incremental-memory-activation-for-long-context-sequence-modeling/" title="Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Proteus: Incremental Memory Activation for Long-Context Sequence Modeling</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-mooncake-a-kvcache-centric-disaggregated-architecture-for-llm-serving/" title="Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-kimi-k3-open-frontier-intelligence/" title="Paper精读｜Kimi K3: Open Frontier Intelligence"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Kimi K3: Open Frontier Intelligence</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/paper-dspark-confidence-scheduled-speculative-decoding-with-semi-autoregressive-generation/" title="Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-minimax-sparse-attention/" title="Paper精读｜MiniMax Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜MiniMax Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention/" title="Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/17/paper-%CE%B4-mem-efficient-online-memory-for-large-language-models/" title="Paper精读｜δ-mem: Efficient Online Memory for Large Language Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜δ-mem: Efficient Online Memory for Large Language Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/13/paper-elf-embedded-language-flows-kaiming-he%E5%9B%A2%E9%98%9F%E8%AE%A9%E8%BF%9E%E7%BB%AD%E6%89%A9%E6%95%A3%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E9%87%8D%E5%BD%92%E8%81%9A%E5%85%89%E7%81%AF/" title="Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜ELF: Embedded Language Flows — Kaiming He团队让连续扩散语言模型重归聚光灯</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Kimi K3: Open Frontier Intelligence</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;architecture">模型架构与推理效率</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读kimi-k3-open-frontier-intelligence"><a class="markdownIt-Anchor" href="#paper精读kimi-k3-open-frontier-intelligence"></a> Paper精读｜Kimi K3: Open Frontier Intelligence</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p><strong>2.8T 参数的 MoE，Kimi 这回押的是架构不是参数量：Kimi Delta Attention (KDA)、Attention Residuals (AttnRes)、Stable LatentMoE、Per-Head Muon 一起换来 <span class="mark-number">2.5× scaling efficiency 提升</span>；后训练配百万 token 级 agentic RL，部署靠从 SFT 阶段就开始的 MXFP4 量化感知训练——长程编码、agent、知识、推理和视觉任务上达到开源 frontier 水平。</strong><br />
+<em>（原图未能本地化：Figure 1: 标题页与主要结果；IMA 媒体接口没有可用媒体编号）</em><br />
+<em>图注：论文标题页与 Figure 1 — 主要 benchmark 结果对比。虽然整体仍落后于 Claude Fable 5 和 GPT-5.6 Sol，但 Kimi K3 持续超越其他开源和闭源模型。</em></p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Kimi K3: Open Frontier Intelligence</li>
+<li><strong>arXiv</strong>：2607.24653</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2607.24653">https://arxiv.org/abs/2607.24653</a></li>
+<li><strong>作者</strong>：Kimi Team (Tongtong Bai, Yifan Bai, et al., 302+ authors)</li>
+<li><strong>机构</strong>：Moonshot AI</li>
+<li><strong>日期</strong>：2026-07-27</li>
+</ul>
+</div></details><hr />
+<h2 id="模型规格总览"><a class="markdownIt-Anchor" href="#模型规格总览"></a> 模型规格总览</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>组件</strong></th>
+<th><strong>规格</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>总参数</td>
+<td>2.8T</td>
+</tr>
+<tr>
+<td>激活参数</td>
+<td>104B</td>
+</tr>
+<tr>
+<td>层数</td>
+<td>93（69 KDA + 24 Gated MLA）</td>
+</tr>
+<tr>
+<td>注意力头数</td>
+<td>96</td>
+</tr>
+<tr>
+<td>隐藏维度</td>
+<td>7168</td>
+</tr>
+<tr>
+<td>MoE 专家数</td>
+<td>896（激活 16 + 2 shared）</td>
+</tr>
+<tr>
+<td>潜在 MoE 维度</td>
+<td>3584</td>
+</tr>
+<tr>
+<td>每专家隐藏维度</td>
+<td>3072</td>
+</tr>
+<tr>
+<td>词表大小</td>
+<td>160K</td>
+</tr>
+<tr>
+<td>上下文长度</td>
+<td>1,048,576</td>
+</tr>
+<tr>
+<td>激活函数</td>
+<td>SiTU-GLU</td>
+</tr>
+<tr>
+<td>视觉编码器</td>
+<td>MoonViT-V2 (401M)</td>
+</tr>
+<tr>
+<td>量化</td>
+<td>MXFP4 weights / MXFP8 activations</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="技术亮点深度解析"><a class="markdownIt-Anchor" href="#技术亮点深度解析"></a> 技术亮点深度解析</h2>
+<h3 id="亮点1kimi-delta-attention-kda-attention-residuals-attnres"><a class="markdownIt-Anchor" href="#亮点1kimi-delta-attention-kda-attention-residuals-attnres"></a> 亮点1：Kimi Delta Attention (KDA) + Attention Residuals (AttnRes)</h3>
+<p><strong>问题</strong>：93 层深度叠上 1M token 长序列，信息流动受阻——梯度衰减、注意力稀释。</p>
+<p><strong>KDA 的设计</strong>：</p>
+<ul>
+<li>
+<p>Kimi 自研的高效注意力机制，当 scaling attention 的底座</p>
+</li>
+<li>
+<p>和标准注意力比，长序列上的信息传播效率更高</p>
+</li>
+</ul>
+<p><strong>AttnRes 的设计</strong>：</p>
+<ul>
+<li>
+<p>核心思想：<span class="mark-strong"><strong>跨深度选择性检索表示，而非均匀累积</strong></span></p>
+</li>
+<li>
+<p>传统残差连接：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>h</mi><mrow><mi>l</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>h</mi><mi>l</mi></msub><mo>+</mo><msub><mi>f</mi><mi>l</mi></msub><mo stretchy="false">(</mo><msub><mi>h</mi><mi>l</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">h_{l+1} = h_l + f_l(h_l)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.902771em;vertical-align:-0.208331em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.10764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> — 信息均匀累积</p>
+</li>
+<li>
+<p>AttnRes：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>h</mi><mrow><mi>l</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>h</mi><mi>l</mi></msub><mo>+</mo><mi>α</mi><mo>⋅</mo><msub><mi>f</mi><mi>l</mi></msub><mo stretchy="false">(</mo><msub><mi>h</mi><mi>l</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">h_{l+1} = h_l + \alpha \cdot f_l(h_l)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.902771em;vertical-align:-0.208331em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.44445em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.10764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，其中 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span></span></span></span> 是学习到的检索系数</p>
+</li>
+<li>
+<p>模型由此可以&quot;跳过&quot;不必要的信息累积，93 层深度下信息质量保得住</p>
+</li>
+</ul>
+<p><strong>Block Attention Residuals 架构</strong>：</p>
+<ul>
+<li>
+<p>把 KDA 和 AttnRes 组合成 Block 结构</p>
+</li>
+<li>
+<p>69 层 KDA + 24 层 Gated MLA 交替</p>
+</li>
+</ul>
+<h3 id="亮点2stable-latentmoe"><a class="markdownIt-Anchor" href="#亮点2stable-latentmoe"></a> 亮点2：Stable LatentMoE</h3>
+<p><strong>问题</strong>：896 个专家、每 token 激活 16 个的 MoE，负载不均衡会很严重。</p>
+<p><strong>Quantile Balancing</strong>：</p>
+<ul>
+<li>
+<p>直接从 router-score 分位数推导专家分配</p>
+</li>
+<li>
+<p>甩掉启发式更新和难调的平衡超参数</p>
+</li>
+<li>
+<p>确保 <span class="mark-strong">896 个专家的负载完美均衡</span></p>
+</li>
+</ul>
+<p><strong>Per-Head Muon</strong>：</p>
+<ul>
+<li>
+<p>Muon 是 Moonshot 此前提出的优化器，靠正交化梯度更新方向加速训练</p>
+</li>
+<li>
+<p>Per-Head Muon 把它推到注意力头级别：每个头独立优化</p>
+</li>
+</ul>
+<h3 id="亮点3situ-glu-激活函数"><a class="markdownIt-Anchor" href="#亮点3situ-glu-激活函数"></a> 亮点3：SiTU-GLU 激活函数</h3>
+<p><strong>Sigmoid Tanh Unit (SiTU)</strong>：</p>
+<ul>
+<li>
+<p>Sigmoid 和 Tanh 的特性拼在一起，梯度流更平滑</p>
+</li>
+<li>
+<p>93 层深度训练里比 SwiGLU 稳</p>
+</li>
+</ul>
+<h3 id="亮点4mxfp4-量化感知训练"><a class="markdownIt-Anchor" href="#亮点4mxfp4-量化感知训练"></a> 亮点4：MXFP4 量化感知训练</h3>
+<p><strong>策略</strong>：<span class="mark-strong">从 SFT 阶段即开始量化感知训练（QAT）</span></p>
+<ul>
+<li>
+<p>权重：MXFP4（4-bit 微缩放浮点）</p>
+</li>
+<li>
+<p>激活：MXFP8（8-bit 微缩放浮点）</p>
+</li>
+</ul>
+<p><strong>部署优势</strong>：</p>
+<ul>
+<li>
+<p>官方 API 定价：$0.30/MTok（cache-hit）/$3.00/MTok（cache-miss）/ $15.00/MTok（output）</p>
+</li>
+<li>
+<p>支持 vLLM、SGLang、TokenSpeed</p>
+</li>
+</ul>
+<h3 id="亮点5基础设施创新"><a class="markdownIt-Anchor" href="#亮点5基础设施创新"></a> 亮点5：基础设施创新</h3>
+<p><strong>Fully Balanced Expert-Parallel Training</strong>：</p>
+<ul>
+<li>
+<p>静态形状 + 关键路径无主机同步</p>
+</li>
+<li>
+<p>支持 64+ 加速器的 supernode 配置</p>
+</li>
+</ul>
+<p><strong>Million-Token Agentic RL</strong>：</p>
+<ul>
+<li>
+<p>支持百万 token 级别的 agentic 强化学习</p>
+</li>
+<li>
+<p>Persistent rollout 和 sandbox states</p>
+</li>
+<li>
+<p>跨 general、agentic、coding 三个领域</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_6fc2ca8a7b0edff7b878d2ff34dc77c5520d93790727e2c5e2b70a84f95c8601.png" srcset="/img/loading.gif" lazyload alt="Figure 2: 模型架构" /></p>
+<p><em>图注：模型架构图。展示 Stable LatentMoE 和 KDA 模块（左）、AttnRes 操作（右上）、Block Attention Residuals backbone（右）。</em></p>
+<hr />
+<h2 id="训练配方"><a class="markdownIt-Anchor" href="#训练配方"></a> 训练配方</h2>
+<h3 id="预训练"><a class="markdownIt-Anchor" href="#预训练"></a> 预训练</h3>
+<ul>
+<li>
+<p>大规模多模态数据（文本、图像、视频）</p>
+</li>
+<li>
+<p>1M token 上下文窗口</p>
+</li>
+</ul>
+<h3 id="sft监督微调"><a class="markdownIt-Anchor" href="#sft监督微调"></a> SFT（监督微调）</h3>
+<ul>
+<li>
+<p>高质量指令数据</p>
+</li>
+<li>
+<p><strong>从 SFT 阶段即开始 MXFP4 量化感知训练</strong></p>
+</li>
+</ul>
+<h3 id="rl强化学习"><a class="markdownIt-Anchor" href="#rl强化学习"></a> RL（强化学习）</h3>
+<ul>
+<li>
+<p>跨 general、agentic、coding 三个领域</p>
+</li>
+<li>
+<p>多种推理努力级别（low / high / max）</p>
+</li>
+<li>
+<p>百万 token 级别的 agentic RL</p>
+</li>
+</ul>
+<h3 id="post-training-特点"><a class="markdownIt-Anchor" href="#post-training-特点"></a> Post-Training 特点</h3>
+<ul>
+<li>
+<p><strong>Preserved Thinking History Mode</strong>：训练时保留完整推理历史</p>
+</li>
+<li>
+<p>多 reasoning effort 级别：low / high / max（默认 max）</p>
+</li>
+</ul>
+<hr />
+<h2 id="实验结果"><a class="markdownIt-Anchor" href="#实验结果"></a> 实验结果</h2>
+<h3 id="编码任务"><a class="markdownIt-Anchor" href="#编码任务"></a> 编码任务</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>DeepSWE</strong></th>
+<th><strong>Terminal-Bench</strong></th>
+<th><strong>FrontierSWE</strong></th>
+<th><strong>SWE-Marathon</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-5.6 Sol</td>
+<td>73.0</td>
+<td>88.8</td>
+<td>71.3</td>
+<td>39.0</td>
+</tr>
+<tr>
+<td>Claude Fable 5</td>
+<td>70.0</td>
+<td>88.0</td>
+<td>86.6</td>
+<td>35.0</td>
+</tr>
+<tr>
+<td><strong>Kimi K3</strong></td>
+<td><strong>67.5</strong></td>
+<td><strong>88.3</strong></td>
+<td><strong>81.2</strong></td>
+<td><strong>42.0</strong></td>
+</tr>
+<tr>
+<td>Claude Opus 4.8</td>
+<td>59.0</td>
+<td>84.6</td>
+<td>66.7</td>
+<td>40.0</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>分析</strong>：</p>
+<ul>
+<li>
+<p>SWE-Marathon（长程 SWE 任务）拿到 <strong><span class="mark-number">42.0</span></strong>，<strong>超越所有对比模型</strong>——全场最高的一格</p>
+</li>
+<li>
+<p>Terminal-Bench 88.3 与 Fable 5 持平</p>
+</li>
+<li>
+<p>DeepSWE 67.5 略低于 Fable 5（70.0）</p>
+</li>
+</ul>
+<h3 id="agent-任务"><a class="markdownIt-Anchor" href="#agent-任务"></a> Agent 任务</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>BrowseComp</strong></th>
+<th><strong>MCPMark</strong></th>
+<th><strong>AutomationBench</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-5.6 Sol</td>
+<td>90.4</td>
+<td>92.9</td>
+<td>29.7</td>
+</tr>
+<tr>
+<td>Claude Fable 5</td>
+<td>88.0</td>
+<td>87.4</td>
+<td>29.1</td>
+</tr>
+<tr>
+<td><strong>Kimi K3</strong></td>
+<td><strong>91.2</strong></td>
+<td><strong>94.5</strong></td>
+<td><strong>30.8</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>分析</strong>：</p>
+<ul>
+<li>
+<p>BrowseComp 91.2，<strong>最佳</strong>（压过 GPT-5.6 Sol 的 90.4）</p>
+</li>
+<li>
+<p>MCPMark 94.5 大幅领先（vs Fable 5 87.4）</p>
+</li>
+<li>
+<p>AutomationBench 30.8，三个对比模型里最高</p>
+</li>
+</ul>
+<h3 id="推理知识"><a class="markdownIt-Anchor" href="#推理知识"></a> 推理/知识</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>GPQA Diamond</strong></th>
+<th><strong>HLE-Full</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-5.6 Sol</td>
+<td>94.1</td>
+<td>44.5/58.0</td>
+</tr>
+<tr>
+<td>Claude Fable 5</td>
+<td>92.6</td>
+<td>53.3/63.0</td>
+</tr>
+<tr>
+<td><strong>Kimi K3</strong></td>
+<td><strong>93.5</strong></td>
+<td><strong>43.5/56.0</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="视觉任务"><a class="markdownIt-Anchor" href="#视觉任务"></a> 视觉任务</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>Video-MME</strong></th>
+<th><strong>MMMU-Pro</strong></th>
+<th><strong>CharXiv (RQ)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-5.6 Sol</td>
+<td>89.5</td>
+<td>83.0/84.6</td>
+<td>84.6/89.1</td>
+</tr>
+<tr>
+<td><strong>Kimi K3</strong></td>
+<td><strong>90.0</strong></td>
+<td><strong>81.6/83.4</strong></td>
+<td><strong>84.8/91.3</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><em>Video-MME 90.0 达到最佳。</em></p>
+<p><img src="/img/paper-reading/img_0042cbb7e2aa13d7475861eed836eeb969e503e2caa8e7cb97e8656fecd79b7e.png" srcset="/img/loading.gif" lazyload alt="Figure 3: 完整评估表格" /></p>
+<p><em>图注：完整的 benchmark 评估表格，涵盖 Reasoning &amp; Knowledge、Coding、Agentic、Vision 四大类。</em></p>
+<hr />
+<h2 id="案例研究"><a class="markdownIt-Anchor" href="#案例研究"></a> 案例研究</h2>
+<h3 id="1-gpu-kernel-优化"><a class="markdownIt-Anchor" href="#1-gpu-kernel-优化"></a> 1. GPU Kernel 优化</h3>
+<ul>
+<li>
+<p>24 小时内独立优化 4 个 GPU 内核（AttnRes、KDA、MLA）</p>
+</li>
+<li>
+<p>性能与 Claude Fable 5 竞争，大幅超越 Opus 4.8 和 GPT-5.5</p>
+</li>
+<li>
+<p><strong>关键洞察</strong>：Kimi K3 给自己架构写 kernel 反而是强项</p>
+</li>
+</ul>
+<h3 id="2-gpu-编译器开发minitriton"><a class="markdownIt-Anchor" href="#2-gpu-编译器开发minitriton"></a> 2. GPU 编译器开发（MiniTriton）</h3>
+<ul>
+<li>
+<p>从零构建了一个 Triton 类编译器</p>
+</li>
+<li>
+<p>tile-level IR 层、优化 pass、PTX 代码生成一应俱全</p>
+</li>
+<li>
+<p>roofline benchmark 上与 Triton 持平或更优</p>
+</li>
+<li>
+<p><strong>关键洞察</strong>：能搭完整编译器流水线，不是只会写孤立 kernel</p>
+</li>
+</ul>
+<h3 id="3-芯片设计"><a class="markdownIt-Anchor" href="#3-芯片设计"></a> 3. 芯片设计</h3>
+<ul>
+<li>
+<p>48 小时内自主设计了一块服务 nano 模型的芯片</p>
+</li>
+<li>
+<p>用开源 EDA 工具 + Nangate 45nm 库</p>
+</li>
+<li>
+<p>4mm² 内实现 100MHz 时序收敛、8700+ tokens/s 解码吞吐</p>
+</li>
+<li>
+<p><strong>关键洞察</strong>：首次<span class="mark-strong">&quot;模型为模型设计芯片&quot;</span>的演示</p>
+</li>
+</ul>
+<h3 id="4-研究自动化"><a class="markdownIt-Anchor" href="#4-研究自动化"></a> 4. 研究自动化</h3>
+<ul>
+<li>
+<p>复现 I-Love-Q 天体物理普遍关系</p>
+</li>
+<li>
+<p>通常要 1-2 周的研究工作，2 小时跑完</p>
+</li>
+<li>
+<p>产出 3000+ 行 Python 代码 + 交互式 HTML 仪表盘</p>
+</li>
+</ul>
+<hr />
+<h2 id="局限性与风险"><a class="markdownIt-Anchor" href="#局限性与风险"></a> 局限性与风险</h2>
+<h3 id="1-对推理历史敏感"><a class="markdownIt-Anchor" href="#1-对推理历史敏感"></a> 1. 对推理历史敏感</h3>
+<ul>
+<li>
+<p>训练时采用 preserved thinking history 模式</p>
+</li>
+<li>
+<p>agent harness 要是没把历史推理内容完整回传，生成质量会高度不稳定</p>
+</li>
+<li>
+<p><strong>建议</strong>：使用 Kimi Code 等验证兼容的 harness</p>
+</li>
+</ul>
+<h3 id="2-过度主动"><a class="markdownIt-Anchor" href="#2-过度主动"></a> 2. 过度主动</h3>
+<ul>
+<li>
+<p>训练强调长程、挑战性任务</p>
+</li>
+<li>
+<p>用户意图模糊时，可能替用户做出意外决策</p>
+</li>
+<li>
+<p><strong>建议</strong>：在 system prompt 或 <a target="_blank" rel="noopener" href="http://AGENTS.md">AGENTS.md</a> 里写明确的行为约束</p>
+</li>
+</ul>
+<h3 id="3-用户体验差距"><a class="markdownIt-Anchor" href="#3-用户体验差距"></a> 3. 用户体验差距</h3>
+<ul>
+<li>性能上有竞争力，但用户体验仍落后于 Claude Fable 5 和 GPT-5.6 Sol</li>
+</ul>
+<h3 id="4-评估中的-confound"><a class="markdownIt-Anchor" href="#4-评估中的-confound"></a> 4. 评估中的 confound</h3>
+<ul>
+<li>
+<p>Claude Fable 5 在 SWE-Marathon 上 35% 任务触发 fallback</p>
+</li>
+<li>
+<p>GPT-5.6 Sol 在 KCB 2.0 上 10% 任务进入 cyber guard</p>
+</li>
+</ul>
+<hr />
+<h2 id="与今天其他论文的对话"><a class="markdownIt-Anchor" href="#与今天其他论文的对话"></a> 与今天其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>论文</strong></th>
+<th><strong>关注点</strong></th>
+<th><strong>与 Kimi K3 的关系</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Measuring Reward-Seeking</td>
+<td>RL 训练如何制造 reward-seeker</td>
+<td>Kimi K3 的 RL 训练是否也有此风险？</td>
+</tr>
+<tr>
+<td>AREX</td>
+<td>不扩大参数如何提升 agent 能力</td>
+<td>Kimi K3 用 2.8T 参数 + 架构创新回答同一问题</td>
+</tr>
+<tr>
+<td>Language model harnesses</td>
+<td>harness 如何承担组合泛化</td>
+<td>Kimi K3 的 preserved thinking history 是 harness 设计的新维度</td>
+</tr>
+<tr>
+<td>HOPE</td>
+<td>如何压缩大模型</td>
+<td>Kimi K3 的 MXFP4 是压缩的实用方案</td>
+</tr>
+<tr>
+<td>Expanding Flow Maps</td>
+<td>生成模型如何突破固定维度</td>
+<td>两者都在探索 scaling 的新维度</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="开放问题"><a class="markdownIt-Anchor" href="#开放问题"></a> 开放问题</h2>
+<ol>
+<li>
+<p><strong>MoE 路由的可解释性</strong>：<span class="mark-number">896 个专家中激活 16 个</span>，路由模式是否有意义？</p>
+</li>
+<li>
+<p><strong>AttnRes 的理论分析</strong>：跨深度选择性检索背后的数学机理是什么？</p>
+</li>
+<li>
+<p><strong>长程 RL 的稳定性</strong>：百万 token agentic RL 如何避免 reward hacking？</p>
+</li>
+<li>
+<p><strong>MXFP4 的精度影响</strong>：4-bit 权重对哪些任务最敏感？</p>
+</li>
+<li>
+<p><strong>Scaling Efficiency 来源</strong>：2.5× 提升中有多少来自架构 vs MoE vs 优化器？</p>
+</li>
+</ol>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>Kimi K3 不只是把参数堆到 2.8T：KDA + AttnRes 处理 93 层深度和 1M 上下文下的信息流动，Stable LatentMoE + Quantile Balancing + Per-Head Muon 处理 896 专家 MoE 的稳定性，MXFP4 处理部署成本——三个层面的架构问题各给了一个具体答案。</p>
+<p>性能要分两头看：SWE-Marathon（42.0）、BrowseComp（91.2）、MCPMark（94.5）、Video-MME（90.0）这些 agent 和长程基准上它是最佳的。</p>
+<p>但整体仍落后 Claude Fable 5 和 GPT-5.6 Sol，用户体验差距论文自己也承认。开源离 frontier 更近了一步，但那两家的位置还没被翻过去。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>2.8T MoE + KDA + AttnRes + Stable LatentMoE</strong>：架构创新换来 2.5× scaling efficiency 提升。</p>
+</li>
+<li>
+<p><strong>百万 token agentic RL + MXFP4 量化</strong>：撑起长程 agentic 任务，4-bit 量化从 SFT 阶段就开始训。</p>
+</li>
+<li>
+<p><strong>开源 frontier 的位置</strong>：SWE-Marathon、BrowseComp、MCPMark、Video-MME 一批基准上已是最佳；但整体仍落后 Fable 5 和 GPT-5.6 Sol，用户体验差距还没补上。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/" class="category-chain-item">模型架构与推理效率</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Kimi K3: Open Frontier Intelligence</div>
+      <div>https://yyhchen.github.io/2026/07/28/paper-kimi-k3-open-frontier-intelligence/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/29/paper-data-pyramid-for-embodied-manipulation/" title="Paper精读｜Data Pyramid for Embodied Manipulation">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜Data Pyramid for Embodied Manipulation</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/28/paper-expanding-flow-maps/" title="Paper精读｜Expanding Flow Maps">
+                        <span class="hidden-mobile">Paper精读｜Expanding Flow Maps</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

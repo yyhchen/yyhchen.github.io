@@ -1,0 +1,1341 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon-32x32.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yhchen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="OpenAI 内部模型一次性产出了数学与理论计算机科学领域的 10 项独立重大进展——每一项都是该领域悬置数十年、被写入综述和开放问题清单的经典难题：非 sofic 群的显式构造（否证 soficity 猜想）、Connes 刚性猜想的反例、球堆积高维指数 1978 年以来首次改进、Ehrhart 体积猜想的完整证明、多色 Ramsey 数超指数下界、量子平行重复定理（全纠缠博弈类）等。论文以 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science">
+<meta property="og:url" content="https://yyhchen.github.io/2026/08/04/paper-ten-advances-in-mathematics-and-theoretical-computer-science/index.html">
+<meta property="og:site_name" content="yhchen&#39;s blog">
+<meta property="og:description" content="OpenAI 内部模型一次性产出了数学与理论计算机科学领域的 10 项独立重大进展——每一项都是该领域悬置数十年、被写入综述和开放问题清单的经典难题：非 sofic 群的显式构造（否证 soficity 猜想）、Connes 刚性猜想的反例、球堆积高维指数 1978 年以来首次改进、Ehrhart 体积猜想的完整证明、多色 Ramsey 数超指数下界、量子平行重复定理（全纠缠博弈类）等。论文以 1">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_c9b2e23a0379902a6e1024cf8fb0ca6bf3c12ee7e1c2febe8da165ca7d676757.png">
+<meta property="og:image" content="https://yyhchen.github.io/img/paper-reading/img_059bf4e4520002e288a9814d2dc7c9bc63eec7121067405f056ed16495e04c8f.png">
+<meta property="article:published_time" content="2026-08-04T08:20:28.000Z">
+<meta property="article:modified_time" content="2026-11-25T12:08:57.000Z">
+<meta property="article:author" content="yhchen">
+<meta property="article:tag" content="Paper精读">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yyhchen.github.io/img/paper-reading/img_c9b2e23a0379902a6e1024cf8fb0ca6bf3c12ee7e1c2febe8da165ca7d676757.png">
+  
+  
+  
+  <title>Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science - yhchen&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/paper-reading.css">
+<link rel="stylesheet" href="/css/blog-redesign.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yyhchen.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":50,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 30vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>yhchen&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>主页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/paper-reading/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>专题目录</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>足迹·论文库</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.45)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-04 16:20" pubdate>
+          2026-08-04 16:20:28
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          46 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="理论与数学推理"
+        id="heading-3308ff0d80699a15d8a87f89795d0b74" role="tab" data-toggle="collapse" href="#collapse-3308ff0d80699a15d8a87f89795d0b74"
+        aria-expanded="true"
+      >
+        理论与数学推理
+        <span class="list-group-count">(9)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-3308ff0d80699a15d8a87f89795d0b74"
+           role="tabpanel" aria-labelledby="heading-3308ff0d80699a15d8a87f89795d0b74">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Paper"
+        id="heading-d0a662a5235ecde30739fe50cf0de830" role="tab" data-toggle="collapse" href="#collapse-d0a662a5235ecde30739fe50cf0de830"
+        aria-expanded="true"
+      >
+        Paper
+        <span class="list-group-count">(9)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d0a662a5235ecde30739fe50cf0de830"
+           role="tabpanel" aria-labelledby="heading-d0a662a5235ecde30739fe50cf0de830">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2026/11/28/paper-an-algebraic-quantization-of-gravity-from-the-null-cone/" title="Paper精读｜An algebraic quantization of gravity from the null cone"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜An algebraic quantization of gravity from the null cone</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/11/20/paper-counterfactual-world-models-jepas-that-reason-about-what-if/" title="Paper精读｜Counterfactual World Models: JEPAs That Reason About &#34;What If&#34;"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Counterfactual World Models: JEPAs That Reason About &#34;What If&#34;</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/09/paper-finite-time-blowup-for-navier-stokes/" title="Paper精读｜Finite time blowup for Navier–Stokes"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Finite time blowup for Navier–Stokes</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/07/paper-leanstral/" title="Paper精读｜Leanstral"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Leanstral</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/08/04/paper-ten-advances-in-mathematics-and-theoretical-computer-science/" title="Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/28/paper-expanding-flow-maps/" title="Paper精读｜Expanding Flow Maps"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Expanding Flow Maps</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/26/paper-hilbert-operator-for-progressive-encoding-hope-a-mathematical-framework-for-deconstructing-learned-representations/" title="Paper精读｜Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Hilbert Operator for Progressive Encoding (HOPE): A Mathematical Framework for Deconstructing Learned Representations in Deep Networks</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/06/13/paper-latent-reasoning-with-normalizing-flows/" title="Paper精读｜Latent Reasoning with Normalizing Flows"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Latent Reasoning with Normalizing Flows</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/05/22/paper-generative-recursive-reasoning-gram-%E9%80%92%E5%BD%92%E6%8E%A8%E7%90%86%E7%9A%84%E6%A6%82%E7%8E%87%E5%8C%96/" title="Paper精读｜Generative Recursive Reasoning (GRAM) — 递归推理的概率化"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Paper精读｜Generative Recursive Reasoning (GRAM) — 递归推理的概率化</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <div class="paper-reading">
+<nav class="post-breadcrumb" aria-label="文章位置">
+      <a href="&#x2F;">首页</a>
+      <span class="bc-sep">/</span>
+      <a href="&#x2F;#cat&#x3D;papers">论文精读</a>
+      <span class="bc-sep">/</span>
+      <a class="bc-current" href="&#x2F;#cat&#x3D;theory">理论与数学推理</a>
+      <span class="bc-kind is-paper">论文精读</span>
+    </nav>
+<h1 id="paper精读ten-advances-in-mathematics-and-theoretical-computer-science"><a class="markdownIt-Anchor" href="#paper精读ten-advances-in-mathematics-and-theoretical-computer-science"></a> Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science</h1>
+
+<div class="callout" data-callout="abstract">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">一句话结论</div>
+</div>
+<div class="callout-content"><p>OpenAI 内部模型一次性产出了<strong>数学与理论计算机科学领域的 10 项独立重大进展</strong>——每一项都是该领域悬置数十年、被写入综述和开放问题清单的经典难题：<strong>非 sofic 群</strong>的显式构造（否证 soficity 猜想）、<strong>Connes 刚性猜想</strong>的反例、<strong>球堆积高维指数</strong> 1978 年以来首次改进、<strong>Ehrhart 体积猜想</strong>的完整证明、<strong>多色 Ramsey 数</strong>超指数下界、<strong>量子平行重复定理</strong>（全纠缠博弈类）等。论文以 10 章独立论文形式呈现，每章包含完整证明——AI <span class="mark-strong">头一回不是给人类证明打下手，而是自己把可验证的前沿数学成果做了出来</span>。</p>
+</div></div>
+<details class="callout" data-callout="cite" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+</div>
+<div class="callout-title-inner">论文信息（点开折叠）</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ul>
+<li><strong>论文标题</strong>：Ten Advances in Mathematics and Theoretical Computer Science</li>
+<li><strong>arXiv</strong>：无（alphaXiv slug: 2607.ten-advancements）</li>
+<li><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://www.alphaxiv.org/abs/2607.ten-advancements">https://www.alphaxiv.org/abs/2607.ten-advancements</a></li>
+<li><strong>作者</strong>：OpenAI（未披露具体模型名，正文仅称 “an internal OpenAI model”）</li>
+<li><strong>机构</strong>：OpenAI</li>
+<li><strong>日期</strong>：2026-08-02</li>
+<li><strong>PDF</strong>：<span class="mark-number">249 页</span>，10 章独立论文合集</li>
+</ul>
+</div></details><hr />
+<h2 id="1️⃣-论文想解决什么问题"><a class="markdownIt-Anchor" href="#1️⃣-论文想解决什么问题"></a> 1️⃣ 论文想解决什么问题</h2>
+<p><strong>领域背景</strong>：数学与 TSC 中存在一批&quot;经典开放问题&quot;——被反复写进综述（Gromov、Weiss、Connes 专著、Erdős–Simonovits 猜想清单等）、被数代数学家围攻数十年、只获得部分进展或仅在某些特殊子类上被解决。它们的共同特征是：陈述简单（如&quot;每个可数群是否都有有限置换近似？&quot;），但证明需要高度非平凡的构造技巧与跨领域工具的深度组合。</p>
+<p><strong>现有方案的不足</strong>：人类研究者在这些问题上长期只能获得渐进性改进或特殊情形证明。例如球堆积指数停留在 1978 年的 Kabatianskii–Levenshtein 常数（0.59905576…）近半个世纪；多色 Ramsey 数下界停留在 380^(k/5)；CVP 的近似硬度依赖 PCP 定理或未证明的 Projection Games Conjecture。<strong>瓶颈不是工具不足，而是&quot;找到正确的构造&quot;这一创意步骤的稀缺。</strong></p>
+<p><strong>本文填补的空白</strong>：论文给出的证据是，AI 模型产出这类&quot;创意构造&quot;可以成批——10 个结果横跨调和分析、编码理论、群论、算子代数、算术电路复杂度、量子信息、格问题、凸几何、Ramsey 理论、极值图论 10 个分支，每个都给出完整可验证的证明。&quot;AI 能否做真正的前沿数学研究&quot;这个问题有了硬答案：不是复述已知证明，是独立解决开放问题。</p>
+<hr />
+<h2 id="2️⃣-核心洞察"><a class="markdownIt-Anchor" href="#2️⃣-核心洞察"></a> 2️⃣ 核心洞察</h2>
+
+<div class="callout" data-callout="important">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+</div>
+<div class="callout-title-inner">核心洞察</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>一个模型，十个分支，统一的方法论基因</strong>：10 章题材迥异，方法上却带同一套&quot;AI 风格&quot;——善于构造<span class="mark-strong"><strong>显式、代数化、带参数族</strong></span>的反例/证书（如二元 Leavitt 代数的单位群、二进制进位构造的紧阿贝尔群族、分层二分图族），而不是纯存在性论证。这种&quot;构造主义&quot;取向恰好命中了开放问题的要害。</p>
+</li>
+<li>
+<p><strong>把&quot;改进指数&quot;当作统一目标</strong>：多个章节（球堆积、二元/球面码、Ramsey、CVP、Ehrhart）的核心成果都是<strong>指数级改进</strong>——把长期停滞的常数从 O(1) 级别推到精确值或超指数。指数是渐进意义下&quot;信息量&quot;的单位，改进指数 = 真正理解问题的渐近结构。</p>
+</li>
+<li>
+<p><strong>多工具的组合而非新理论</strong>：几乎每章都是&quot;现有工具的意想不到组合&quot;——property-(T) 扩张图 + Leavitt 代数 → 非 sofic 群；Yuen 条件化框架 + 后选择稳定采样估计 → 量子平行重复；Reed–Solomon 幂和约束 → CVP 硬度。跨领域工具调用这一步，是模型占便宜的地方。</p>
+</li>
+<li>
+<p><strong>可验证性是底线的证明</strong>：全部 10 章均为完整证明（249 页），不是猜想或实验观察——落在&quot;数学证明&quot;这个最高可验证性标准里，跟 AI 平时的黑盒输出不是一种东西。</p>
+</li>
+</ol>
+</div></div><p><em>（原图未能本地化：论文第 1 页：标题、摘要与 10 项结果清单；IMA 媒体接口没有可用媒体编号）</em></p>
+<p><em>论文首页：标题页含 10 项结果的摘要清单，全篇 249 页，10 章独立论文，每章含完整证明与参考文献。</em></p>
+<hr />
+<h2 id="方法解读10-个结果逐一拆解"><a class="markdownIt-Anchor" href="#方法解读10-个结果逐一拆解"></a> 方法解读（10 个结果逐一拆解）</h2>
+<h3 id="结果-1高维球堆积cohnelkies-线性规划的指数率精确确定"><a class="markdownIt-Anchor" href="#结果-1高维球堆积cohnelkies-线性规划的指数率精确确定"></a> 结果 1：高维球堆积——Cohn–Elkies 线性规划的指数率精确确定</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：Rd 中单位球最大堆积密度 Δd 的渐近指数。Cohn–Elkies 线性规划（LP）给出上界 LPd，但高维行为长期未知；Afkhami-Jeddi, Cohn, Hartman, de Laat, Tajdini 提出了其指数率的猜想（受模 bootstrap 启发）</p>
+</li>
+<li>
+<p><strong>定理 1.1</strong>：lim_{d→∞} LPd^{1/d} = √(e/2π)。由此 Δd ≤ 2^(−(α*+o(1))d)，其中 α* = ½log₂(2π/e) = 0.6044…</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：这是 <strong>1978 年以来对一般球堆积指数（KL 常数 0.59905576…）的首次改进</strong>；且匹配的下界证明任何 Cohn–Elkies 辅助函数都无法超越此指数——LP 的渐近强度被完全确定</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：Fourier 符号不确定性（sign-uncertainty）问题——正、负特征值半径均为 (1/π+o(1))√d，联系 Bourgain–Clozel–Kahane 不确定原理</p>
+</li>
+</ul>
+<h3 id="结果-2二元码与球面码19771978-年以来指数首次改进"><a class="markdownIt-Anchor" href="#结果-2二元码与球面码19771978-年以来指数首次改进"></a> 结果 2：二元码与球面码——1977/1978 年以来指数首次改进</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：固定相对距离 δ 的二元码 A₂(n,d) 与固定最大内积 s 的球面码 A(n,s) 的高维指数</p>
+</li>
+<li>
+<p><strong>定理</strong>：对每个固定 0&lt;δ&lt;1/2，二元码界严格改进优化的 MRRW 指数；对每个固定 0&lt;s&lt;1，球面码界严格改进优化的 Kabatianskii–Levenshtein 指数（含球冠优化）</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：MRRW 指数（1977）与 KL 指数（1978）各自主宰了近 50 年——这是编码理论两大基本指数的首次实质性改进</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：构造<strong>两点线性规划证书</strong>（two-point LP certificates）；表示图（representation graph）方法；在 s→1 极限下恢复结果 1 的球堆积指数（两章形成自洽闭环）</p>
+</li>
+</ul>
+<p><img src="/img/paper-reading/img_c9b2e23a0379902a6e1024cf8fb0ca6bf3c12ee7e1c2febe8da165ca7d676757.png" srcset="/img/loading.gif" lazyload alt="图 2｜固定 Boolean 调和次数下的 whole-cube 表示路径" /></p>
+<p><em>图 2｜固定 Boolean 调和次数下的 whole-cube 表示路径。 <a target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/ten-proofs-oai.pdf#page=40">来源</a></em></p>
+<p><em>第二章 Figure 1（第 38 页）：whole-cube 表示路径图——二元码界证明中使用的表示图结构，展示固定 Boolean 调和下的表示路径。</em></p>
+<p><img src="/img/paper-reading/img_059bf4e4520002e288a9814d2dc7c9bc63eec7121067405f056ed16495e04c8f.png" srcset="/img/loading.gif" lazyload alt="图 3｜固定稳定子权重的球面两行表示图" /></p>
+<p><em>图 3｜固定稳定子权重的球面两行表示图。 <a target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/ten-proofs-oai.pdf#page=62">来源</a></em></p>
+<p><em>第二章 Figure 2（第 59 页）：球面两行表示图——球面码证明中经球面调和与稳定子表示的过渡图结构，用于渐近球面码界。</em></p>
+<h3 id="结果-3非-sofic-群否证-soficity-猜想"><a class="markdownIt-Anchor" href="#结果-3非-sofic-群否证-soficity-猜想"></a> 结果 3：非 sofic 群——否证 soficity 猜想</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：Gromov 引入 sofic 群（有限乘法表可被有限置换忠实近似）；Weiss 问是否所有可数群都是 sofic 的——即 <strong>soficity 猜想</strong>（Pestov 开放问题 3.8）</p>
+</li>
+<li>
+<p><strong>定理</strong>：二元 Leavitt 代数 LF₂(1,2) 的单位群 LF₂(1,2)× <strong>不是 sofic 的</strong>——显式构造出首个非 sofic 群</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：Kun 的 property-(T) 群扩张图分解 + Kun–Thom 中心化子障碍；一般&quot;扩张图匹配论证&quot;从扩张图的并集中恢复单个扩张分量；Leavitt 代数上的初等群迫使 Thompson 群 V 局部嵌入有限群（矛盾）</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：这是 20 余年（Gromov 1999 以来）未决的群论基础问题——soficity 猜想与 Gottschalk 猜想、Kaplansky 直接有限性猜想等拴在一起——否证一动，那几处全得跟着重新掂量</p>
+</li>
+</ul>
+<h3 id="结果-4connes-刚性猜想反例算子代数与群的解耦"><a class="markdownIt-Anchor" href="#结果-4connes-刚性猜想反例算子代数与群的解耦"></a> 结果 4：Connes 刚性猜想反例——算子代数与群的解耦</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：Connes 猜想（1978/1994 专著 Problem 1）：ICC property-(T) 群的群 von Neumann 代数 L(G) 是否决定 G 的同构类？</p>
+</li>
+<li>
+<p><strong>定理</strong>：构造<strong>可数无限族</strong>两两不同构、相互可通约（commensurable）、有限生成 ICC property-(T) 群，具有同构的群 von Neumann 代数——否证 Connes 猜想，并否定回答 Popa 的有限对一问题</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：利用 L∞(Â, m̂) 依赖底层概率空间而非群律——<strong>二进制进位</strong>产生不同的紧阿贝尔群结构，但具有相同的 Haar 测度与群作用</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：Connes 刚性是算子代数与群论交界处的&quot;北极星&quot;猜想，30 余年未解；反例的出现重新划定了&quot;群因子决定群&quot;的边界</p>
+</li>
+</ul>
+<h3 id="结果-5permanent-的下界电路与公式复杂度"><a class="markdownIt-Anchor" href="#结果-5permanent-的下界电路与公式复杂度"></a> 结果 5：Permanent 的下界——电路与公式复杂度</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：n×n permanent（pern(X)=Σ_{σ∈Sn} Π x_{i,σ(i)}）的精确符号计算复杂度</p>
+</li>
+<li>
+<p><strong>定理</strong>：① 无除法电路（允许中间值任意复用）需要 Ω(n² log log n) 个算术门；② 算术公式需要 Ω(n⁴/log n) 个变量标记叶（即使允许除法、分母为非零有理函数）</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：仿射特化使梯度在低维集合上消失 + 同时微分 + 几何度界；对短匹配的矩阵元识别大量代数独立系数，并在边不相交匹配上累加需求</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：permanent 是 VNP 完备函数，其下界是&quot;P ≠ NP 的代数版&quot;的核心证据；本文同时改进电路与公式两类模型的下界，且论证依赖 permanent 特有性质（不直接适用于 determinant）</p>
+</li>
+</ul>
+<h3 id="结果-6量子平行重复全纠缠博弈的指数衰减"><a class="markdownIt-Anchor" href="#结果-6量子平行重复全纠缠博弈的指数衰减"></a> 结果 6：量子平行重复——全纠缠博弈的指数衰减</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：经典 Raz 平行重复定理（STOC 1995）证明博弈值的指数衰减；纠缠玩家（共享任意量子态）的情形是否同样成立？——长久开放</p>
+</li>
+<li>
+<p><strong>定理</strong>：对每个有限双人单轮博弈 G，ω*(G)=1−ε&lt;1，ω*(G⊗n) ≤ exp(−c_qs·ε¹³/(ε+log|A||B|)·n)，c_qs 为普适常数</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：Yuen（ICALP 2016，多项式衰减）的条件化与依赖打破框架 + 新的<strong>后选择稳定量子可采样性估计</strong>（postselection-stable sampleability），避免对条件事件概率的逆依赖</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：此前仅特殊类（锚定博弈，BVY STOC 2017）有指数衰减；本文给出<strong>一般情形的指数平行重复</strong>，补全量子博弈论的核心工具</p>
+</li>
+</ul>
+<h3 id="结果-7cvp-的-n1400-硬度免-pcp-的直接归约"><a class="markdownIt-Anchor" href="#结果-7cvp-的-n1400-硬度免-pcp-的直接归约"></a> 结果 7：CVP 的 n^(1/400) 硬度——免 PCP 的直接归约</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：欧氏最近向量问题（CVP）的近似硬度</p>
+</li>
+<li>
+<p><strong>定理</strong>：从 3SAT 的<strong>确定性多项式时间多一归约</strong>到 GapCVP₂ 的 n^(1/400) 因子——n 为显式整数平方基给出的格秩；并导出二元最近码字与综合征解码的 n^(1/200) 硬度、固定有理 ℓp 范数的 n^(1/(200p)) 硬度</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：特征二域上 Reed–Solomon 幂和约束编码赋值与可满足性；坐标模二归约转化为整数格；完整性用多项式插值，可靠性用低权二进制解的幂和重构（有理函数域上的可分根集 + 赋值恢复 Boolean 赋值）</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：<strong>直接来自 3SAT、不调用 PCP 定理、不假设 Projection Games 猜想</strong>——这是格密码安全基础（CVP/LWE 系）中&quot;无条件归约&quot;的重要一步，也展示了全新归约路线</p>
+</li>
+</ul>
+<h3 id="结果-8ehrhart-体积猜想每个维度的尖锐界"><a class="markdownIt-Anchor" href="#结果-8ehrhart-体积猜想每个维度的尖锐界"></a> 结果 8：Ehrhart 体积猜想——每个维度的尖锐界</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：Ehrhart（1964）猜想：重心是唯一内格点的 n 维凸体，体积不超过 (n+1)ⁿ/n!（居中单纯形取等号）</p>
+</li>
+<li>
+<p><strong>定理 1.1</strong>：K⊂Rⁿ 紧凸体，重心 0，int(K)∩Zⁿ={0} ⇒ vol(K) ≤ (n+1)ⁿ/n!；等号由单纯形 (n+1)Δn−(1,…,1) 达到</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：实势与格 Bergman 空间（real potential and lattice Bergman spaces）、消失阶与下斜率、Bergman 凸性与上斜率</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：此前仅有平面情形与单纯形情形的证明（Ehrhart 本人）、以及 4ⁿe^(−c√n) 型弱化界（HSTV 2022、Campos et al.）；<strong>每个维度的精确尖锐界</strong>填补了近 60 年的空白</p>
+</li>
+</ul>
+<h3 id="结果-9多色-ramsey-数rk3-kθk-的超指数下界"><a class="markdownIt-Anchor" href="#结果-9多色-ramsey-数rk3-kθk-的超指数下界"></a> 结果 9：多色 Ramsey 数——Rk(3) = k^Θ(k) 的超指数下界</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：k 色 Ramsey 数 Rk(3)=R(3,…,3)（最小 N 使 K_N 的任意 k 边着色含单色三角形）的增长阶；此前下界仅 380^(k/5)−O(1)（ACPPRT 2021），上界 (e−1/6)k!+1</p>
+</li>
+<li>
+<p><strong>定理</strong>：存在绝对常数 c&gt;0，对一切 k≥2：Rk(3) ≥ (c·k^(1/3)/log k)^k —— 与阶乘上界结合得 <strong>Rk(3)=k^Θ(k)</strong>（增长阶确定）；推论：独立数为 2 的图的 Shannon 容量无界</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：饱和矩阵（saturated matrices）、坐标覆盖（coordinate covers）、调色板（palettes）与递归无三角着色</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：Graham–Rothschild–Spencer 专著（1990, p.146）明确记载的开放问题——“Rk(3) 是否超指数增长”？本文不仅回答&quot;是&quot;，且<strong>确定了增长阶</strong></p>
+</li>
+</ul>
+<h3 id="结果-10极值图论两个-erdős-猜想的同时否证"><a class="markdownIt-Anchor" href="#结果-10极值图论两个-erdős-猜想的同时否证"></a> 结果 10：极值图论——两个 Erdős 猜想的同时否证</h3>
+<ul>
+<li>
+<p><strong>问题</strong>：Erdős–Simonovits 紧致性猜想（禁止一个含圈的有限图族是否能把极值数 ex(n,F) 压低超过常数因子？）与 Erdős 退化猜想（每个二分 r-退化图是否有 ex(n,H)=O(n^(2−1/r))？）</p>
+</li>
+<li>
+<p><strong>定理</strong>：① 构造有限连通二分图族 F（每图含圈）：ex(n,F)=O(n^(4/3−1/48)) 但每个 F∈F 有 ex(n,F)=Ω(n^(4/3))——否证紧致性猜想；② 构造固定连通二分 2-退化图 H：ex(n,H) ≥ c·n^(3/2+ε)——<strong>连 r=2 都否证</strong>退化猜想</p>
+</li>
+<li>
+<p><strong>方法核心</strong>：广义四边形见证（generalized-quadrangle witnesses）、二元熵不等式、分层图、采样的 Hamming 球图</p>
+</li>
+<li>
+<p><strong>为何重要</strong>：Erdős 的两个经典猜想（分别来自 1967 与 1982）被显式反例同时推翻，极值图论的核心直觉需要修正</p>
+</li>
+</ul>
+<hr />
+<h2 id="4️⃣-实验部分怎么读"><a class="markdownIt-Anchor" href="#4️⃣-实验部分怎么读"></a> 4️⃣ 实验部分怎么读</h2>
+<h3 id="验证方式"><a class="markdownIt-Anchor" href="#验证方式"></a> 验证方式</h3>
+<ul>
+<li>
+<p>本文没有传统 ML 实验——<strong>&quot;实验&quot;就是数学证明本身</strong>：10 章每章含完整定理-证明结构（Theorem/Proof/Lemma/Corollary），249 页全部可被人类审阅验证</p>
+</li>
+<li>
+<p>每章包含：背景综述（前人到哪一步）、本文定理陈述、完整证明、与已知界/已知结果的对比表、参考文献</p>
+</li>
+<li>
+<p>与前人结果的对比构成&quot;实验基线&quot;：球堆积 vs KL 1978；二元码 vs MRRW 1977；球面码 vs KL 1978；Ramsey vs ACPPRT 2021 的 380^(k/5)；CVP vs PCP 路线；Ehrhart vs HSTV 2022 弱化界</p>
+</li>
+</ul>
+<h3 id="核心结果一览"><a class="markdownIt-Anchor" href="#核心结果一览"></a> 核心结果一览</h3>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>#</strong></th>
+<th><strong>领域</strong></th>
+<th><strong>核心结果</strong></th>
+<th><strong>打破的记录（年代）</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>球堆积</td>
+<td>LPd^{1/d}→√(e/2π)，指数 α*=0.6044…</td>
+<td>KL 指数 0.59905576…（1978）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>编码理论</td>
+<td>MRRW 与 KL 指数全参数严格改进</td>
+<td>MRRW（1977）/ KL（1978）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>群论</td>
+<td>首个非 sofic 群（Leavitt 单位群）</td>
+<td>soficity 猜想（1999-）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>算子代数</td>
+<td>Connes 刚性猜想的无限反例族</td>
+<td>Connes 猜想（1978/1994）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>复杂度</td>
+<td>permanent 电路 Ω(n²loglogn)、公式 Ω(n⁴/logn)</td>
+<td>此前最佳下界</td>
+</tr>
+<tr>
+<td>6</td>
+<td>量子博弈</td>
+<td>全纠缠博弈指数平行重复</td>
+<td>仅锚定博弈有（2017）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>格问题</td>
+<td>CVP n^(1/400)-hard，免 PCP</td>
+<td>PCP/Projection Games 依赖</td>
+</tr>
+<tr>
+<td>8</td>
+<td>凸几何</td>
+<td>Ehrhart 猜想每维尖锐界 (n+1)ⁿ/n!</td>
+<td>仅平面+单纯形（1955-1979）</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Ramsey</td>
+<td>Rk(3)=k^Θ(k)（超指数）</td>
+<td>380^(k/5)（2021）</td>
+</tr>
+<tr>
+<td>10</td>
+<td>极值图论</td>
+<td>否证紧致性+退化两猜想</td>
+<td>Erdős 1967/1982 猜想</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="跨章节的深层联系"><a class="markdownIt-Anchor" href="#跨章节的深层联系"></a> 跨章节的深层联系</h3>
+<ul>
+<li>
+<p><strong>结果 1 ↔ 结果 2</strong>：第二章在 s→1 极限下恢复第一章的球堆积指数——两章互相印证，形成&quot;编码界 → 堆积界&quot;的完整闭环</p>
+</li>
+<li>
+<p><strong>结果 3 ↔ 结果 4</strong>：都用 property-(T) 群与&quot;代数结构 + 测度/近似&quot;的对偶视角；Leavitt 代数与二进制进位都是&quot;代数对象携带非平凡刚性/柔性&quot;的体现</p>
+</li>
+<li>
+<p><strong>结果 6 ↔ 结果 7</strong>：都依赖&quot;条件化/幂和&quot;的重构思想——量子后选择采样与 Reed–Solomon 幂和重构在精神上同源</p>
+</li>
+<li>
+<p><strong>结果 9 ↔ 结果 10</strong>：都构造<strong>参数族反例</strong>（递归着色族 / 分层图族），体现模型&quot;生成化构造&quot;的强项</p>
+</li>
+</ul>
+<hr />
+<h2 id="5️⃣-学术评价"><a class="markdownIt-Anchor" href="#5️⃣-学术评价"></a> 5️⃣ 学术评价</h2>
+<p><strong>优点：</strong></p>
+<ol>
+<li>
+<p><strong>覆盖广度惊人</strong>：10 个分支、每个都是各自领域的长期开放问题，且每个都给出完整证明——单个数学家一辈子撞上其中一个就够写进履历了，这里一次摆出十个</p>
+</li>
+<li>
+<p><strong>打破&quot;停滞常数&quot;</strong>：多处改进的是 40-50 年未被触碰的指数/常数（KL 1978、MRRW 1977、380^(k/5) 2021）——<span class="mark-strong">不是渐进式的&quot;挤牙膏&quot;，而是结构性突破</span></p>
+</li>
+<li>
+<p><strong>反例型成果居多</strong>：3（非 sofic）、4（Connes 反例）、10（双猜想否证）都是&quot;推翻猜想&quot;型成果——这类成果对理论冲击最大，也最难构造（需要命中猜想的命门）</p>
+</li>
+<li>
+<p><strong>自包含可验证</strong>：249 页完整证明 + 每章独立参考文献，符合最高可验证标准；没有依赖未公开的计算（如暴力搜索验证）的声明</p>
+</li>
+<li>
+<p><strong>方法论示范</strong>：每个证明都是既有工具的新组合，而非发明新理论——&quot;从别的领域借工具&quot;这一步，模型做得比大多数人顺手</p>
+</li>
+</ol>
+
+<div class="callout" data-callout="ed-warning">
+<div class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+</div>
+<div class="callout-title-inner">局限（风险与不确定性）</div>
+</div>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>模型信息零披露</strong>：正文仅说 “an internal OpenAI model”，没有模型名、规模、训练方法、推理设置——无法评估这是&quot;通用前沿模型顺带做数学&quot;还是&quot;专用数学模型&quot;，也无法复现或对比</p>
+</li>
+<li>
+<p><strong>无错误率/成功率数据</strong>：未披露模型尝试了多少问题、成功率多少、证明过程是否有人类介入修正——&quot;10 个结果&quot;可能是筛选后的幸存者，不能代表模型的真实能力基线</p>
+</li>
+<li>
+<p><strong>证明风格可读性</strong>：AI 生成的证明以&quot;构造复杂 + 步骤繁多&quot;著称（如第 3 章的 Leavitt/Thompson 链、第 7 章的幂和重构），人类审阅成本高，正确性确认可能需要专门团队数月工作</p>
+</li>
+<li>
+<p><strong>与传统数学社区的对接缺失</strong>：没有注明哪些结果已通过同行评审、是否有独立验证——&quot;可验证&quot;与&quot;已验证&quot;是两回事</p>
+</li>
+<li>
+<p><strong>深度 vs 广度</strong>：10 个结果横跨 10 个方向，但每个方向只解决一个（或一类）问题，缺乏对某一分支的系统性深耕——更像是&quot;广度冲击&quot;而非&quot;深度征服&quot;</p>
+</li>
+</ol>
+</div></div><hr />
+<h2 id="6️⃣-局限与可扩展方向"><a class="markdownIt-Anchor" href="#6️⃣-局限与可扩展方向"></a> 6️⃣ 局限与可扩展方向</h2>
+<ul>
+<li>
+<p><strong>模型披露与可复现性</strong>：希望后续公开模型信息与&quot;尝试→成功&quot;的完整过程记录，让社区能评估真实能力与筛选偏差</p>
+</li>
+<li>
+<p><strong>证明的独立验证</strong>：10 章定理值得数学社区逐章审阅——特别是第 3、4 章的反例型结果（历史上有过&quot;反例&quot;后来被发现错误的先例）</p>
+</li>
+<li>
+<p><strong>从&quot;结果&quot;到&quot;理论&quot;</strong>：目前是 10 个独立定理；后续能否看到模型产出<strong>统一的理论框架</strong>（如新的约化理论、新的抽象概念）而非孤立构造？</p>
+</li>
+<li>
+<p><strong>与证明助手（Lean/Coq）结合</strong>：若这些证明能形式化到 Lean 中，可一举解决&quot;可验证性&quot;质疑，&quot;AI 证明 + 机器验证&quot;的组合也就真正落地了</p>
+</li>
+<li>
+<p><strong>扩展到更广泛的开放问题</strong>：10 个领域之外（数论、代数几何、P vs NP 相关）的开放问题是否同样可攻击？&quot;AI 数学&quot;的边界在哪？</p>
+</li>
+<li>
+<p><strong>对 AI 训练的反馈</strong>：这些成果暗示&quot;长程推理 + 构造性思维&quot;训练的有效性——数学成果可作为 RLVR（可验证奖励）的天然训练信号，反哺下一代模型</p>
+</li>
+</ul>
+<hr />
+<h2 id="与其他论文的对话"><a class="markdownIt-Anchor" href="#与其他论文的对话"></a> 与其他论文的对话</h2>
+<div class="paper-table-scroll" role="region" aria-label="论文表格" tabindex="0"><table>
+<thead>
+<tr>
+<th><strong>相关工作</strong></th>
+<th><strong>关系</strong></th>
+<th><strong>差异/关联</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Viazovska (2017) / CKMRV (2017)</strong></td>
+<td>E8/Leech 格最优堆积证明</td>
+<td>结果 1 在高维方向补全了 Cohn–Elkies 框架的渐近强度；Viazovska 是低维精确解，本文是高维指数解</td>
+</tr>
+<tr>
+<td><strong>Raz (1995) / BVY (2017) / Yuen (2016)</strong></td>
+<td>平行重复定理谱系</td>
+<td>结果 6 把指数衰减从经典/锚定博弈推广到全纠缠博弈，站在 Yuen 条件化框架上</td>
+</tr>
+<tr>
+<td><strong>Gromov (1999) / Weiss (2000)</strong></td>
+<td>sofic 群定义与猜想</td>
+<td>结果 3 直接否证了 Weiss 的问题——sofic 群理论的核心开放问题</td>
+</tr>
+<tr>
+<td><strong>Connes (1978, 1994) / Popa</strong></td>
+<td>群因子刚性</td>
+<td>结果 4 否证 Connes 猜想并回答 Popa 的有限对一问题</td>
+</tr>
+<tr>
+<td><strong>MRRW (1977) / KL (1978)</strong></td>
+<td>编码理论经典指数</td>
+<td>结果 2 首次改进这两个 40+ 年未动的指数</td>
+</tr>
+<tr>
+<td><strong>PCP 定理 / Projection Games Conjecture</strong></td>
+<td>格问题硬度路线</td>
+<td>结果 7 提供免 PCP、免 PGC 的直接 3SAT 归约——独立于经典路线的全新证明</td>
+</tr>
+<tr>
+<td><strong>Campos et al. (2022) / HSTV (2022)</strong></td>
+<td>Ehrhart 猜想弱化界</td>
+<td>结果 8 从 4ⁿ·exp(−cn/(log n)⁸) 提升到精确尖锐界 (n+1)ⁿ/n!</td>
+</tr>
+<tr>
+<td><strong>ACPPRT (2021) / Graham–Rothschild–Spencer (1990)</strong></td>
+<td>Ramsey 下界谱系</td>
+<td>结果 9 从 380^(k/5) 跳到 k^Θ(k)，确定增长阶</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7️⃣-最后总结"><a class="markdownIt-Anchor" href="#7️⃣-最后总结"></a> 7️⃣ 最后总结</h2>
+<p>这份合集做的是一件没有先例的事：一个 AI 模型在<strong>纯数学与理论计算机科学</strong>的多个核心分支中独立解决长期开放问题，且全部以完整可验证证明的形式呈现。技术上，10 个结果相互呼应（编码↔堆积、群论↔算子代数、量子↔格、Ramsey↔极值图论），跨领域迁移在这里是事实，不是口号；方法上，它以&quot;显式构造 + 参数族反例 + 指数改进&quot;为主线，命中了许多人类长期卡壳问题的要害。但它也是&quot;黑盒声明&quot;：模型细节为零披露、验证未完成、成功率未知。<strong>它的真正意义不在于这 10 个定理本身，而在于它<span class="mark-strong">为&quot;AI 数学研究&quot;确立了一个新的质量标准</span>——这个标准要立得住，还得看两件事补不补得上：独立验证，以及模型透明度。</strong> 对读者而言，第 1、2、9 章（指数改进型）最容易快速验证价值，第 3、4 章（反例型）最值得深入审阅，第 7 章（免 PCP 归约）在密码学上影响最大。</p>
+<hr />
+<h2 id="8️⃣-三句速记"><a class="markdownIt-Anchor" href="#8️⃣-三句速记"></a> 8️⃣ 三句速记</h2>
+
+<details class="callout" data-callout="summary" data-callout-fold="-">
+<summary class="callout-title">
+<div class="callout-title-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+</div>
+<div class="callout-title-inner">点开展开</div>
+<div class="callout-fold"></div>
+</summary>
+<div class="callout-content"><p></p>
+<ol>
+<li>
+<p><strong>十个世纪难题，一份 249 页证明</strong>：OpenAI 内部模型同时解决球堆积指数、非 sofic 群、Connes 刚性猜想、Ehrhart 猜想、多色 Ramsey 增长阶等 10 个经典开放问题，每章完整证明。</p>
+</li>
+<li>
+<p><strong>打破 40-50 年停滞的指数</strong>：MRRW/KL 编码指数（1977/1978）、球堆积指数（1978）、Ramsey 下界（2021）全部被结构性改进——不是挤牙膏，是突破。</p>
+</li>
+<li>
+<p><span class="mark-strong"><strong>可验证但未验证</strong></span>：证明完整可审阅，但模型零披露、无独立验证、成功率未知——里程碑的成色，要等数学社区逐章验完才算数。</p>
+</li>
+</ol>
+</div></details>
+</div>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%90%86%E8%AE%BA%E4%B8%8E%E6%95%B0%E5%AD%A6%E6%8E%A8%E7%90%86/" class="category-chain-item">理论与数学推理</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%90%86%E8%AE%BA%E4%B8%8E%E6%95%B0%E5%AD%A6%E6%8E%A8%E7%90%86/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Paper%E7%B2%BE%E8%AF%BB/" class="print-no-link">#Paper精读</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Paper精读｜Ten Advances in Mathematics and Theoretical Computer Science</div>
+      <div>https://yyhchen.github.io/2026/08/04/paper-ten-advances-in-mathematics-and-theoretical-computer-science/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yhchen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/04/paper-memharness-memory-is-reconstructed-not-replayed/" title="Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Paper精读｜MemHarness: Memory Is Reconstructed, Not Replayed</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/04/paper-weak-to-strong-on-policy-distillation/" title="Paper精读｜Weak-to-Strong On-Policy Distillation">
+                        <span class="hidden-mobile">Paper精读｜Weak-to-Strong On-Policy Distillation</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://yyhchen.github.io/" target="_blank" rel="nofollow noopener"><span>yhchen design</span></a> <i class="iconfont icon-code"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>based Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/blog-home.js"></script>
+<script src="/js/blog-archive.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
