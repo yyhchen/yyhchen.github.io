@@ -252,6 +252,29 @@
       }
     });
 
+    var topbar = root.querySelector('.bh-topbar');
+    var navbar = document.getElementById('navbar');
+
+    function syncStickyOffsets() {
+      var collapsedNavHeight =
+        navbar && navbar.classList.contains('top-nav-collapse')
+          ? Math.round(navbar.getBoundingClientRect().height)
+          : 50;
+      var topbarTop = Math.max(52, Math.min(collapsedNavHeight + 8, 66));
+      root.style.setProperty('--bh-topbar-top', topbarTop + 'px');
+      if (topbar) {
+        var topbarHeight = Math.round(topbar.getBoundingClientRect().height);
+        root.style.setProperty('--bh-sticky-offset', topbarTop + topbarHeight + 14 + 'px');
+      }
+    }
+
+    function updateTopbarStuck() {
+      if (!topbar) return;
+      var topPx = parseFloat(getComputedStyle(topbar).top) || 58;
+      var isStuck = topbar.getBoundingClientRect().top <= topPx + 1;
+      topbar.classList.toggle('is-stuck', isStuck);
+    }
+
     // Timeline smooth scroll + ScrollSpy
     function setCurrentMonth(mKey) {
       timelineLinks.forEach(function (link) {
@@ -260,7 +283,7 @@
     }
 
     function updateActiveTimelineFromScroll() {
-      var threshold = 130;
+      var threshold = topbar ? topbar.getBoundingClientRect().bottom + 36 : 160;
       var activeKey = null;
       for (var i = 0; i < monthGroups.length; i++) {
         var group = monthGroups[i];
@@ -296,12 +319,18 @@
         if (ticking) return;
         ticking = true;
         window.requestAnimationFrame(function () {
+          updateTopbarStuck();
           updateActiveTimelineFromScroll();
           ticking = false;
         });
       },
       { passive: true }
     );
+
+    window.addEventListener('resize', function () {
+      syncStickyOffsets();
+      updateTopbarStuck();
+    });
 
     window.addEventListener('hashchange', function () {
       var hashCat = parseHashCat();
@@ -313,16 +342,19 @@
     });
 
     // Initialize
+    syncStickyOffsets();
     setView(state.view);
     var initialCat = parseHashCat();
     if (initialCat) {
       state.cat = initialCat;
     }
     applyFilter({ syncHash: false });
+    updateTopbarStuck();
 
     // When returning from a post breadcrumb (/#cat=...), glide past the 100vh hero to the workspace.
     if (initialCat) {
       window.requestAnimationFrame(function () {
+        syncStickyOffsets();
         root.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
